@@ -53,6 +53,16 @@ describe('TextEditor', () => {
     expect(textarea.getAttribute('aria-invalid')).toBe('true');
   });
 
+  it('accepts a blank text when the field is optional', () => {
+    const { fixture, type, submit, saved } = render();
+    fixture.componentRef.setInput('required', false);
+
+    type('   ');
+    submit();
+
+    expect(saved).toEqual(['']);
+  });
+
   it('shows the engine’s refusal inline', () => {
     const { fixture, element } = render();
 

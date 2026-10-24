@@ -156,7 +156,35 @@
       "invalidInput": "The request was refused: check the fields.",
       "forbidden": "Your account may not edit this content.",
       "unreachable": "The engine is unreachable. Your changes were not saved.",
-      "unexpected": "An unexpected error occurred. Your changes were not saved."
+      "unexpected": "An unexpected error occurred. Your changes were not saved.",
+      "sameLanguage": "The target language is the source language: choose another.",
+      "unknownEngine": "This translation engine is not available.",
+      "unsupportedLanguageForEngine": "This engine cannot translate into this language: try the other engine.",
+      "translationEngine": "The translation engine failed: nothing was added. Try again.",
+      "generationEngine": "Generation failed: no variants were proposed. Try again."
+    },
+    "translate": {
+      "open": "Translate",
+      "answerName": "Translate the answer",
+      "variantName": "Translate variant {{ number }}",
+      "target": "Target language",
+      "engine": "Translation engine",
+      "submit": "Translate",
+      "engines": {
+        "llm": "Language model (LLM)",
+        "google": "Google Translate"
+      }
+    },
+    "generate": {
+      "open": "Generate variants",
+      "context": "Context (optional)",
+      "submit": "Generate",
+      "candidates": "Proposals",
+      "none": "The engine proposed no variants.",
+      "keep": "Keep proposal {{ number }}",
+      "candidate": "Text of proposal {{ number }}",
+      "addKept": "Add the kept ones ({{ count }})",
+      "discard": "Discard the proposals"
     }
   }
 }

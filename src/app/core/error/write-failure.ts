@@ -12,6 +12,11 @@ const BY_CODE: Readonly<Record<string, string>> = {
   language_already_present: 'authoring.errors.languageAlreadyPresent',
   language_presence_required: 'authoring.errors.languagePresenceRequired',
   unknown_language: 'authoring.errors.unknownLanguage',
+  same_language: 'authoring.errors.sameLanguage',
+  unknown_engine: 'authoring.errors.unknownEngine',
+  unsupported_language_for_engine: 'authoring.errors.unsupportedLanguageForEngine',
+  translation_engine_error: 'authoring.errors.translationEngine',
+  generation_engine_error: 'authoring.errors.generationEngine',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

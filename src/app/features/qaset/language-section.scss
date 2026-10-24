@@ -78,9 +78,6 @@ dd {
   justify-content: space-between;
   gap: var(--muso-space-2);
 }
-.edit {
-  margin-block-start: var(--muso-space-1);
-}
 .item-actions {
   display: flex;
   flex-wrap: wrap;
@@ -90,4 +87,12 @@ dd {
 }
 .add-variant {
   margin-block-start: var(--muso-space-2);
+}
+.translate,
+.generate {
+  margin-block-start: var(--muso-space-2);
+  padding: var(--muso-space-2);
+  border: 1px solid var(--card-border);
+  border-radius: var(--muso-radius);
+  background: var(--muso-surface);
 }

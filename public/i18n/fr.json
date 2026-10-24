@@ -156,7 +156,35 @@
       "invalidInput": "La demande a été refusée : vérifiez les champs.",
       "forbidden": "Votre compte n’a pas la permission de modifier ce contenu.",
       "unreachable": "Le moteur est injoignable. Vos modifications n’ont pas été enregistrées.",
-      "unexpected": "Une erreur inattendue est survenue. Vos modifications n’ont pas été enregistrées."
+      "unexpected": "Une erreur inattendue est survenue. Vos modifications n’ont pas été enregistrées.",
+      "sameLanguage": "La langue cible est la langue d’origine : choisissez-en une autre.",
+      "unknownEngine": "Ce moteur de traduction n’est pas disponible.",
+      "unsupportedLanguageForEngine": "Ce moteur ne sait pas traduire vers cette langue : essayez l’autre moteur.",
+      "translationEngine": "Le moteur de traduction a échoué : rien n’a été ajouté. Réessayez.",
+      "generationEngine": "La génération a échoué : aucune variante n’a été proposée. Réessayez."
+    },
+    "translate": {
+      "open": "Traduire",
+      "answerName": "Traduire la réponse",
+      "variantName": "Traduire la variante {{ number }}",
+      "target": "Langue cible",
+      "engine": "Moteur de traduction",
+      "submit": "Traduire",
+      "engines": {
+        "llm": "Modèle de langage (LLM)",
+        "google": "Google Traduction"
+      }
+    },
+    "generate": {
+      "open": "Générer des variantes",
+      "context": "Contexte (facultatif)",
+      "submit": "Générer",
+      "candidates": "Propositions",
+      "none": "Le moteur n’a proposé aucune variante.",
+      "keep": "Retenir la proposition {{ number }}",
+      "candidate": "Texte de la proposition {{ number }}",
+      "addKept": "Ajouter les retenues ({{ count }})",
+      "discard": "Abandonner les propositions"
     }
   }
 }

@@ -26,7 +26,7 @@ export class FakeApiPort extends ApiPort {
     if (!(path in this.answers)) {
       return Promise.reject(new HttpErrorResponse({ status: 503, url: path }));
     }
-    return this.#answer<T>(this.answers[path]);
+    return this.#answer<T>(this.answers[path], undefined);
   }
 
   post<T>(path: string, body: unknown): Promise<T> {
@@ -48,10 +48,11 @@ export class FakeApiPort extends ApiPort {
   #write<T>(method: string, path: string, body?: unknown): Promise<T> {
     this.writes.push({ method, path, body });
     this.calls.push(`${method} ${path}`);
-    return this.#answer<T>(this.answers[`${method} ${path}`]);
+    return this.#answer<T>(this.answers[`${method} ${path}`], body);
   }
 
-  #answer<T>(answer: unknown): Promise<T> {
+  #answer<T>(answer: unknown, body: unknown): Promise<T> {
+    if (typeof answer === 'function') return this.#answer<T>(answer(body), body);
     if (answer instanceof HttpErrorResponse) return Promise.reject(answer);
     return Promise.resolve(answer as T);
   }

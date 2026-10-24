@@ -4,7 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 let nextId = 0;
 
-/** A labelled text area that saves its trimmed, non-blank value. */
+/** A labelled text area that saves its trimmed value — non-blank unless optional. */
 @Component({
   selector: 'app-text-editor',
   imports: [FormField, TranslocoPipe],
@@ -41,6 +41,7 @@ export class TextEditor {
 
   readonly label = input.required<string>();
   readonly initial = input('');
+  readonly required = input(true);
   /** The content's language, so assistive technology reads the draft in it. */
   readonly lang = input<string>();
   readonly saveLabel = input<string>();
@@ -52,7 +53,9 @@ export class TextEditor {
 
   readonly #model = signal({ text: '' });
   protected readonly field = form(this.#model, (path) => {
-    validate(path.text, ({ value }) => (value().trim() === '' ? requiredError() : undefined));
+    validate(path.text, ({ value }) =>
+      this.required() && value().trim() === '' ? requiredError() : undefined,
+    );
   });
   readonly #submitted = signal(false);
   protected readonly blank = computed(() => this.#submitted() && this.field.text().invalid());

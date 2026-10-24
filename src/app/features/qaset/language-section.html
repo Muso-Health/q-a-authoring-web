@@ -52,15 +52,56 @@
     } @else {
       <p class="text" [attr.lang]="lang.code">{{ s.answer.text }}</p>
       @if (editor.canAuthor()) {
-        <button
-          type="button"
-          class="secondary edit"
-          [disabled]="editor.busy()"
-          (click)="editingAnswer.set(true)"
-        >
-          {{ 'authoring.editAnswer' | transloco }}
-        </button>
+        <div class="item-actions">
+          <button
+            type="button"
+            class="secondary"
+            [disabled]="editor.busy()"
+            (click)="editingAnswer.set(true)"
+          >
+            {{ 'authoring.editAnswer' | transloco }}
+          </button>
+          @if (editor.missingLanguages().length > 0) {
+            <button
+              type="button"
+              class="secondary"
+              [disabled]="editor.busy()"
+              [attr.aria-label]="'authoring.translate.answerName' | transloco"
+              (click)="translating.set(s.answer.id)"
+            >
+              {{ 'authoring.translate.open' | transloco }}
+            </button>
+          }
+          <button
+            type="button"
+            class="secondary"
+            [disabled]="editor.busy()"
+            (click)="generating.set(true)"
+          >
+            {{ 'authoring.generate.open' | transloco }}
+          </button>
+        </div>
       }
+    }
+    @if (translating() === s.answer.id) {
+      <div class="translate">
+        <app-translate-form
+          [languages]="editor.missingLanguages()"
+          [busy]="editor.busy()"
+          [error]="editor.errorFor('translate:' + s.answer.id)"
+          (submitted)="translateAnswer($event)"
+          (cancel)="close('translate:' + s.answer.id, cancelTranslation)"
+        />
+      </div>
+    }
+    @if (generating()) {
+      <div class="generate">
+        <app-variant-generator
+          [answerId]="s.answer.id"
+          [language]="lang"
+          (closed)="generating.set(false)"
+        />
+      </div>
     }
     <app-item-meta [item]="s.answer" [label]="'qaset.answerAudio' | transloco" />
   </article>
@@ -107,6 +148,19 @@
               >
                 {{ 'authoring.edit' | transloco }}
               </button>
+              @if (editor.variantTargets(lang.id).length > 0) {
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="editor.busy()"
+                  [attr.aria-label]="
+                    'authoring.translate.variantName' | transloco: { number: n + 1 }
+                  "
+                  (click)="translating.set(variant.id)"
+                >
+                  {{ 'authoring.translate.open' | transloco }}
+                </button>
+              }
               <app-confirm-action
                 [label]="'authoring.delete' | transloco"
                 [accessibleName]="'authoring.deleteVariant.name' | transloco: { number: n + 1 }"
@@ -118,6 +172,17 @@
             @if (editor.errorFor('variant:' + variant.id); as message) {
               <p class="field-error" role="alert">{{ message }}</p>
             }
+          }
+          @if (translating() === variant.id) {
+            <div class="translate">
+              <app-translate-form
+                [languages]="editor.variantTargets(lang.id)"
+                [busy]="editor.busy()"
+                [error]="editor.errorFor('translate:' + variant.id)"
+                (submitted)="translateVariant(variant.id, $event)"
+                (cancel)="close('translate:' + variant.id, cancelTranslation)"
+              />
+            </div>
           }
         </li>
       }

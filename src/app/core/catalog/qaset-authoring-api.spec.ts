@@ -50,6 +50,38 @@ describe('QASetAuthoringApi', () => {
     ]);
   });
 
+  it('asks the engine to translate an answer or a variant with the chosen engine', async () => {
+    const { api, authoring } = setUp();
+    const q = IDS.qaset;
+
+    await authoring.translateAnswer(q, IDS.answerFr, IDS.ff, 'google');
+    await authoring.translateVariant(q, IDS.variantFr1, IDS.bm, 'llm');
+
+    expect(api.writes).toEqual([
+      {
+        method: 'POST',
+        path: `/qasets/${q}/answers/${IDS.answerFr}/translate`,
+        body: { target_language_id: IDS.ff, engine: 'google' },
+      },
+      {
+        method: 'POST',
+        path: `/qasets/${q}/variants/${IDS.variantFr1}/translate`,
+        body: { target_language_id: IDS.bm, engine: 'llm' },
+      },
+    ]);
+  });
+
+  it('asks for variant candidates with the context, and answers with them', async () => {
+    const { api, authoring } = setUp();
+    const path = `/qasets/${IDS.qaset}/answers/${IDS.answerFr}/generate-variants`;
+    api.answers[`POST ${path}`] = { candidates: ['Une ?', 'Deux ?'] };
+
+    const candidates = await authoring.generateVariants(IDS.qaset, IDS.answerFr, 'Enfants');
+
+    expect(candidates).toEqual(['Une ?', 'Deux ?']);
+    expect(api.writes).toEqual([{ method: 'POST', path, body: { context: 'Enfants' } }]);
+  });
+
   it('creates a QASet under a theme and answers with its id', async () => {
     const { api, authoring } = setUp();
 

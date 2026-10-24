@@ -3,6 +3,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
 import { TextEditor } from '../../shared/ui/text-editor';
 import { ItemMeta } from './item-meta';
+import { TranslateForm, type TranslationRequest } from './translate-form';
+import { VariantGenerator } from './variant-generator';
 import { QASetEditor } from './qaset-editor';
 import type { LanguageSectionView } from './qaset-view';
 
@@ -12,7 +14,7 @@ import type { LanguageSectionView } from './qaset-view';
  */
 @Component({
   selector: 'app-language-section',
-  imports: [TranslocoPipe, ConfirmAction, ItemMeta, TextEditor],
+  imports: [TranslocoPipe, ConfirmAction, ItemMeta, TextEditor, TranslateForm, VariantGenerator],
   templateUrl: './language-section.html',
   styleUrl: './language-section.scss',
 })
@@ -24,6 +26,9 @@ export class LanguageSection {
   protected readonly editingAnswer = signal(false);
   protected readonly editingVariant = signal<string | null>(null);
   protected readonly addingVariant = signal(false);
+  /** The answer or variant whose translation form is open. */
+  protected readonly translating = signal<string | null>(null);
+  protected readonly generating = signal(false);
 
   protected async saveAnswer(text: string): Promise<void> {
     if (await this.editor.editAnswer(this.section().language.id, text)) {
@@ -41,6 +46,23 @@ export class LanguageSection {
     }
   }
 
+  protected async translateAnswer({ targetLanguageId, engine }: TranslationRequest): Promise<void> {
+    const answerId = this.section().answer.id;
+    if (await this.editor.translateAnswer(answerId, targetLanguageId, engine)) {
+      this.translating.set(null);
+    }
+  }
+
+  protected async translateVariant(
+    variantId: string,
+    { targetLanguageId, engine }: TranslationRequest,
+  ): Promise<void> {
+    if (await this.editor.translateVariant(variantId, targetLanguageId, engine)) {
+      this.translating.set(null);
+    }
+  }
+
+  protected readonly cancelTranslation = () => this.translating.set(null);
   protected readonly cancelAnswer = () => this.editingAnswer.set(false);
   protected readonly cancelVariant = () => this.editingVariant.set(null);
   protected readonly cancelAddVariant = () => this.addingVariant.set(false);

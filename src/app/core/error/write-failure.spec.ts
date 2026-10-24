@@ -19,6 +19,19 @@ describe('writeFailureOf', () => {
     );
   });
 
+  it('maps the engine-assist refusals, the engines’ own failures included', () => {
+    const cases: [number, string, string][] = [
+      [422, 'same_language', 'authoring.errors.sameLanguage'],
+      [422, 'unknown_engine', 'authoring.errors.unknownEngine'],
+      [422, 'unsupported_language_for_engine', 'authoring.errors.unsupportedLanguageForEngine'],
+      [502, 'translation_engine_error', 'authoring.errors.translationEngine'],
+      [502, 'generation_engine_error', 'authoring.errors.generationEngine'],
+    ];
+    for (const [status, code, key] of cases) {
+      expect(writeFailureOf(engineError(status, code))).toEqual({ key, gone: false });
+    }
+  });
+
   it('reads every not-found code as the item being gone', () => {
     for (const code of ['variant_not_found', 'language_not_present', 'qaset_not_found']) {
       expect(writeFailureOf(engineError(404, code))).toEqual({

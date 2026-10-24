@@ -2,12 +2,18 @@ import { Injectable, PendingTasks, computed, inject, resource, signal } from '@a
 import { Router } from '@angular/router';
 import { AUTHOR_QASETS, CurrentUser } from '../../core/access/current-user';
 import { CatalogApi } from '../../core/catalog/catalog-api';
-import { QASetAuthoringApi } from '../../core/catalog/qaset-authoring-api';
+import { QASetAuthoringApi, type TranslationEngine } from '../../core/catalog/qaset-authoring-api';
+import type { Language } from '../../core/catalog/catalog.model';
 import { trailOf } from '../../core/catalog/trail';
 import { writeFailureOf } from '../../core/error/write-failure';
 import { Translator } from '../../core/i18n/translator';
 import { toQASetView } from './qaset-view';
 import { validationResets, type ValidationReset } from './validation-resets';
+
+/** When to re-read the QASet after a call. */
+type Reread = 'never' | 'on-success' | 'always';
+
+type Outcome<T> = { readonly ok: true; readonly value: T } | { readonly ok: false };
 
 const RESET_KEYS = {
   clinical: 'authoring.reset.clinical',
@@ -79,6 +85,13 @@ export class QASetEditor {
       .languages.all()
       .filter((l) => !present.has(l.id));
   });
+
+  /** A variant can only be translated into a language whose answer is already here. */
+  variantTargets(sourceLanguageId: string): Language[] {
+    return (this.view()?.sections ?? [])
+      .map((section) => section.language)
+      .filter((language) => language.id !== sourceLanguageId);
+  }
 
   readonly #pending = signal<string | null>(null);
   readonly busy = computed(() => this.#pending() !== null);
@@ -155,13 +168,74 @@ export class QASetEditor {
     return deleted;
   }
 
+  translateAnswer(
+    answerId: string,
+    targetLanguageId: string,
+    engine: TranslationEngine,
+  ): Promise<boolean> {
+    return this.#run(`translate:${answerId}`, (q) =>
+      this.#authoring.translateAnswer(q, answerId, targetLanguageId, engine),
+    );
+  }
+
+  translateVariant(
+    variantId: string,
+    targetLanguageId: string,
+    engine: TranslationEngine,
+  ): Promise<boolean> {
+    return this.#run(`translate:${variantId}`, (q) =>
+      this.#authoring.translateVariant(q, variantId, targetLanguageId, engine),
+    );
+  }
+
+  /** Proposals only, so nothing to re-read; null when the engine refused. */
+  async generateVariants(answerId: string, context: string): Promise<string[] | null> {
+    const outcome = await this.#attempt(
+      `generate:${answerId}`,
+      (q) => this.#authoring.generateVariants(q, answerId, context),
+      'never',
+    );
+    return outcome.ok ? outcome.value : null;
+  }
+
+  /**
+   * One add per kept candidate, in order, stopping at the first refusal. Re-read once at the end
+   * either way, so the page shows exactly what was added.
+   */
+  async addVariants(
+    answerId: string,
+    languageId: string,
+    texts: readonly string[],
+    onAdded: (index: number) => void,
+  ): Promise<boolean> {
+    const outcome = await this.#attempt(
+      `generate:${answerId}`,
+      async (q) => {
+        for (const [index, text] of texts.entries()) {
+          await this.#authoring.addVariant(q, languageId, text);
+          onAdded(index);
+        }
+      },
+      'always',
+    );
+    return outcome.ok;
+  }
+
   async #run(
     target: string,
     write: (qasetId: string) => Promise<unknown>,
     reread = true,
   ): Promise<boolean> {
+    return (await this.#attempt(target, write, reread ? 'on-success' : 'never')).ok;
+  }
+
+  async #attempt<T>(
+    target: string,
+    call: (qasetId: string) => Promise<T>,
+    reread: Reread,
+  ): Promise<Outcome<T>> {
     const qasetId = this.qasetId();
-    if (qasetId === undefined || this.busy()) return false;
+    if (qasetId === undefined || this.busy()) return { ok: false };
 
     // Held as a pending task, so the app (and a test) is only stable once the re-read has landed.
     const done = this.#tasks.add();
@@ -170,9 +244,9 @@ export class QASetEditor {
     this.pageAlert.set(null);
     this.#resets.set([]);
     try {
-      await write(qasetId);
-      if (reread) await this.#reread(qasetId, true);
-      return true;
+      const value = await call(qasetId);
+      if (reread !== 'never') await this.#reread(qasetId, true);
+      return { ok: true, value };
     } catch (error) {
       const failure = writeFailureOf(error);
       const message = this.#translator.t(failure.key);
@@ -181,8 +255,9 @@ export class QASetEditor {
         await this.#reread(qasetId, false);
       } else {
         this.#errors.update((errors) => new Map(errors).set(target, message));
+        if (reread === 'always') await this.#reread(qasetId, true);
       }
-      return false;
+      return { ok: false };
     } finally {
       this.#pending.set(null);
       done();
