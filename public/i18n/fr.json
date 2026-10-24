@@ -302,10 +302,39 @@
     "sendName": "Enregistrer cet audio",
     "redo": "Refaire",
     "file": "Fichier audio",
-    "selected": "Fichier choisi : {{ name }}",
     "sendFile": "Téléverser",
     "denied": "L’accès au micro a été refusé. Vous pouvez téléverser un fichier à la place.",
     "unsupported": "L’enregistrement au micro n’est pas disponible sur ce navigateur. Vous pouvez téléverser un fichier à la place."
+  },
+  "upload": {
+    "selected": "Fichier choisi : {{ name }}"
+  },
+  "documentation": {
+    "title": "Documentation et complétude",
+    "heading": "Documentation",
+    "upload": "Ajouter un document",
+    "uploadSubmit": "Téléverser",
+    "uploadHelp": "PDF, Word, texte, vidéo ou image. Le moteur vérifie le type et la taille.",
+    "empty": "Aucun document pour ce thème.",
+    "download": "Télécharger",
+    "downloadName": "Télécharger {{filename}}",
+    "downloadFailed": "Le lien de téléchargement n’a pas pu être obtenu. Réessayez.",
+    "deleteName": "Supprimer le document {{filename}}",
+    "deleteWarning": "Supprimer définitivement le document « {{filename}} » ?",
+    "completeness": {
+      "heading": "Complétude",
+      "lead": "Compare la documentation du thème aux réponses rédigées dans la langue de base du projet. L’analyse ne modifie rien.",
+      "run": "Analyser la complétude",
+      "running": "Analyse en cours…",
+      "uncovered": "Notions non couvertes",
+      "covered": "Tout est couvert : chaque notion de la documentation est traitée par au moins une réponse."
+    },
+    "errors": {
+      "unsupportedType": "Type de document non pris en charge : choisissez un PDF, un document Word, un texte, une vidéo ou une image.",
+      "tooLarge": "Document trop volumineux : choisissez un fichier plus léger.",
+      "noDocumentation": "Aucune documentation exploitable : ajoutez d’abord de la documentation exploitable à ce thème.",
+      "completenessEngine": "L’analyse de complétude a échoué. Rien n’a été modifié : réessayez."
+    }
   },
   "admin": {
     "title": "Administration",

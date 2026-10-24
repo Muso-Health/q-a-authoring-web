@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { RecorderPort, type Recording } from '../../core/audio/recorder-port';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
+import { FileUpload } from '../../shared/ui/file-upload';
 import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { formatDuration } from '../audio/audio-player';
 import { QASetEditor } from './qaset-editor';
@@ -25,11 +26,12 @@ export function recordingName(type: string): string {
 
 /**
  * Recording or uploading the audio of one answer or one variant — always that exact item. A take
- * or a chosen file stays until it is sent or discarded, so a refusal can be retried as is.
+ * (or, in the upload control, a chosen file) stays until it is sent or discarded, so a refusal can
+ * be retried as is.
  */
 @Component({
   selector: 'app-audio-capture',
-  imports: [NgTemplateOutlet, TranslocoPipe, ConfirmAction, FocusReturnTarget],
+  imports: [NgTemplateOutlet, TranslocoPipe, ConfirmAction, FileUpload, FocusReturnTarget],
   templateUrl: './audio-capture.html',
   styleUrl: './audio-capture.scss',
 })
@@ -45,7 +47,6 @@ export class AudioCapture {
 
   protected readonly panel = signal<Panel>('closed');
   protected readonly take = signal<Recording | null>(null);
-  protected readonly file = signal<File | null>(null);
   #opener = '';
 
   protected readonly target = computed(() => `audio:${this.item().id}`);
@@ -80,25 +81,19 @@ export class AudioCapture {
     void this.recorder.start();
   }
 
-  protected pick(event: Event): void {
-    this.file.set((event.target as HTMLInputElement).files?.[0] ?? null);
-  }
-
   protected async sendTake(): Promise<void> {
     const take = this.take();
     if (take) await this.#send(take.blob, recordingName(take.blob.type));
   }
 
-  protected async sendFile(): Promise<void> {
-    const file = this.file();
-    if (file) await this.#send(file, file.name);
+  protected async sendFile(file: File): Promise<void> {
+    await this.#send(file, file.name);
   }
 
   /** Back to the closed controls; focus returns to whatever opened the panel. */
   protected close(focusKey = this.#opener): void {
     if (this.panel() === 'record' || this.take()) this.recorder.discard();
     this.take.set(null);
-    this.file.set(null);
     this.panel.set('closed');
     this.editor.clearError(this.target());
     this.#focus.to(focusKey);

@@ -41,6 +41,10 @@ const BY_CODE: Readonly<Record<string, string>> = {
   language_in_use: 'admin.errors.languageInUse',
   intent_in_use: 'admin.errors.intentInUse',
   category_in_use: 'admin.errors.categoryInUse',
+  unsupported_document_type: 'documentation.errors.unsupportedType',
+  document_too_large: 'documentation.errors.tooLarge',
+  no_documentation: 'documentation.errors.noDocumentation',
+  completeness_engine_error: 'documentation.errors.completenessEngine',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

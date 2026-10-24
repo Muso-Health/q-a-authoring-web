@@ -134,17 +134,13 @@
 }
 
 <ng-template #uploadForm>
-  <label [for]="key('file')">{{ 'capture.file' | transloco }}</label>
-  <input [id]="key('file')" type="file" accept="audio/*" (change)="pick($event)" />
-  @if (file(); as chosen) {
-    <p class="selected muso-meta">{{ 'capture.selected' | transloco: { name: chosen.name } }}</p>
-  }
-  <div class="actions">
-    <button type="button" [disabled]="editor.busy() || !file()" (click)="sendFile()">
-      {{ 'capture.sendFile' | transloco }}
-    </button>
-    <button type="button" class="secondary" (click)="close()">
-      {{ 'authoring.cancel' | transloco }}
-    </button>
-  </div>
+  <app-file-upload
+    accept="audio/*"
+    [label]="'capture.file' | transloco"
+    [submitLabel]="'capture.sendFile' | transloco"
+    [busy]="editor.busy()"
+    [cancellable]="true"
+    (send)="sendFile($event)"
+    (cancel)="close()"
+  />
 </ng-template>

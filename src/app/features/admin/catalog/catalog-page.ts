@@ -178,6 +178,11 @@ const levelOf = ({ projectId, protocolId }: Params): Level =>
                     [busy]="writes.busy()"
                     (confirmed)="remove(entry.id)"
                   />
+                  @if (level() === 'themes') {
+                    <a [routerLink]="['/themes', entry.id, 'documentation']">{{
+                      'documentation.heading' | transloco
+                    }}</a>
+                  }
                 </div>
               }
             </li>
@@ -207,6 +212,7 @@ const levelOf = ({ projectId, protocolId }: Params): Level =>
     .actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: var(--muso-space-1);
     }
   `,

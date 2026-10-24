@@ -284,6 +284,8 @@ describe('CatalogPage — themes of a protocol', () => {
     const prévention = cardOf(element, 'Prévention');
     expect(text(prévention)).toContain('Moustiquaires et assainissement');
     expect(prévention.querySelector('h3 a')).toBeNull();
+    const docs = [...prévention.querySelectorAll('a')].find((a) => text(a) === 'Documentation');
+    expect(docs?.getAttribute('href')).toBe(`/themes/${IDS.theme}/documentation`);
   });
 
   it('creates, edits and deletes themes, re-reading each time', async () => {

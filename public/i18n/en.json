@@ -302,10 +302,39 @@
     "sendName": "Save this audio",
     "redo": "Redo",
     "file": "Audio file",
-    "selected": "Chosen file: {{ name }}",
     "sendFile": "Upload",
     "denied": "Microphone access was refused. You can upload a file instead.",
     "unsupported": "Microphone recording is not available in this browser. You can upload a file instead."
+  },
+  "upload": {
+    "selected": "Chosen file: {{ name }}"
+  },
+  "documentation": {
+    "title": "Documentation and completeness",
+    "heading": "Documentation",
+    "upload": "Add a document",
+    "uploadSubmit": "Upload",
+    "uploadHelp": "PDF, Word, text, video or image. The engine checks the type and size.",
+    "empty": "No documents for this theme.",
+    "download": "Download",
+    "downloadName": "Download {{filename}}",
+    "downloadFailed": "The download link could not be obtained. Try again.",
+    "deleteName": "Delete document {{filename}}",
+    "deleteWarning": "Permanently delete document “{{filename}}”?",
+    "completeness": {
+      "heading": "Completeness",
+      "lead": "Compares the theme’s documentation with the answers written in the project’s base language. The analysis changes nothing.",
+      "run": "Analyse completeness",
+      "running": "Analysing…",
+      "uncovered": "Uncovered notions",
+      "covered": "Everything is covered: each notion of the documentation is addressed by at least one answer."
+    },
+    "errors": {
+      "unsupportedType": "Unsupported document type: choose a PDF, Word document, text, video or image.",
+      "tooLarge": "Document too large: choose a lighter file.",
+      "noDocumentation": "No usable documentation: first add usable documentation to this theme.",
+      "completenessEngine": "The completeness analysis failed. Nothing was changed: try again."
+    }
   },
   "admin": {
     "title": "Administration",

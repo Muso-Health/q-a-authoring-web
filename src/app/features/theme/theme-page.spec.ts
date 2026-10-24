@@ -49,6 +49,15 @@ describe('ThemePage', () => {
     ]);
   });
 
+  it('leads to its documentation and completeness', async () => {
+    const element = await render(world());
+
+    const link = [...element.querySelectorAll('a')].find(
+      (a) => a.textContent?.trim() === 'Documentation et complétude',
+    );
+    expect(link?.getAttribute('href')).toBe(`/themes/${IDS.theme}/documentation`);
+  });
+
   it('says so when the theme has no QASet', async () => {
     const element = await render({ ...world(), [`/themes/${IDS.theme}/qasets`]: { items: [] } });
 

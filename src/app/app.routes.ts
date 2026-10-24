@@ -33,6 +33,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/theme/theme-page').then((m) => m.ThemePage),
       },
       {
+        path: 'themes/:themeId/documentation',
+        loadComponent: () =>
+          import('./features/theme-detail/theme-detail-page').then((m) => m.ThemeDetailPage),
+      },
+      {
         path: 'qasets/:qasetId',
         loadComponent: () => import('./features/qaset/qaset-page').then((m) => m.QASetPage),
       },

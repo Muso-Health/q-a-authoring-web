@@ -31,6 +31,11 @@ import { LoadError, Loading } from '../../shared/ui/load-state';
       @if (p.theme.description) {
         <p class="muso-lead">{{ p.theme.description }}</p>
       }
+      <p>
+        <a [routerLink]="['/themes', p.theme.id, 'documentation']">{{
+          'documentation.title' | transloco
+        }}</a>
+      </p>
       <section aria-labelledby="qasets-heading">
         <h2 id="qasets-heading">{{ 'browse.theme.qasets' | transloco }}</h2>
         @if (canAuthor()) {
