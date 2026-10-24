@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { ME_AUTHOR } from '../../core/catalog/testing/catalog-fixtures';
 import { renderAdmin, text } from './testing/render-admin';
 import { AdminArea } from './admin-area';
@@ -33,5 +34,26 @@ describe('AdminArea', () => {
       'Utilisateurs',
       'Rôles',
     ]);
+  });
+
+  it('offers each content section only with its own permission', async () => {
+    const cases: [string, string, string][] = [
+      ['manage_catalog', 'Catalogue', '/admin/catalog'],
+      ['manage_languages', 'Langues', '/admin/languages'],
+      ['manage_intents', 'Intentions', '/admin/intents'],
+      ['manage_categories', 'Catégories', '/admin/categories'],
+    ];
+    for (const [permission, label, href] of cases) {
+      TestBed.resetTestingModule();
+      const { element } = await render([permission]);
+      expect(sections(element)).toEqual([[label, href]]);
+    }
+  });
+
+  it('hides the content sections from whoever only manages prompts and access', async () => {
+    const { element } = await render(['manage_access', 'manage_prompts', 'author_qasets']);
+
+    expect(sections(element).map(([label]) => label)).not.toContain('Catalogue');
+    expect(sections(element)).toHaveLength(3);
   });
 });

@@ -31,6 +31,16 @@ const BY_CODE: Readonly<Record<string, string>> = {
   role_in_use: 'admin.errors.roleInUse',
   unknown_permission: 'admin.errors.unknownPermission',
   invalid_prompt_template: 'admin.errors.invalidPromptTemplate',
+  project_has_protocols: 'admin.errors.projectHasProtocols',
+  protocol_has_themes: 'admin.errors.protocolHasThemes',
+  theme_has_qasets: 'admin.errors.themeHasQASets',
+  unknown_base_language: 'admin.errors.unknownBaseLanguage',
+  invalid_language_code: 'admin.errors.invalidLanguageCode',
+  invalid_language_name: 'admin.errors.invalidLanguageName',
+  language_code_already_exists: 'admin.errors.languageCodeExists',
+  language_in_use: 'admin.errors.languageInUse',
+  intent_in_use: 'admin.errors.intentInUse',
+  category_in_use: 'admin.errors.categoryInUse',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

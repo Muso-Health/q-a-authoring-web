@@ -3,6 +3,8 @@ import { ApiPort } from '../api/api-port';
 import type { MeResponse } from '../api/api-types';
 
 export const AUTHOR_QASETS = 'author_qasets';
+export const MANAGE_CATALOG = 'manage_catalog';
+export const MANAGE_LANGUAGES = 'manage_languages';
 export const MANAGE_INTENTS = 'manage_intents';
 export const MANAGE_CATEGORIES = 'manage_categories';
 export const MANAGE_AUDIO = 'manage_audio';
@@ -11,6 +13,16 @@ export const VALIDATE_TRANSLATION = 'validate_translation';
 export const VALIDATE_AUDIO = 'validate_audio';
 export const MANAGE_PROMPTS = 'manage_prompts';
 export const MANAGE_ACCESS = 'manage_access';
+
+/** Each opens a section of the administration; holding any of them opens the area. */
+export const ADMIN_PERMISSIONS: readonly string[] = [
+  MANAGE_PROMPTS,
+  MANAGE_ACCESS,
+  MANAGE_CATALOG,
+  MANAGE_LANGUAGES,
+  MANAGE_INTENTS,
+  MANAGE_CATEGORIES,
+];
 
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine

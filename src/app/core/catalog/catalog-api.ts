@@ -107,4 +107,9 @@ export class CatalogApi {
       });
     return this.#languages;
   }
+
+  /** After the languages were changed: the next caller reads them again. */
+  forgetLanguages(): void {
+    this.#languages = undefined;
+  }
 }

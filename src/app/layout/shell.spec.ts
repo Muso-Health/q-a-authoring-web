@@ -55,8 +55,15 @@ describe('Shell', () => {
     ]);
   });
 
-  it('offers the administration to whoever manages prompts or access', async () => {
-    for (const permission of ['manage_prompts', 'manage_access']) {
+  it('offers the administration to whoever manages any part of it', async () => {
+    for (const permission of [
+      'manage_prompts',
+      'manage_access',
+      'manage_catalog',
+      'manage_languages',
+      'manage_intents',
+      'manage_categories',
+    ]) {
       TestBed.resetTestingModule();
       const element = await render([permission]);
       const admin = [...element.querySelectorAll('nav a')].find(

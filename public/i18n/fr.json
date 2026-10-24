@@ -314,7 +314,11 @@
       "label": "Sections de l’administration",
       "prompts": "Modèles de prompt",
       "users": "Utilisateurs",
-      "roles": "Rôles"
+      "roles": "Rôles",
+      "catalog": "Catalogue",
+      "languages": "Langues",
+      "intents": "Intentions",
+      "categories": "Catégories"
     },
     "prompts": {
       "title": "Modèles de prompt",
@@ -370,6 +374,82 @@
       "deleteWarning": "Supprimer définitivement le rôle « {{role}} » ?",
       "empty": "Aucun rôle pour l’instant."
     },
+    "catalog": {
+      "title": "Catalogue",
+      "name": "Nom",
+      "description": "Description",
+      "chooseLanguage": "Choisir une langue…",
+      "languageRequired": "Choisissez la langue de base.",
+      "baseLanguageFinal": "La langue de base ne pourra plus être modifiée après la création.",
+      "baseLanguageFixed": "La langue de base ne peut pas être modifiée.",
+      "createSubmit": "Créer",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "projects": {
+        "title": "Projets",
+        "create": "Créer un projet",
+        "createSubmit": "Créer le projet",
+        "editName": "Modifier le projet {{name}}",
+        "deleteName": "Supprimer le projet {{name}}",
+        "deleteWarning": "Supprimer définitivement le projet « {{name}} » ?",
+        "empty": "Aucun projet pour l’instant."
+      },
+      "protocols": {
+        "title": "Protocoles",
+        "create": "Créer un protocole",
+        "createSubmit": "Créer le protocole",
+        "editName": "Modifier le protocole {{name}}",
+        "deleteName": "Supprimer le protocole {{name}}",
+        "deleteWarning": "Supprimer définitivement le protocole « {{name}} » ?",
+        "empty": "Aucun protocole dans ce projet pour l’instant."
+      },
+      "themes": {
+        "title": "Thèmes",
+        "create": "Créer un thème",
+        "createSubmit": "Créer le thème",
+        "editName": "Modifier le thème {{name}}",
+        "deleteName": "Supprimer le thème {{name}}",
+        "deleteWarning": "Supprimer définitivement le thème « {{name}} » ?",
+        "empty": "Aucun thème dans ce protocole pour l’instant."
+      }
+    },
+    "languages": {
+      "title": "Langues",
+      "create": "Enregistrer une langue",
+      "code": "Code",
+      "name": "Nom",
+      "codeHelp": "Un code ISO 639, par exemple « bm » ou « fr ». Il ne pourra plus être modifié.",
+      "createSubmit": "Enregistrer la langue",
+      "codeFixed": "Le code ({{code}}) ne peut pas être modifié.",
+      "rename": "Renommer",
+      "renameName": "Renommer la langue {{language}}",
+      "deleteName": "Supprimer la langue {{language}}",
+      "deleteWarning": "Supprimer définitivement la langue « {{language}} » ?",
+      "empty": "Aucune langue enregistrée pour l’instant."
+    },
+    "terms": {
+      "createSubmit": "Ajouter",
+      "intents": {
+        "title": "Intentions",
+        "search": "Rechercher une intention",
+        "create": "Ajouter une intention",
+        "field": "Nouvelle intention",
+        "deleteName": "Supprimer l’intention {{term}}",
+        "deleteWarning": "Supprimer définitivement l’intention « {{term}} » ?",
+        "empty": "Aucune intention pour l’instant.",
+        "noMatch": "Aucune intention ne correspond."
+      },
+      "categories": {
+        "title": "Catégories",
+        "search": "Rechercher une catégorie",
+        "create": "Ajouter une catégorie",
+        "field": "Nouvelle catégorie",
+        "deleteName": "Supprimer la catégorie {{term}}",
+        "deleteWarning": "Supprimer définitivement la catégorie « {{term}} » ?",
+        "empty": "Aucune catégorie pour l’instant.",
+        "noMatch": "Aucune catégorie ne correspond."
+      }
+    },
     "permissions": {
       "manage_languages": "Gérer les langues",
       "manage_catalog": "Gérer les projets, protocoles et thèmes",
@@ -390,7 +470,17 @@
       "roleNameExists": "Un rôle porte déjà ce nom.",
       "roleInUse": "Ce rôle est encore attribué à des utilisateurs : retirez-le-leur avant de le supprimer.",
       "unknownPermission": "Une des permissions n’existe pas dans le catalogue du moteur.",
-      "invalidPromptTemplate": "Le modèle a été refusé : ses placeholders ne correspondent pas à ceux attendus."
+      "invalidPromptTemplate": "Le modèle a été refusé : ses placeholders ne correspondent pas à ceux attendus.",
+      "projectHasProtocols": "Ce projet contient encore des protocoles : supprimez-les d’abord.",
+      "protocolHasThemes": "Ce protocole contient encore des thèmes : supprimez-les d’abord.",
+      "themeHasQASets": "Ce thème contient encore des ensembles questions-réponses : supprimez-les d’abord.",
+      "unknownBaseLanguage": "Cette langue de base n’est pas enregistrée dans le moteur.",
+      "invalidLanguageCode": "Ce code a été refusé : utilisez un code de langue ISO 639, par exemple « bm » ou « fr ».",
+      "invalidLanguageName": "Le nom de la langue a été refusé : il ne peut pas être vide.",
+      "languageCodeExists": "Une langue porte déjà ce code.",
+      "languageInUse": "Cette langue est encore utilisée par un projet ou des contenus : elle ne peut pas être supprimée.",
+      "intentInUse": "Cette intention est encore attachée à des questions : détachez-la avant de la supprimer.",
+      "categoryInUse": "Cette catégorie est encore attachée à des ensembles : retirez-la avant de la supprimer."
     }
   }
 }

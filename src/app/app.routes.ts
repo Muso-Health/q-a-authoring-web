@@ -1,7 +1,6 @@
 import type { Routes } from '@angular/router';
 import {
-  MANAGE_ACCESS,
-  MANAGE_PROMPTS,
+  ADMIN_PERMISSIONS,
   VALIDATE_AUDIO,
   VALIDATE_CLINICAL,
   VALIDATE_TRANSLATION,
@@ -52,7 +51,7 @@ export const routes: Routes = [
       })),
       {
         path: 'admin',
-        canMatch: [permissionGuard(MANAGE_PROMPTS, MANAGE_ACCESS)],
+        canMatch: [permissionGuard(...ADMIN_PERMISSIONS)],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
       {

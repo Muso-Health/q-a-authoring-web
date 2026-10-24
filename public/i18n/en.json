@@ -314,7 +314,11 @@
       "label": "Administration sections",
       "prompts": "Prompt templates",
       "users": "Users",
-      "roles": "Roles"
+      "roles": "Roles",
+      "catalog": "Catalogue",
+      "languages": "Languages",
+      "intents": "Intents",
+      "categories": "Categories"
     },
     "prompts": {
       "title": "Prompt templates",
@@ -370,6 +374,82 @@
       "deleteWarning": "Permanently delete the role “{{role}}”?",
       "empty": "No roles yet."
     },
+    "catalog": {
+      "title": "Catalogue",
+      "name": "Name",
+      "description": "Description",
+      "chooseLanguage": "Choose a language…",
+      "languageRequired": "Choose the base language.",
+      "baseLanguageFinal": "The base language cannot be changed after creation.",
+      "baseLanguageFixed": "The base language cannot be changed.",
+      "createSubmit": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "projects": {
+        "title": "Projects",
+        "create": "Create a project",
+        "createSubmit": "Create project",
+        "editName": "Edit project {{name}}",
+        "deleteName": "Delete project {{name}}",
+        "deleteWarning": "Permanently delete project “{{name}}”?",
+        "empty": "No projects yet."
+      },
+      "protocols": {
+        "title": "Protocols",
+        "create": "Create a protocol",
+        "createSubmit": "Create protocol",
+        "editName": "Edit protocol {{name}}",
+        "deleteName": "Delete protocol {{name}}",
+        "deleteWarning": "Permanently delete protocol “{{name}}”?",
+        "empty": "No protocols in this project yet."
+      },
+      "themes": {
+        "title": "Themes",
+        "create": "Create a theme",
+        "createSubmit": "Create theme",
+        "editName": "Edit theme {{name}}",
+        "deleteName": "Delete theme {{name}}",
+        "deleteWarning": "Permanently delete theme “{{name}}”?",
+        "empty": "No themes in this protocol yet."
+      }
+    },
+    "languages": {
+      "title": "Languages",
+      "create": "Register a language",
+      "code": "Code",
+      "name": "Name",
+      "codeHelp": "An ISO 639 code, such as “bm” or “fr”. It cannot be changed afterwards.",
+      "createSubmit": "Register language",
+      "codeFixed": "The code ({{code}}) cannot be changed.",
+      "rename": "Rename",
+      "renameName": "Rename language {{language}}",
+      "deleteName": "Delete language {{language}}",
+      "deleteWarning": "Permanently delete language “{{language}}”?",
+      "empty": "No languages registered yet."
+    },
+    "terms": {
+      "createSubmit": "Add",
+      "intents": {
+        "title": "Intents",
+        "search": "Search intents",
+        "create": "Add an intent",
+        "field": "New intent",
+        "deleteName": "Delete intent {{term}}",
+        "deleteWarning": "Permanently delete intent “{{term}}”?",
+        "empty": "No intents yet.",
+        "noMatch": "No intent matches."
+      },
+      "categories": {
+        "title": "Categories",
+        "search": "Search categories",
+        "create": "Add a category",
+        "field": "New category",
+        "deleteName": "Delete category {{term}}",
+        "deleteWarning": "Permanently delete category “{{term}}”?",
+        "empty": "No categories yet.",
+        "noMatch": "No category matches."
+      }
+    },
     "permissions": {
       "manage_languages": "Manage languages",
       "manage_catalog": "Manage projects, protocols and themes",
@@ -390,7 +470,17 @@
       "roleNameExists": "A role already has this name.",
       "roleInUse": "This role is still assigned to users: remove it from them before deleting it.",
       "unknownPermission": "One of the permissions is not in the engine’s catalogue.",
-      "invalidPromptTemplate": "The template was refused: its placeholders do not match the expected ones."
+      "invalidPromptTemplate": "The template was refused: its placeholders do not match the expected ones.",
+      "projectHasProtocols": "This project still has protocols: delete them first.",
+      "protocolHasThemes": "This protocol still has themes: delete them first.",
+      "themeHasQASets": "This theme still has QA sets: delete them first.",
+      "unknownBaseLanguage": "This base language is not registered in the engine.",
+      "invalidLanguageCode": "This code was refused: use an ISO 639 language code, such as “bm” or “fr”.",
+      "invalidLanguageName": "The language name was refused: it cannot be empty.",
+      "languageCodeExists": "A language already has this code.",
+      "languageInUse": "This language is still used by a project or content: it cannot be deleted.",
+      "intentInUse": "This intent is still attached to questions: detach it before deleting it.",
+      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it."
     }
   }
 }

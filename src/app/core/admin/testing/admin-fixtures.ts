@@ -68,3 +68,24 @@ export const GENERATE_TEMPLATE: Schemas['PromptTemplateResponse'] = {
 export const TEMPLATES: Schemas['PromptTemplatesResponse'] = {
   items: [TRANSLATE_TEMPLATE, GENERATE_TEMPLATE],
 };
+
+export const TAXONOMY_IDS = {
+  fever: 'c1000000-0000-0000-0000-000000000001',
+  bednet: 'c1000000-0000-0000-0000-000000000002',
+  malaria: 'c2000000-0000-0000-0000-000000000001',
+  nutrition: 'c2000000-0000-0000-0000-000000000002',
+} as const;
+
+export const INTENTS: Schemas['IntentsResponse'] = {
+  items: [
+    { id: TAXONOMY_IDS.bednet, text: 'Utiliser une moustiquaire' },
+    { id: TAXONOMY_IDS.fever, text: 'Reconnaître la fièvre' },
+  ],
+};
+
+export const CATEGORIES: Schemas['CategoriesResponse'] = {
+  items: [
+    { id: TAXONOMY_IDS.nutrition, name: 'Nutrition' },
+    { id: TAXONOMY_IDS.malaria, name: 'Paludisme' },
+  ],
+};

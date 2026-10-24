@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Crumb } from '../../core/catalog/trail';
 
-/** Projects > … ancestors … > the current page. */
+/** Projects (or another root, such as the catalogue's administration) > … ancestors … > the current page. */
 @Component({
   selector: 'app-breadcrumb',
   imports: [RouterLink, TranslocoPipe],
@@ -11,7 +11,7 @@ import type { Crumb } from '../../core/catalog/trail';
     <nav [attr.aria-label]="'browse.breadcrumb' | transloco">
       <ol>
         <li>
-          <a routerLink="/projects">{{ 'browse.projects.title' | transloco }}</a>
+          <a [routerLink]="rootLink()">{{ rootLabel() | transloco }}</a>
         </li>
         @for (crumb of trail(); track crumb.link.join('/')) {
           <li>
@@ -51,6 +51,9 @@ import type { Crumb } from '../../core/catalog/trail';
   `,
 })
 export class Breadcrumb {
+  /** The i18n key of the first crumb. */
+  readonly rootLabel = input('browse.projects.title');
+  readonly rootLink = input<readonly string[]>(['/projects']);
   readonly trail = input<readonly Crumb[]>([]);
   readonly current = input.required<string>();
 }

@@ -1,5 +1,12 @@
 import type { Routes } from '@angular/router';
-import { MANAGE_ACCESS, MANAGE_PROMPTS } from '../../core/access/current-user';
+import {
+  MANAGE_ACCESS,
+  MANAGE_CATALOG,
+  MANAGE_CATEGORIES,
+  MANAGE_INTENTS,
+  MANAGE_LANGUAGES,
+  MANAGE_PROMPTS,
+} from '../../core/access/current-user';
 import { permissionGuard } from '../../core/access/permission-guard';
 import { AdminArea } from './admin-area';
 import { firstAdminSection } from './admin-sections';
@@ -32,6 +39,30 @@ export const ADMIN_ROUTES: Routes = [
         canMatch: [permissionGuard(MANAGE_ACCESS)],
         loadComponent: () => import('./roles/roles-page').then((m) => m.RolesPage),
       },
+      // The catalogue's levels: the projects, a project's protocols, a protocol's themes.
+      ...['catalog', 'catalog/projects/:projectId', 'catalog/protocols/:protocolId'].map(
+        (path) => ({
+          path,
+          canMatch: [permissionGuard(MANAGE_CATALOG)],
+          loadComponent: () => import('./catalog/catalog-page').then((m) => m.CatalogPage),
+        }),
+      ),
+      {
+        path: 'languages',
+        canMatch: [permissionGuard(MANAGE_LANGUAGES)],
+        loadComponent: () => import('./languages/languages-page').then((m) => m.LanguagesPage),
+      },
+      ...(
+        [
+          ['intents', MANAGE_INTENTS],
+          ['categories', MANAGE_CATEGORIES],
+        ] as const
+      ).map(([kind, permission]) => ({
+        path: kind,
+        canMatch: [permissionGuard(permission)],
+        data: { kind },
+        loadComponent: () => import('./terms/terms-page').then((m) => m.TermsPage),
+      })),
     ],
   },
 ];

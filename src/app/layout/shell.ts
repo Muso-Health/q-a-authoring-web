@@ -3,9 +3,8 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
+  ADMIN_PERMISSIONS,
   CurrentUser,
-  MANAGE_ACCESS,
-  MANAGE_PROMPTS,
   VALIDATE_AUDIO,
   VALIDATE_CLINICAL,
   VALIDATE_TRANSLATION,
@@ -142,7 +141,7 @@ export class Shell {
     { path: '/validation/audio', label: 'nav.audio', allowed: this.#user.can(VALIDATE_AUDIO) },
   ];
 
-  readonly #managesPrompts = this.#user.can(MANAGE_PROMPTS);
-  readonly #managesAccess = this.#user.can(MANAGE_ACCESS);
-  protected readonly administers = computed(() => this.#managesPrompts() || this.#managesAccess());
+  /** The administration is offered to whoever may use any of its sections. */
+  readonly #manages = ADMIN_PERMISSIONS.map((permission) => this.#user.can(permission));
+  protected readonly administers = computed(() => this.#manages.some((holds) => holds()));
 }
