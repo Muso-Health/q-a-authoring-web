@@ -5,6 +5,7 @@ export const IDS = {
   fr: 'aaaaaaaa-0000-0000-0000-00000000f001',
   en: 'aaaaaaaa-0000-0000-0000-00000000e001',
   bm: 'aaaaaaaa-0000-0000-0000-00000000b001',
+  ff: 'aaaaaaaa-0000-0000-0000-00000000ff01',
   project: 'bbbbbbbb-0000-0000-0000-000000000001',
   protocol: 'cccccccc-0000-0000-0000-000000000001',
   theme: 'dddddddd-0000-0000-0000-000000000001',
@@ -28,6 +29,7 @@ export const LANGUAGES: Schemas['LanguagesResponse'] = {
     { id: IDS.bm, code: 'bm', name: 'Bambara' },
     { id: IDS.en, code: 'en', name: 'English' },
     { id: IDS.fr, code: 'fr', name: 'Français' },
+    { id: IDS.ff, code: 'ff', name: 'Peul' },
   ],
 };
 
@@ -189,3 +191,16 @@ export function world(): Record<string, unknown> {
     [`/qasets/${IDS.qaset}`]: QASET,
   };
 }
+
+export const ME_AUTHOR: Schemas['MeResponse'] = {
+  id: '11111111-0000-0000-0000-000000000001',
+  email: 'author@example.org',
+  display_name: 'Awa Traoré',
+  permissions: ['author_qasets', 'manage_audio'],
+};
+
+export const ME_READER: Schemas['MeResponse'] = {
+  ...ME_AUTHOR,
+  email: 'reader@example.org',
+  permissions: ['review_clinical'],
+};

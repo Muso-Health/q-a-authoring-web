@@ -2,26 +2,31 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ApiPort } from '../api-port';
 
 /**
- * An `ApiPort` answering reads from a path → answer table. An answer that is an
- * `HttpErrorResponse` rejects with it, a `Promise` is returned as-is (to hold a call pending),
- * anything else resolves. An unknown path rejects with a 503.
+ * An `ApiPort` answering from a table: reads by path (`/qasets/x`), writes by method and path
+ * (`DELETE /qasets/x`). An answer that is an `HttpErrorResponse` rejects with it, a `Promise` is
+ * returned as-is (to hold a call pending), anything else resolves. An unknown read rejects with a
+ * 503; an unknown write resolves with nothing. The table is mutable, so a test can change what
+ * the engine says next.
  */
 export class FakeApiPort extends ApiPort {
+  readonly answers: Record<string, unknown>;
   readonly reads: string[] = [];
   readonly writes: { method: string; path: string; body?: unknown }[] = [];
+  /** Every call in order, as `METHOD path`. */
+  readonly calls: string[] = [];
 
-  constructor(private readonly answers: Readonly<Record<string, unknown>>) {
+  constructor(answers: Readonly<Record<string, unknown>>) {
     super();
+    this.answers = { ...answers };
   }
 
   get<T>(path: string): Promise<T> {
     this.reads.push(path);
+    this.calls.push(`GET ${path}`);
     if (!(path in this.answers)) {
       return Promise.reject(new HttpErrorResponse({ status: 503, url: path }));
     }
-    const answer = this.answers[path];
-    if (answer instanceof HttpErrorResponse) return Promise.reject(answer);
-    return Promise.resolve(answer as T);
+    return this.#answer<T>(this.answers[path]);
   }
 
   post<T>(path: string, body: unknown): Promise<T> {
@@ -42,7 +47,13 @@ export class FakeApiPort extends ApiPort {
 
   #write<T>(method: string, path: string, body?: unknown): Promise<T> {
     this.writes.push({ method, path, body });
-    return Promise.resolve(this.answers[path] as T);
+    this.calls.push(`${method} ${path}`);
+    return this.#answer<T>(this.answers[`${method} ${path}`]);
+  }
+
+  #answer<T>(answer: unknown): Promise<T> {
+    if (answer instanceof HttpErrorResponse) return Promise.reject(answer);
+    return Promise.resolve(answer as T);
   }
 }
 

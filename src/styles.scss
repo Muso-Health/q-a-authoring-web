@@ -406,3 +406,57 @@ td {
   border-radius: var(--muso-radius);
   padding: var(--muso-space-2);
 }
+
+// ── Authoring ─────────────────────────────────────────────────────────────────────────────────
+// A secondary action sits beside the navy primary without competing with it: outlined, navy text.
+button.secondary {
+  background: var(--muso-surface);
+  color: var(--muso-text);
+  border-color: var(--muso-border-strong);
+  box-shadow: none;
+}
+
+button.secondary:hover:not([disabled]) {
+  background: var(--surface-alt);
+  border-color: var(--muso-navy);
+}
+
+// Only ever for the confirmation of something that cannot be undone.
+button.danger {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+  color: var(--on-danger-strong);
+}
+
+button.danger:hover:not([disabled]) {
+  background: var(--danger-strong-hover);
+  border-color: var(--danger-strong-hover);
+}
+
+form {
+  display: grid;
+  gap: var(--muso-space-1);
+  max-inline-size: 48rem;
+
+  textarea,
+  select {
+    inline-size: 100%;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--muso-space-1);
+    margin-block-start: var(--muso-space-1);
+  }
+}
+
+.field-error {
+  margin: 0;
+  color: var(--danger-fg);
+  font-weight: 600;
+
+  &::before {
+    content: '⚠ ';
+  }
+}

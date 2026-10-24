@@ -96,5 +96,67 @@
     "retry": "Try again",
     "loading": "Loading audio…",
     "failed": "Playback failed."
+  },
+  "authoring": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "blank": "Text is required.",
+    "language": "Language",
+    "chooseLanguage": "Choose a language…",
+    "languageRequired": "Choose a language.",
+    "answerText": "Answer",
+    "editAnswer": "Edit the answer",
+    "answerLabel": "Answer ({{ language }})",
+    "variantLabel": "Variant {{ number }} ({{ language }})",
+    "newVariantLabel": "New variant ({{ language }})",
+    "addVariant": "Add a variant",
+    "editVariantName": "Edit variant {{ number }}",
+    "deleteVariant": {
+      "name": "Delete variant {{ number }}",
+      "warning": "Variant {{ number }} will be deleted. This cannot be undone."
+    },
+    "removeLanguage": {
+      "label": "Remove the language",
+      "name": "Remove the language {{ language }}",
+      "warning": "Removing {{ language }} deletes its answer and all its variants. This cannot be undone."
+    },
+    "addLanguage": {
+      "heading": "Add a language",
+      "open": "Add a language",
+      "submit": "Add the language",
+      "none": "Every registered language is already present in this set."
+    },
+    "deleteSet": {
+      "label": "Delete the set",
+      "warning": "The set, its answers and its variants in every language will be deleted. This cannot be undone."
+    },
+    "createSet": {
+      "open": "Create a set",
+      "submit": "Create the set"
+    },
+    "reset": {
+      "message": "Your change put back to pending: {{ list }}.",
+      "dismiss": "Got it",
+      "clinical": "the clinical validation",
+      "translationAnswer": "the translation of the answer ({{ language }})",
+      "translationVariant": "the translation of variant {{ number }} ({{ language }})",
+      "audioAnswer": "the audio quality of the answer ({{ language }})",
+      "audioVariant": "the audio quality of variant {{ number }} ({{ language }})"
+    },
+    "errors": {
+      "invalidText": "The text was refused: it cannot be empty.",
+      "languageAlreadyPresent": "This language already has an answer in this set.",
+      "languagePresenceRequired": "This language has no answer in this set yet: add it first.",
+      "unknownLanguage": "This language is not registered in the engine.",
+      "gone": "This item no longer exists: the page has been refreshed.",
+      "invalidInput": "The request was refused: check the fields.",
+      "forbidden": "Your account may not edit this content.",
+      "unreachable": "The engine is unreachable. Your changes were not saved.",
+      "unexpected": "An unexpected error occurred. Your changes were not saved."
+    }
   }
 }

@@ -62,6 +62,11 @@ export class LanguageDirectory {
     this.#byId = new Map(languages.map((language) => [language.id, language]));
   }
 
+  /** Every known language, in the engine's order. */
+  all(): Language[] {
+    return [...this.#byId.values()];
+  }
+
   of(id: string): Language {
     return this.#byId.get(id) ?? { id, code: '?', name: id.slice(0, 8) };
   }

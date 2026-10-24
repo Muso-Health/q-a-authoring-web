@@ -11,7 +11,9 @@ function sources(directory: string): string[] {
   return readdirSync(join(ROOT, directory)).flatMap((entry) => {
     const relative = `${directory}/${entry}`;
     if (statSync(join(ROOT, relative)).isDirectory()) return sources(relative);
-    return entry.endsWith('.ts') && !entry.endsWith('.spec.ts') ? [relative] : [];
+    return (entry.endsWith('.ts') || entry.endsWith('.html')) && !entry.endsWith('.spec.ts')
+      ? [relative]
+      : [];
   });
 }
 

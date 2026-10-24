@@ -96,5 +96,67 @@
     "retry": "Réessayer",
     "loading": "Chargement de l’audio…",
     "failed": "Lecture impossible."
+  },
+  "authoring": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "blank": "Le texte est obligatoire.",
+    "language": "Langue",
+    "chooseLanguage": "Choisir une langue…",
+    "languageRequired": "Choisissez une langue.",
+    "answerText": "Réponse",
+    "editAnswer": "Modifier la réponse",
+    "answerLabel": "Réponse ({{ language }})",
+    "variantLabel": "Variante {{ number }} ({{ language }})",
+    "newVariantLabel": "Nouvelle variante ({{ language }})",
+    "addVariant": "Ajouter une variante",
+    "editVariantName": "Modifier la variante {{ number }}",
+    "deleteVariant": {
+      "name": "Supprimer la variante {{ number }}",
+      "warning": "La variante {{ number }} sera supprimée. Cette action est irréversible."
+    },
+    "removeLanguage": {
+      "label": "Retirer la langue",
+      "name": "Retirer la langue {{ language }}",
+      "warning": "Retirer {{ language }} supprime sa réponse et toutes ses variantes. Cette action est irréversible."
+    },
+    "addLanguage": {
+      "heading": "Ajouter une langue",
+      "open": "Ajouter une langue",
+      "submit": "Ajouter la langue",
+      "none": "Toutes les langues enregistrées sont déjà présentes dans cet ensemble."
+    },
+    "deleteSet": {
+      "label": "Supprimer l’ensemble",
+      "warning": "L’ensemble, ses réponses et ses variantes dans toutes les langues seront supprimés. Cette action est irréversible."
+    },
+    "createSet": {
+      "open": "Créer un ensemble",
+      "submit": "Créer l’ensemble"
+    },
+    "reset": {
+      "message": "Votre modification a remis en attente : {{ list }}.",
+      "dismiss": "Compris",
+      "clinical": "la validation clinique",
+      "translationAnswer": "la traduction de la réponse ({{ language }})",
+      "translationVariant": "la traduction de la variante {{ number }} ({{ language }})",
+      "audioAnswer": "la qualité audio de la réponse ({{ language }})",
+      "audioVariant": "la qualité audio de la variante {{ number }} ({{ language }})"
+    },
+    "errors": {
+      "invalidText": "Le texte a été refusé : il ne peut pas être vide.",
+      "languageAlreadyPresent": "Cette langue a déjà une réponse dans cet ensemble.",
+      "languagePresenceRequired": "Cette langue n’a pas encore de réponse dans cet ensemble : ajoutez-la d’abord.",
+      "unknownLanguage": "Cette langue n’est pas enregistrée dans le moteur.",
+      "gone": "Cet élément n’existe plus : la page a été actualisée.",
+      "invalidInput": "La demande a été refusée : vérifiez les champs.",
+      "forbidden": "Votre compte n’a pas la permission de modifier ce contenu.",
+      "unreachable": "Le moteur est injoignable. Vos modifications n’ont pas été enregistrées.",
+      "unexpected": "Une erreur inattendue est survenue. Vos modifications n’ont pas été enregistrées."
+    }
   }
 }
