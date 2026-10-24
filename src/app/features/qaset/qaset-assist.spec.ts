@@ -184,7 +184,7 @@ describe('QASetPage engine assistance', () => {
         'language_presence_required',
         'Cette langue n’a pas encore de réponse dans cet ensemble : ajoutez-la d’abord.',
       ],
-      [422, 'same_language', 'La langue cible est la langue d’origine : choisissez-en une autre.'],
+      [422, 'same_language', 'Les deux langues sont identiques : choisissez-en une autre.'],
       [422, 'unknown_language', 'Cette langue n’est pas enregistrée dans le moteur.'],
       [422, 'unknown_engine', 'Ce moteur de traduction n’est pas disponible.'],
       [

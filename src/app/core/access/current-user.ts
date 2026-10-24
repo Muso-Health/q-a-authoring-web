@@ -3,6 +3,8 @@ import { ApiPort } from '../api/api-port';
 import type { MeResponse } from '../api/api-types';
 
 export const AUTHOR_QASETS = 'author_qasets';
+export const MANAGE_INTENTS = 'manage_intents';
+export const MANAGE_CATEGORIES = 'manage_categories';
 
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine

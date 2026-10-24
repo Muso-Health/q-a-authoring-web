@@ -157,11 +157,14 @@
       "forbidden": "Votre compte n’a pas la permission de modifier ce contenu.",
       "unreachable": "Le moteur est injoignable. Vos modifications n’ont pas été enregistrées.",
       "unexpected": "Une erreur inattendue est survenue. Vos modifications n’ont pas été enregistrées.",
-      "sameLanguage": "La langue cible est la langue d’origine : choisissez-en une autre.",
+      "sameLanguage": "Les deux langues sont identiques : choisissez-en une autre.",
       "unknownEngine": "Ce moteur de traduction n’est pas disponible.",
       "unsupportedLanguageForEngine": "Ce moteur ne sait pas traduire vers cette langue : essayez l’autre moteur.",
       "translationEngine": "Le moteur de traduction a échoué : rien n’a été ajouté. Réessayez.",
-      "generationEngine": "La génération a échoué : aucune variante n’a été proposée. Réessayez."
+      "generationEngine": "La génération a échoué : aucune variante n’a été proposée. Réessayez.",
+      "linkAlreadyExists": "Ces deux éléments sont déjà liés comme traductions.",
+      "selfLink": "Un élément ne peut pas être lié à lui-même.",
+      "invalidName": "Le nom a été refusé : il ne peut pas être vide."
     },
     "translate": {
       "open": "Traduire",
@@ -186,5 +189,30 @@
       "addKept": "Ajouter les retenues ({{ count }})",
       "discard": "Abandonner les propositions"
     }
+  },
+  "typeahead": {
+    "create": "Créer « {{ text }} »",
+    "searching": "Recherche…",
+    "alreadyAttached": "« {{ label }} » est déjà attaché.",
+    "noResult": "Aucun résultat.",
+    "searchFailed": "La recherche a échoué. Réessayez.",
+    "close": "Fermer"
+  },
+  "classification": {
+    "intent": "Intention",
+    "addIntent": "Ajouter une intention",
+    "addIntentName": "Ajouter une intention à la variante {{ number }}",
+    "removeIntent": "Retirer l’intention « {{ label }} »",
+    "category": "Catégorie",
+    "addCategory": "Ajouter une catégorie",
+    "removeCategory": "Retirer la catégorie « {{ label }} »"
+  },
+  "links": {
+    "open": "Lier une traduction",
+    "counterpart": "Traduction correspondante",
+    "choose": "Choisir l’élément à lier…",
+    "required": "Choisissez l’élément à lier.",
+    "submit": "Lier",
+    "unlinkName": "Délier la traduction ({{ language }})"
   }
 }

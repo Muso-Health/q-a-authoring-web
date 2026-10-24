@@ -1,13 +1,19 @@
 import { Injectable, PendingTasks, computed, inject, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AUTHOR_QASETS, CurrentUser } from '../../core/access/current-user';
+import {
+  AUTHOR_QASETS,
+  CurrentUser,
+  MANAGE_CATEGORIES,
+  MANAGE_INTENTS,
+} from '../../core/access/current-user';
 import { CatalogApi } from '../../core/catalog/catalog-api';
 import { QASetAuthoringApi, type TranslationEngine } from '../../core/catalog/qaset-authoring-api';
 import type { Language } from '../../core/catalog/catalog.model';
+import { TaxonomyApi } from '../../core/catalog/taxonomy-api';
 import { trailOf } from '../../core/catalog/trail';
 import { writeFailureOf } from '../../core/error/write-failure';
 import { Translator } from '../../core/i18n/translator';
-import { toQASetView } from './qaset-view';
+import { linkCandidates, toQASetView, type ItemRole, type LinkCandidate } from './qaset-view';
 import { validationResets, type ValidationReset } from './validation-resets';
 
 /** When to re-read the QASet after a call. */
@@ -36,8 +42,17 @@ export class QASetEditor {
   readonly #router = inject(Router);
   readonly #tasks = inject(PendingTasks);
 
+  readonly #taxonomy = inject(TaxonomyApi);
+  readonly #user = inject(CurrentUser);
+
   readonly qasetId = signal<string | undefined>(undefined);
-  readonly canAuthor = inject(CurrentUser).can(AUTHOR_QASETS);
+  readonly canAuthor = this.#user.can(AUTHOR_QASETS);
+  /** Creating a catalogue entry is its own permission; attaching an existing one is authoring. */
+  readonly canCreateIntents = this.#user.can(MANAGE_INTENTS);
+  readonly canCreateCategories = this.#user.can(MANAGE_CATEGORIES);
+
+  readonly searchIntents = (prefix: string) => this.#taxonomy.searchIntents(prefix);
+  readonly searchCategories = (prefix: string) => this.#taxonomy.searchCategories(prefix);
 
   readonly #detail = resource({
     params: () => this.qasetId(),
@@ -91,6 +106,12 @@ export class QASetEditor {
     return (this.view()?.sections ?? [])
       .map((section) => section.language)
       .filter((language) => language.id !== sourceLanguageId);
+  }
+
+  /** Counterparts an item may be linked to by hand, from what is loaded. */
+  linkCandidates(role: ItemRole, itemId: string): LinkCandidate[] {
+    const view = this.view();
+    return view ? linkCandidates(view, role, itemId) : [];
   }
 
   readonly #pending = signal<string | null>(null);
@@ -219,6 +240,57 @@ export class QASetEditor {
       'always',
     );
     return outcome.ok;
+  }
+
+  attachIntent(variantId: string, intentId: string): Promise<boolean> {
+    return this.#run(`intents:${variantId}`, (q) =>
+      this.#authoring.attachIntent(q, variantId, intentId),
+    );
+  }
+
+  /** Get-or-create in the catalogue, then attach: one action, one re-read. */
+  createIntent(variantId: string, text: string): Promise<boolean> {
+    return this.#run(`intents:${variantId}`, async (q) => {
+      const intentId = await this.#taxonomy.registerIntent(text);
+      await this.#authoring.attachIntent(q, variantId, intentId);
+    });
+  }
+
+  detachIntent(variantId: string, intentId: string): Promise<boolean> {
+    return this.#run(`intents:${variantId}`, (q) =>
+      this.#authoring.detachIntent(q, variantId, intentId),
+    );
+  }
+
+  addCategory(categoryId: string): Promise<boolean> {
+    return this.#run('categories', (q) => this.#authoring.addCategory(q, categoryId));
+  }
+
+  createCategory(name: string): Promise<boolean> {
+    return this.#run('categories', async (q) => {
+      const categoryId = await this.#taxonomy.registerCategory(name);
+      await this.#authoring.addCategory(q, categoryId);
+    });
+  }
+
+  removeCategory(categoryId: string): Promise<boolean> {
+    return this.#run('categories', (q) => this.#authoring.removeCategory(q, categoryId));
+  }
+
+  link(role: ItemRole, itemId: string, counterpartId: string): Promise<boolean> {
+    return this.#run(`links:${itemId}`, (q) =>
+      role === 'answer'
+        ? this.#authoring.linkAnswers(q, itemId, counterpartId)
+        : this.#authoring.linkVariants(q, itemId, counterpartId),
+    );
+  }
+
+  unlink(role: ItemRole, itemId: string, linkId: string): Promise<boolean> {
+    return this.#run(`links:${itemId}`, (q) =>
+      role === 'answer'
+        ? this.#authoring.unlinkAnswers(q, linkId)
+        : this.#authoring.unlinkVariants(q, linkId),
+    );
   }
 
   async #run(

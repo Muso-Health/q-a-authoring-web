@@ -157,11 +157,14 @@
       "forbidden": "Your account may not edit this content.",
       "unreachable": "The engine is unreachable. Your changes were not saved.",
       "unexpected": "An unexpected error occurred. Your changes were not saved.",
-      "sameLanguage": "The target language is the source language: choose another.",
+      "sameLanguage": "Both languages are the same: choose another.",
       "unknownEngine": "This translation engine is not available.",
       "unsupportedLanguageForEngine": "This engine cannot translate into this language: try the other engine.",
       "translationEngine": "The translation engine failed: nothing was added. Try again.",
-      "generationEngine": "Generation failed: no variants were proposed. Try again."
+      "generationEngine": "Generation failed: no variants were proposed. Try again.",
+      "linkAlreadyExists": "These two items are already linked as translations.",
+      "selfLink": "An item cannot be linked to itself.",
+      "invalidName": "The name was refused: it cannot be empty."
     },
     "translate": {
       "open": "Translate",
@@ -186,5 +189,30 @@
       "addKept": "Add the kept ones ({{ count }})",
       "discard": "Discard the proposals"
     }
+  },
+  "typeahead": {
+    "create": "Create “{{ text }}”",
+    "searching": "Searching…",
+    "alreadyAttached": "“{{ label }}” is already attached.",
+    "noResult": "No results.",
+    "searchFailed": "The search failed. Try again.",
+    "close": "Close"
+  },
+  "classification": {
+    "intent": "Intent",
+    "addIntent": "Add an intent",
+    "addIntentName": "Add an intent to variant {{ number }}",
+    "removeIntent": "Remove the intent “{{ label }}”",
+    "category": "Category",
+    "addCategory": "Add a category",
+    "removeCategory": "Remove the category “{{ label }}”"
+  },
+  "links": {
+    "open": "Link a translation",
+    "counterpart": "Matching translation",
+    "choose": "Choose the item to link…",
+    "required": "Choose the item to link.",
+    "submit": "Link",
+    "unlinkName": "Unlink the translation ({{ language }})"
   }
 }

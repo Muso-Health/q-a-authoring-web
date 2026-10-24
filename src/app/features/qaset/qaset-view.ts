@@ -14,6 +14,7 @@ export interface AudioView {
 }
 
 export interface TranslationLinkView {
+  readonly linkId: string;
   readonly otherId: string;
   readonly language: Language;
 }
@@ -72,6 +73,7 @@ export function toQASetView(
       quality: toValidationStatus(source.audio.audio_validation),
     },
     links: source.links.map((link) => ({
+      linkId: link.link_id,
       otherId: link.other_id,
       language: languages.of(link.other_language_id),
     })),
@@ -109,4 +111,39 @@ export function toQASetView(
     categories: detail.categories.map((c) => ({ id: c.category_id, name: c.name })),
     sections,
   };
+}
+
+export type ItemRole = 'answer' | 'variant';
+
+export interface LinkCandidate {
+  readonly id: string;
+  readonly text: string;
+  readonly language: Language;
+}
+
+/**
+ * What an item may be linked to by hand, read off the loaded QASet: the same role, in another
+ * language, not itself, and not already linked to it.
+ */
+export function linkCandidates(view: QASetView, role: ItemRole, itemId: string): LinkCandidate[] {
+  const items = (section: LanguageSectionView): readonly ItemView[] =>
+    role === 'answer' ? [section.answer] : section.variants;
+  const owner = view.sections.find((section) => items(section).some((i) => i.id === itemId));
+  if (!owner) return [];
+  const linked = new Set(
+    items(owner)
+      .find((i) => i.id === itemId)!
+      .links.map((l) => l.otherId),
+  );
+  return view.sections
+    .filter((section) => section.language.id !== owner.language.id)
+    .flatMap((section) =>
+      items(section)
+        .filter((candidate) => !linked.has(candidate.id))
+        .map((candidate) => ({
+          id: candidate.id,
+          text: candidate.text,
+          language: section.language,
+        })),
+    );
 }

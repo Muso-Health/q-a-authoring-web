@@ -1,14 +1,14 @@
 import { Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ValidationBadge } from '../../shared/ui/validation-badge';
 import { AudioPlayer } from '../audio/audio-player';
-import type { ItemView } from './qaset-view';
+import { ItemLinks } from './item-links';
+import type { ItemRole, ItemView } from './qaset-view';
 
 /** What hangs off an answer or a variant: its audio, its translation state and its links. */
 @Component({
   selector: 'app-item-meta',
-  imports: [RouterLink, TranslocoPipe, AudioPlayer, ValidationBadge],
+  imports: [TranslocoPipe, AudioPlayer, ValidationBadge, ItemLinks],
   template: `
     @let it = item();
     <div class="audio">
@@ -22,18 +22,7 @@ import type { ItemView } from './qaset-view';
     @if (it.translation; as translation) {
       <app-validation-badge kind="translation" [status]="translation" />
     }
-    @if (it.links.length > 0) {
-      <div class="links">
-        <span class="muso-meta">{{ 'qaset.translatedAs' | transloco }}</span>
-        <ul>
-          @for (link of it.links; track link.otherId) {
-            <li>
-              <a [routerLink]="[]" [fragment]="'item-' + link.otherId">{{ link.language.name }}</a>
-            </li>
-          }
-        </ul>
-      </div>
-    }
+    <app-item-links [item]="it" [role]="role()" />
   `,
   styles: `
     :host {
@@ -43,23 +32,17 @@ import type { ItemView } from './qaset-view';
       gap: var(--muso-space-1) var(--muso-space-3);
       margin-block-start: var(--muso-space-1);
     }
-    .audio,
-    .links,
-    ul {
+    .audio {
       display: inline-flex;
       flex-wrap: wrap;
       align-items: center;
       gap: var(--muso-space-1);
     }
-    ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
   `,
 })
 export class ItemMeta {
   readonly item = input.required<ItemView>();
+  readonly role = input.required<ItemRole>();
   /** Names the item for the audio player's accessible label. */
   readonly label = input.required<string>();
 }

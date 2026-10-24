@@ -85,4 +85,48 @@ export class QASetAuthoringApi {
     const body: Schemas['GenerateVariantsRequest'] = { context };
     return (await this.#api.post<Schemas['GeneratedVariantsResponse']>(path, body)).candidates;
   }
+
+  async attachIntent(qasetId: string, variantId: string, intentId: string): Promise<void> {
+    const body: Schemas['AttachIntentRequest'] = { intent_id: intentId };
+    await this.#api.post(`/qasets/${id(qasetId)}/variants/${id(variantId)}/intents`, body);
+  }
+
+  detachIntent(qasetId: string, variantId: string, intentId: string): Promise<void> {
+    return this.#api.delete(
+      `/qasets/${id(qasetId)}/variants/${id(variantId)}/intents/${id(intentId)}`,
+    );
+  }
+
+  async addCategory(qasetId: string, categoryId: string): Promise<void> {
+    const body: Schemas['AddCategoryRequest'] = { category_id: categoryId };
+    await this.#api.post(`/qasets/${id(qasetId)}/categories`, body);
+  }
+
+  removeCategory(qasetId: string, categoryId: string): Promise<void> {
+    return this.#api.delete(`/qasets/${id(qasetId)}/categories/${id(categoryId)}`);
+  }
+
+  async linkAnswers(qasetId: string, answerId: string, otherAnswerId: string): Promise<void> {
+    const body: Schemas['LinkAnswersRequest'] = {
+      answer_a_id: answerId,
+      answer_b_id: otherAnswerId,
+    };
+    await this.#api.post(`/qasets/${id(qasetId)}/answer-links`, body);
+  }
+
+  async linkVariants(qasetId: string, variantId: string, otherVariantId: string): Promise<void> {
+    const body: Schemas['LinkVariantsRequest'] = {
+      variant_a_id: variantId,
+      variant_b_id: otherVariantId,
+    };
+    await this.#api.post(`/qasets/${id(qasetId)}/variant-links`, body);
+  }
+
+  unlinkAnswers(qasetId: string, linkId: string): Promise<void> {
+    return this.#api.delete(`/qasets/${id(qasetId)}/answer-links/${id(linkId)}`);
+  }
+
+  unlinkVariants(qasetId: string, linkId: string): Promise<void> {
+    return this.#api.delete(`/qasets/${id(qasetId)}/variant-links/${id(linkId)}`);
+  }
 }

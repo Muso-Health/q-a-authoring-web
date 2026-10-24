@@ -2,11 +2,12 @@ import { Component, inject, input, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
 import { TextEditor } from '../../shared/ui/text-editor';
+import { Typeahead } from '../../shared/ui/typeahead';
 import { ItemMeta } from './item-meta';
 import { TranslateForm, type TranslationRequest } from './translate-form';
 import { VariantGenerator } from './variant-generator';
 import { QASetEditor } from './qaset-editor';
-import type { LanguageSectionView } from './qaset-view';
+import type { LanguageSectionView, VariantView } from './qaset-view';
 
 /**
  * One language of a QASet: its counts, its answer, then its variants in creation order. With
@@ -14,7 +15,15 @@ import type { LanguageSectionView } from './qaset-view';
  */
 @Component({
   selector: 'app-language-section',
-  imports: [TranslocoPipe, ConfirmAction, ItemMeta, TextEditor, TranslateForm, VariantGenerator],
+  imports: [
+    TranslocoPipe,
+    ConfirmAction,
+    ItemMeta,
+    TextEditor,
+    TranslateForm,
+    VariantGenerator,
+    Typeahead,
+  ],
   templateUrl: './language-section.html',
   styleUrl: './language-section.scss',
 })
@@ -29,6 +38,8 @@ export class LanguageSection {
   /** The answer or variant whose translation form is open. */
   protected readonly translating = signal<string | null>(null);
   protected readonly generating = signal(false);
+  /** The variant whose intent picker is open. */
+  protected readonly addingIntent = signal<string | null>(null);
 
   protected async saveAnswer(text: string): Promise<void> {
     if (await this.editor.editAnswer(this.section().language.id, text)) {
@@ -62,6 +73,19 @@ export class LanguageSection {
     }
   }
 
+  protected intentIds(variant: VariantView): string[] {
+    return variant.intents.map((intent) => intent.id);
+  }
+
+  protected async attachIntent(variantId: string, intentId: string): Promise<void> {
+    if (await this.editor.attachIntent(variantId, intentId)) this.addingIntent.set(null);
+  }
+
+  protected async createIntent(variantId: string, text: string): Promise<void> {
+    if (await this.editor.createIntent(variantId, text)) this.addingIntent.set(null);
+  }
+
+  protected readonly cancelIntent = () => this.addingIntent.set(null);
   protected readonly cancelTranslation = () => this.translating.set(null);
   protected readonly cancelAnswer = () => this.editingAnswer.set(false);
   protected readonly cancelVariant = () => this.editingVariant.set(null);

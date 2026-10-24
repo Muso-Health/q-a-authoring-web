@@ -82,6 +82,47 @@ describe('QASetAuthoringApi', () => {
     expect(api.writes).toEqual([{ method: 'POST', path, body: { context: 'Enfants' } }]);
   });
 
+  it('classifies and links with the contract’s payloads', async () => {
+    const { api, authoring } = setUp();
+    const q = IDS.qaset;
+
+    await authoring.attachIntent(q, IDS.variantFr2, 'i1');
+    await authoring.detachIntent(q, IDS.variantFr2, 'i1');
+    await authoring.addCategory(q, 'c3');
+    await authoring.removeCategory(q, 'c3');
+    await authoring.linkAnswers(q, IDS.answerFr, IDS.answerBm);
+    await authoring.linkVariants(q, IDS.variantFr2, IDS.variantEn1);
+    await authoring.unlinkAnswers(q, 'la');
+    await authoring.unlinkVariants(q, 'lv');
+
+    expect(api.writes).toEqual([
+      {
+        method: 'POST',
+        path: `/qasets/${q}/variants/${IDS.variantFr2}/intents`,
+        body: { intent_id: 'i1' },
+      },
+      {
+        method: 'DELETE',
+        path: `/qasets/${q}/variants/${IDS.variantFr2}/intents/i1`,
+        body: undefined,
+      },
+      { method: 'POST', path: `/qasets/${q}/categories`, body: { category_id: 'c3' } },
+      { method: 'DELETE', path: `/qasets/${q}/categories/c3`, body: undefined },
+      {
+        method: 'POST',
+        path: `/qasets/${q}/answer-links`,
+        body: { answer_a_id: IDS.answerFr, answer_b_id: IDS.answerBm },
+      },
+      {
+        method: 'POST',
+        path: `/qasets/${q}/variant-links`,
+        body: { variant_a_id: IDS.variantFr2, variant_b_id: IDS.variantEn1 },
+      },
+      { method: 'DELETE', path: `/qasets/${q}/answer-links/la`, body: undefined },
+      { method: 'DELETE', path: `/qasets/${q}/variant-links/lv`, body: undefined },
+    ]);
+  });
+
   it('creates a QASet under a theme and answers with its id', async () => {
     const { api, authoring } = setUp();
 

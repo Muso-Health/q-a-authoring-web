@@ -1,6 +1,6 @@
 import { LanguageDirectory } from '../../core/catalog/catalog.model';
 import { IDS, LANGUAGES, QASET } from '../../core/catalog/testing/catalog-fixtures';
-import { toQASetView } from './qaset-view';
+import { linkCandidates, toQASetView } from './qaset-view';
 
 const directory = new LanguageDirectory(
   LANGUAGES.items.map(({ id, code, name }) => ({ id, code, name })),
@@ -82,7 +82,11 @@ describe('toQASetView', () => {
 
   it('names the counterpart language of each translation link', () => {
     expect(section('fr').variants[0].links).toEqual([
-      { otherId: IDS.variantEn1, language: { id: IDS.en, code: 'en', name: 'English' } },
+      {
+        linkId: `${IDS.variantEn1}-link`,
+        otherId: IDS.variantEn1,
+        language: { id: IDS.en, code: 'en', name: 'English' },
+      },
     ]);
     expect(section('en').answer.links.map((l) => l.language.code)).toEqual(['fr']);
   });
@@ -91,6 +95,33 @@ describe('toQASetView', () => {
     expect(section('fr').variants[0].intents).toEqual([
       { id: 'i1', text: 'prévention_paludisme' },
       { id: 'i2', text: 'moustiquaire' },
+    ]);
+  });
+});
+
+describe('linkCandidates', () => {
+  const ids = (role: 'answer' | 'variant', itemId: string) =>
+    linkCandidates(view(), role, itemId).map((c) => c.id);
+
+  it('offers an answer the other languages’ answers it is not yet linked to', () => {
+    // French is already linked to English; Bambara is the only one left.
+    expect(ids('answer', IDS.answerFr)).toEqual([IDS.answerBm]);
+    expect(ids('answer', IDS.answerBm)).toEqual([IDS.answerFr, IDS.answerEn]);
+  });
+
+  it('offers a variant only variants, in other languages, not itself, not already linked', () => {
+    expect(ids('variant', IDS.variantFr1)).toEqual([]);
+    expect(ids('variant', IDS.variantFr2)).toEqual([IDS.variantEn1]);
+    expect(ids('variant', IDS.variantEn1)).toEqual([IDS.variantFr2, IDS.variantFr3]);
+  });
+
+  it('describes each candidate by its text and its language', () => {
+    expect(linkCandidates(view(), 'variant', IDS.variantFr2)).toEqual([
+      {
+        id: IDS.variantEn1,
+        text: 'How can I avoid malaria?',
+        language: { id: IDS.en, code: 'en', name: 'English' },
+      },
     ]);
   });
 });

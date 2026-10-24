@@ -17,6 +17,9 @@ const BY_CODE: Readonly<Record<string, string>> = {
   unsupported_language_for_engine: 'authoring.errors.unsupportedLanguageForEngine',
   translation_engine_error: 'authoring.errors.translationEngine',
   generation_engine_error: 'authoring.errors.generationEngine',
+  link_already_exists: 'authoring.errors.linkAlreadyExists',
+  self_link: 'authoring.errors.selfLink',
+  invalid_name: 'authoring.errors.invalidName',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

@@ -1,9 +1,10 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
 import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
+import { Typeahead } from '../../shared/ui/typeahead';
 import { ValidationBadge } from '../../shared/ui/validation-badge';
 import { LanguageSection } from './language-section';
 import { QASetEditor } from './qaset-editor';
@@ -19,6 +20,7 @@ import { QASetEditor } from './qaset-editor';
     LoadError,
     ValidationBadge,
     LanguageSection,
+    Typeahead,
   ],
   providers: [QASetEditor],
   template: `
@@ -33,11 +35,36 @@ import { QASetEditor } from './qaset-editor';
           @if (view.categories.length > 0) {
             <ul class="muso-chips" [attr.aria-label]="'qaset.categories' | transloco">
               @for (category of view.categories; track category.id) {
-                <li>{{ category.name }}</li>
+                <li>
+                  <span class="chip-label">{{ category.name }}</span>
+                  @if (editor.canAuthor()) {
+                    <button
+                      type="button"
+                      class="chip-remove"
+                      [disabled]="editor.busy()"
+                      [attr.aria-label]="
+                        'classification.removeCategory' | transloco: { label: category.name }
+                      "
+                      (click)="editor.removeCategory(category.id)"
+                    >
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  }
+                </li>
               }
             </ul>
           } @else {
             <span class="muso-meta">{{ 'qaset.noCategories' | transloco }}</span>
+          }
+          @if (editor.canAuthor() && !addingCategory()) {
+            <button
+              type="button"
+              class="secondary small"
+              [disabled]="editor.busy()"
+              (click)="addingCategory.set(true)"
+            >
+              {{ 'classification.addCategory' | transloco }}
+            </button>
           }
           @if (editor.canAuthor()) {
             <app-confirm-action
@@ -49,6 +76,20 @@ import { QASetEditor } from './qaset-editor';
             />
           }
         </div>
+        @if (addingCategory()) {
+          <app-typeahead
+            [label]="'classification.category' | transloco"
+            [search]="editor.searchCategories"
+            [exclude]="categoryIds()"
+            [canCreate]="editor.canCreateCategories()"
+            [error]="editor.errorFor('categories')"
+            (picked)="addCategory($event.id)"
+            (created)="createCategory($event)"
+            (cancel)="closeCategory()"
+          />
+        } @else if (editor.errorFor('categories'); as message) {
+          <p class="field-error" role="alert">{{ message }}</p>
+        }
         @if (editor.errorFor('qaset'); as message) {
           <p class="field-error" role="alert">{{ message }}</p>
         }
@@ -162,6 +203,10 @@ export class QASetPage {
   readonly qasetId = input.required<string>();
 
   protected readonly addingLanguage = signal(false);
+  protected readonly addingCategory = signal(false);
+  protected readonly categoryIds = computed(
+    () => this.editor.view()?.categories.map((category) => category.id) ?? [],
+  );
 
   constructor() {
     effect(() => this.editor.qasetId.set(this.qasetId()));
@@ -169,6 +214,19 @@ export class QASetPage {
 
   protected async addLanguage({ languageId, answerText }: LanguageAnswer): Promise<void> {
     if (await this.editor.addLanguage(languageId, answerText)) this.addingLanguage.set(false);
+  }
+
+  protected async addCategory(categoryId: string): Promise<void> {
+    if (await this.editor.addCategory(categoryId)) this.addingCategory.set(false);
+  }
+
+  protected async createCategory(name: string): Promise<void> {
+    if (await this.editor.createCategory(name)) this.addingCategory.set(false);
+  }
+
+  protected closeCategory(): void {
+    this.addingCategory.set(false);
+    this.editor.clearError('categories');
   }
 
   protected closeAddLanguage(): void {

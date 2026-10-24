@@ -32,8 +32,25 @@ describe('writeFailureOf', () => {
     }
   });
 
+  it('maps the link and catalogue refusals', () => {
+    expect(writeFailureOf(engineError(409, 'link_already_exists')).key).toBe(
+      'authoring.errors.linkAlreadyExists',
+    );
+    expect(writeFailureOf(engineError(422, 'self_link')).key).toBe('authoring.errors.selfLink');
+    expect(writeFailureOf(engineError(422, 'invalid_name')).key).toBe(
+      'authoring.errors.invalidName',
+    );
+  });
+
   it('reads every not-found code as the item being gone', () => {
-    for (const code of ['variant_not_found', 'language_not_present', 'qaset_not_found']) {
+    for (const code of [
+      'variant_not_found',
+      'language_not_present',
+      'qaset_not_found',
+      'link_not_found',
+      'intent_not_attached',
+      'category_not_attached',
+    ]) {
       expect(writeFailureOf(engineError(404, code))).toEqual({
         key: 'authoring.errors.gone',
         gone: true,

@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ApiPort } from '../api-port';
+import { ApiPort, type ReadOptions } from '../api-port';
 
 /**
- * An `ApiPort` answering from a table: reads by path (`/qasets/x`), writes by method and path
+ * An `ApiPort` answering from a table: reads by path and query (`/intents?q=mo`), writes by method and path
  * (`DELETE /qasets/x`). An answer that is an `HttpErrorResponse` rejects with it, a `Promise` is
  * returned as-is (to hold a call pending), anything else resolves. An unknown read rejects with a
  * 503; an unknown write resolves with nothing. The table is mutable, so a test can change what
@@ -20,7 +20,11 @@ export class FakeApiPort extends ApiPort {
     this.answers = { ...answers };
   }
 
-  get<T>(path: string): Promise<T> {
+  get<T>(path: string, options?: ReadOptions): Promise<T> {
+    const query = new URLSearchParams(
+      Object.entries(options?.params ?? {}).map(([key, value]) => [key, String(value)]),
+    ).toString();
+    path = query === '' ? path : `${path}?${query}`;
     this.reads.push(path);
     this.calls.push(`GET ${path}`);
     if (!(path in this.answers)) {
