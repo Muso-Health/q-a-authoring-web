@@ -67,6 +67,11 @@ export class LanguageDirectory {
     return [...this.#byId.values()];
   }
 
+  /** The queues name languages by code. */
+  byCode(code: string): Language | undefined {
+    return this.all().find((language) => language.code === code);
+  }
+
   of(id: string): Language {
     return this.#byId.get(id) ?? { id, code: '?', name: id.slice(0, 8) };
   }

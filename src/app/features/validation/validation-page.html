@@ -1,0 +1,187 @@
+@let kindValue = kind();
+<h1>{{ title() | transloco }}</h1>
+
+<div class="filters" role="group" [attr.aria-label]="'validation.filters.label' | transloco">
+  <div>
+    <label for="filter-project">{{ 'validation.filters.project' | transloco }}</label>
+    <select id="filter-project" (change)="changeProject($any($event.target).value)">
+      <option value="">{{ 'validation.filters.allProjects' | transloco }}</option>
+      @if (projects.hasValue()) {
+        @for (project of projects.value(); track project.id) {
+          <option [value]="project.id">{{ project.name }}</option>
+        }
+      }
+    </select>
+  </div>
+  <div>
+    <label for="filter-theme">{{ 'validation.filters.theme' | transloco }}</label>
+    <select
+      id="filter-theme"
+      [disabled]="!projectId()"
+      (change)="changeTheme($any($event.target).value)"
+    >
+      <option value="">{{ 'validation.filters.allThemes' | transloco }}</option>
+      @if (themes.hasValue()) {
+        @for (theme of themes.value(); track theme.id) {
+          <option [value]="theme.id">{{ theme.label }}</option>
+        }
+      }
+    </select>
+  </div>
+  <div>
+    <label for="filter-state">{{ 'validation.filters.state' | transloco }}</label>
+    <select id="filter-state" (change)="changeState($any($event.target).value)">
+      @for (state of states; track state.value) {
+        <option [value]="state.value" [selected]="state.value === worklist.filterState().state">
+          {{ state.key | transloco }}
+        </option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (worklist.loadError()) {
+  <app-load-error [error]="worklist.loadError()" (retry)="worklist.reload()" />
+} @else if (worklist.empty()) {
+  <p class="muso-empty">{{ 'validation.empty' | transloco }}</p>
+} @else if (worklist.finished()) {
+  <div class="muso-notice">
+    <p>{{ 'validation.finished' | transloco }}</p>
+    <button type="button" (click)="worklist.reload()">{{ 'validation.reload' | transloco }}</button>
+  </div>
+} @else if (worklist.current(); as item) {
+  <div class="status-line">
+    <p class="progress">
+      @if (worklist.filterState().state === 'pending') {
+        {{
+          'validation.progress.remaining'
+            | transloco: { remaining: worklist.remaining(), total: worklist.total() }
+        }}
+      } @else {
+        {{
+          'validation.progress.position'
+            | transloco: { position: worklist.position(), total: worklist.total() }
+        }}
+      }
+    </p>
+    <progress
+      [value]="worklist.decided()"
+      [max]="worklist.total() || 1"
+      [attr.aria-label]="'validation.progress.label' | transloco"
+    ></progress>
+  </div>
+
+  @if (worklist.notice(); as notice) {
+    <p class="muso-notice">{{ notice }}</p>
+  }
+
+  <article class="item-card muso-card" [attr.aria-labelledby]="'item-heading'">
+    <header>
+      <p class="context muso-meta">
+        {{ item.context.project.name }} › {{ item.context.protocol.name }} ›
+        {{ item.context.theme.name }}
+      </p>
+      <h2 id="item-heading" class="visually-hidden">{{ title() | transloco }}</h2>
+      <div class="meta">
+        <app-validation-badge [kind]="kindValue" [status]="item.state" />
+        <a class="open" [routerLink]="['/qasets', item.qasetId]">
+          {{ 'validation.card.open' | transloco }}
+        </a>
+      </div>
+    </header>
+    @switch (item.kind) {
+      @case ('clinical') {
+        <app-clinical-card [item]="item" [languageName]="languageName(item.languageCode)" />
+      }
+      @case ('translation') {
+        <app-translation-card [item]="item" [languageName]="languageName(item.languageCode)" />
+      }
+      @case ('audio') {
+        <app-audio-card [item]="item" [languageName]="languageName(item.languageCode)" />
+      }
+    }
+  </article>
+
+  <section class="decision muso-card" aria-labelledby="decision-heading">
+    <h2 id="decision-heading">{{ 'validation.decision.heading' | transloco }}</h2>
+    <label for="decision-note">{{ 'validation.decision.note' | transloco }}</label>
+    <textarea id="decision-note" #noteField rows="2" [formField]="note.text"></textarea>
+    @if (worklist.decisionError(); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+    <div class="actions">
+      <button
+        type="button"
+        class="validate"
+        aria-keyshortcuts="V"
+        [attr.aria-label]="'validation.decision.validate' | transloco"
+        [disabled]="worklist.busy()"
+        (click)="decide('validated')"
+      >
+        {{ 'validation.decision.validate' | transloco }} <kbd aria-hidden="true">V</kbd>
+      </button>
+      <button
+        type="button"
+        class="danger"
+        aria-keyshortcuts="R"
+        [attr.aria-label]="'validation.decision.reject' | transloco"
+        [disabled]="worklist.busy()"
+        (click)="decide('rejected')"
+      >
+        {{ 'validation.decision.reject' | transloco }} <kbd aria-hidden="true">R</kbd>
+      </button>
+      <span class="spacer"></span>
+      <button
+        type="button"
+        class="secondary"
+        aria-keyshortcuts="K"
+        [attr.aria-label]="'validation.decision.previous' | transloco"
+        [disabled]="!worklist.canGoBack()"
+        (click)="previous()"
+      >
+        <kbd aria-hidden="true">K</kbd> {{ 'validation.decision.previous' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="secondary"
+        aria-keyshortcuts="J"
+        [attr.aria-label]="'validation.decision.skip' | transloco"
+        (click)="next()"
+      >
+        {{ 'validation.decision.skip' | transloco }} <kbd aria-hidden="true">J</kbd>
+      </button>
+    </div>
+  </section>
+} @else {
+  <app-loading />
+}
+
+<p class="announce visually-hidden" role="status">{{ worklist.announcement() }}</p>
+
+<section class="shortcuts-help" aria-labelledby="shortcuts-heading">
+  <h2 id="shortcuts-heading" class="muso-eyebrow">
+    {{ 'validation.shortcuts.heading' | transloco }}
+  </h2>
+  <dl class="shortcuts">
+    <div>
+      <dt><kbd>V</kbd></dt>
+      <dd>{{ 'validation.decision.validate' | transloco }}</dd>
+    </div>
+    <div>
+      <dt><kbd>R</kbd></dt>
+      <dd>{{ 'validation.decision.reject' | transloco }}</dd>
+    </div>
+    <div>
+      <dt><kbd>N</kbd></dt>
+      <dd>{{ 'validation.shortcuts.note' | transloco }}</dd>
+    </div>
+    <div>
+      <dt><kbd>J</kbd> / <kbd>→</kbd></dt>
+      <dd>{{ 'validation.decision.skip' | transloco }}</dd>
+    </div>
+    <div>
+      <dt><kbd>K</kbd> / <kbd>←</kbd></dt>
+      <dd>{{ 'validation.decision.previous' | transloco }}</dd>
+    </div>
+  </dl>
+</section>

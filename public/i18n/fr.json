@@ -6,7 +6,10 @@
   "nav": {
     "label": "Navigation principale",
     "status": "État du moteur",
-    "projects": "Projets"
+    "projects": "Projets",
+    "clinical": "Validation clinique",
+    "translation": "Validation des traductions",
+    "audio": "Validation audio"
   },
   "status": {
     "title": "État du moteur",
@@ -80,6 +83,69 @@
     }
   },
   "validation": {
+    "titles": {
+      "clinical": "Validation clinique",
+      "translation": "Validation des traductions",
+      "audio": "Validation audio"
+    },
+    "filters": {
+      "label": "Sélection",
+      "project": "Projet",
+      "allProjects": "Tous les projets",
+      "theme": "Thème",
+      "allThemes": "Tous les thèmes",
+      "state": "État"
+    },
+    "states": {
+      "pending": "En attente",
+      "rejected": "Rejetés",
+      "validated": "Validés",
+      "all": "Tous"
+    },
+    "progress": {
+      "remaining": "{{ remaining }} / {{ total }} restants",
+      "position": "Élément {{ position }} sur {{ total }}",
+      "label": "Avancement de la validation"
+    },
+    "card": {
+      "open": "Ouvrir l’ensemble",
+      "answer": "Réponse ({{ language }})",
+      "variants": "Variantes de la question",
+      "noVariants": "Aucune variante.",
+      "translatedAnswer": "Réponse traduite ({{ language }})",
+      "translatedVariant": "Variante traduite ({{ language }})",
+      "source": "Source en langue de base",
+      "fallback": "Aucune source liée : réponse de référence en langue de base",
+      "noSource": "Aucun texte source disponible.",
+      "voicedAnswer": "Réponse enregistrée ({{ language }})",
+      "voicedVariant": "Variante enregistrée ({{ language }})",
+      "recording": "l’enregistrement"
+    },
+    "decision": {
+      "heading": "Décision",
+      "note": "Note (facultative)",
+      "validate": "Valider",
+      "reject": "Rejeter",
+      "skip": "Passer",
+      "previous": "Précédent"
+    },
+    "announce": {
+      "validated": "Décision enregistrée : validé.",
+      "rejected": "Décision enregistrée : rejeté."
+    },
+    "shortcuts": {
+      "heading": "Raccourcis clavier",
+      "note": "Écrire une note"
+    },
+    "empty": "Aucun élément à valider dans cette sélection.",
+    "finished": "Vous avez parcouru toute la liste.",
+    "reload": "Recharger la liste",
+    "errors": {
+      "noBaseLanguage": "Cet ensemble n’a pas de réponse dans la langue de base du projet : il ne peut pas être validé cliniquement.",
+      "notATranslation": "Cet élément est dans la langue de base : ce n’est pas une traduction.",
+      "invalidDecision": "Décision refusée : choisissez valider ou rejeter.",
+      "gone": "Cet élément n’existe plus : il a été retiré de la liste."
+    },
     "kind": {
       "clinical": "Validation clinique",
       "translation": "Traduction",

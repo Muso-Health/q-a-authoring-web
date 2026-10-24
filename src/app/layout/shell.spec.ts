@@ -1,12 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { ApiPort } from '../core/api/api-port';
+import { FakeApiPort } from '../core/api/testing/fake-api-port';
+import { ME_AUTHOR } from '../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../core/i18n/testing/provide-test-i18n';
 import { Shell } from './shell';
 
-async function render() {
+async function render(permissions: string[] = []) {
   TestBed.configureTestingModule({
     imports: [Shell],
-    providers: [provideTestI18n(), provideRouter([])],
+    providers: [
+      provideTestI18n(),
+      provideRouter([]),
+      { provide: ApiPort, useValue: new FakeApiPort({ '/me': { ...ME_AUTHOR, permissions } }) },
+    ],
   });
   const fixture = TestBed.createComponent(Shell);
   await fixture.whenStable();
@@ -29,6 +36,21 @@ describe('Shell', () => {
     const links = [...element.querySelectorAll<HTMLAnchorElement>('nav a')];
     expect(links.map((a) => [a.textContent?.trim(), a.getAttribute('href')])).toEqual([
       ['Projets', '/projects'],
+      ['État du moteur', '/status'],
+    ]);
+  });
+
+  it('lists only the validation queues /me permits', async () => {
+    const element = await render(['validate_clinical', 'validate_audio']);
+
+    const links = [...element.querySelectorAll<HTMLAnchorElement>('nav a')].map((a) => [
+      a.textContent?.trim(),
+      a.getAttribute('href'),
+    ]);
+    expect(links).toEqual([
+      ['Projets', '/projects'],
+      ['Validation clinique', '/validation/clinical'],
+      ['Validation audio', '/validation/audio'],
       ['État du moteur', '/status'],
     ]);
   });

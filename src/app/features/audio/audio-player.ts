@@ -4,7 +4,8 @@ import { AudioApi } from '../../core/audio/audio-api';
 
 export interface PlayableAudio {
   readonly id: string;
-  readonly durationMs: number;
+  /** Unknown where the caller only has the audio's id (the validation queues). */
+  readonly durationMs?: number;
 }
 
 /** m:ss */
@@ -38,12 +39,16 @@ export function formatDuration(ms: number): string {
       <button
         type="button"
         class="play"
-        [attr.aria-label]="('audio.play' | transloco) + ' ' + label() + ' (' + duration() + ')'"
+        [attr.aria-label]="
+          ('audio.play' | transloco) + ' ' + label() + (duration() ? ' (' + duration() + ')' : '')
+        "
         (click)="play()"
       >
         <span aria-hidden="true">▶</span>
         {{ (url.error() || broken() ? 'audio.retry' : 'audio.play') | transloco }}
-        <span class="duration">{{ duration() }}</span>
+        @if (duration(); as duration) {
+          <span class="duration">{{ duration }}</span>
+        }
       </button>
     }
   `,
@@ -84,7 +89,10 @@ export class AudioPlayer {
 
   readonly #requested = signal(0);
   protected readonly broken = signal(false);
-  protected readonly duration = computed(() => formatDuration(this.audio().durationMs));
+  protected readonly duration = computed(() => {
+    const ms = this.audio().durationMs;
+    return ms === undefined ? null : formatDuration(ms);
+  });
 
   protected readonly url = resource({
     params: () =>

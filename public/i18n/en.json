@@ -6,7 +6,10 @@
   "nav": {
     "label": "Main navigation",
     "status": "Engine status",
-    "projects": "Projects"
+    "projects": "Projects",
+    "clinical": "Clinical validation",
+    "translation": "Translation validation",
+    "audio": "Audio validation"
   },
   "status": {
     "title": "Engine status",
@@ -80,6 +83,69 @@
     }
   },
   "validation": {
+    "titles": {
+      "clinical": "Clinical validation",
+      "translation": "Translation validation",
+      "audio": "Audio validation"
+    },
+    "filters": {
+      "label": "Selection",
+      "project": "Project",
+      "allProjects": "All projects",
+      "theme": "Theme",
+      "allThemes": "All themes",
+      "state": "State"
+    },
+    "states": {
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "validated": "Validated",
+      "all": "All"
+    },
+    "progress": {
+      "remaining": "{{ remaining }} / {{ total }} remaining",
+      "position": "Item {{ position }} of {{ total }}",
+      "label": "Validation progress"
+    },
+    "card": {
+      "open": "Open the set",
+      "answer": "Answer ({{ language }})",
+      "variants": "Question variants",
+      "noVariants": "No variants.",
+      "translatedAnswer": "Translated answer ({{ language }})",
+      "translatedVariant": "Translated variant ({{ language }})",
+      "source": "Source in the base language",
+      "fallback": "No linked source: reference answer in the base language",
+      "noSource": "No source text available.",
+      "voicedAnswer": "Recorded answer ({{ language }})",
+      "voicedVariant": "Recorded variant ({{ language }})",
+      "recording": "the recording"
+    },
+    "decision": {
+      "heading": "Decision",
+      "note": "Note (optional)",
+      "validate": "Validate",
+      "reject": "Reject",
+      "skip": "Skip",
+      "previous": "Previous"
+    },
+    "announce": {
+      "validated": "Decision saved: validated.",
+      "rejected": "Decision saved: rejected."
+    },
+    "shortcuts": {
+      "heading": "Keyboard shortcuts",
+      "note": "Write a note"
+    },
+    "empty": "Nothing to validate in this selection.",
+    "finished": "You have been through the whole list.",
+    "reload": "Reload the list",
+    "errors": {
+      "noBaseLanguage": "This set has no answer in the project's base language: it cannot be clinically validated.",
+      "notATranslation": "This item is in the base language: it is not a translation.",
+      "invalidDecision": "Decision refused: choose validate or reject.",
+      "gone": "This item no longer exists: it was removed from the list."
+    },
     "kind": {
       "clinical": "Clinical validation",
       "translation": "Translation",

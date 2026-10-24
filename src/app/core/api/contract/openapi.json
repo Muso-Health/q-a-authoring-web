@@ -3872,6 +3872,318 @@
           }
         }
       }
+    },
+    "/validation-queues/clinical": {
+      "get": {
+        "tags": [
+          "validation queues"
+        ],
+        "summary": "Clinical Queue",
+        "description": "QA sets with a base-language answer, with that answer and its question variants.",
+        "operationId": "clinical_queue_validation_queues_clinical_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "theme_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Theme Id"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "pending",
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicalQueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/validation-queues/translation": {
+      "get": {
+        "tags": [
+          "validation queues"
+        ],
+        "summary": "Translation Queue",
+        "description": "Translated answers and question variants, with the base-language text they translate.",
+        "operationId": "translation_queue_validation_queues_translation_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "theme_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Theme Id"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "pending",
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationQueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/validation-queues/audio": {
+      "get": {
+        "tags": [
+          "validation queues"
+        ],
+        "summary": "Audio Queue",
+        "description": "Recordings, with the answer or question variant they voice.",
+        "operationId": "audio_queue_validation_queues_audio_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "theme_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Theme Id"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "pending",
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudioQueueResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4061,6 +4373,102 @@
         ],
         "title": "AttachedIntentResponse"
       },
+      "AudioQueueItemResponse": {
+        "properties": {
+          "qaset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Qaset Id"
+          },
+          "project": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "audio_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Audio Id"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": [
+              "answer",
+              "variant"
+            ],
+            "title": "Item Kind"
+          },
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          },
+          "language_code": {
+            "type": "string",
+            "title": "Language Code"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "qaset_id",
+          "project",
+          "protocol",
+          "theme",
+          "audio_id",
+          "item_kind",
+          "item_id",
+          "language_code",
+          "text",
+          "state"
+        ],
+        "title": "AudioQueueItemResponse"
+      },
+      "AudioQueueResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AudioQueueItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "AudioQueueResponse"
+      },
       "AudioResponse": {
         "properties": {
           "audio_id": {
@@ -4223,6 +4631,89 @@
           "name"
         ],
         "title": "CategoryResponse"
+      },
+      "ClinicalQueueItemResponse": {
+        "properties": {
+          "qaset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Qaset Id"
+          },
+          "project": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "base_language_code": {
+            "type": "string",
+            "title": "Base Language Code"
+          },
+          "answer_text": {
+            "type": "string",
+            "title": "Answer Text"
+          },
+          "variant_texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variant Texts"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "qaset_id",
+          "project",
+          "protocol",
+          "theme",
+          "base_language_code",
+          "answer_text",
+          "variant_texts",
+          "state"
+        ],
+        "title": "ClinicalQueueItemResponse"
+      },
+      "ClinicalQueueResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ClinicalQueueItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "ClinicalQueueResponse"
       },
       "CompletenessResponse": {
         "properties": {
@@ -4743,6 +5234,25 @@
         "title": "MeResponse",
         "description": "The current user and their effective permissions, for the front to gate its UI."
       },
+      "NamedRefResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "NamedRefResponse"
+      },
       "PermissionsResponse": {
         "properties": {
           "items": {
@@ -5208,6 +5718,25 @@
         ],
         "title": "RolesResponse"
       },
+      "SourceTextResponse": {
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item_id",
+          "text"
+        ],
+        "title": "SourceTextResponse"
+      },
       "TextRequest": {
         "properties": {
           "text": {
@@ -5327,6 +5856,116 @@
           "link"
         ],
         "title": "TranslatedVariantResponse"
+      },
+      "TranslationQueueItemResponse": {
+        "properties": {
+          "qaset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Qaset Id"
+          },
+          "project": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "protocol": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "theme": {
+            "$ref": "#/components/schemas/NamedRefResponse"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "answer",
+              "variant"
+            ],
+            "title": "Kind"
+          },
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          },
+          "language_code": {
+            "type": "string",
+            "title": "Language Code"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceTextResponse"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "fallback_base_answer_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Base Answer Text"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "qaset_id",
+          "project",
+          "protocol",
+          "theme",
+          "kind",
+          "item_id",
+          "language_code",
+          "text",
+          "sources",
+          "fallback_base_answer_text",
+          "state"
+        ],
+        "title": "TranslationQueueItemResponse"
+      },
+      "TranslationQueueResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TranslationQueueItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "TranslationQueueResponse"
       },
       "TranslationResponse": {
         "properties": {

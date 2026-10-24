@@ -22,6 +22,9 @@ const BY_CODE: Readonly<Record<string, string>> = {
   invalid_name: 'authoring.errors.invalidName',
   unsupported_audio_type: 'authoring.errors.unsupportedAudioType',
   audio_too_large: 'authoring.errors.audioTooLarge',
+  no_base_language_presence: 'validation.errors.noBaseLanguage',
+  not_a_translation: 'validation.errors.notATranslation',
+  invalid_decision: 'validation.errors.invalidDecision',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

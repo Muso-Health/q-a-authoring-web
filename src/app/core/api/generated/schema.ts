@@ -1102,6 +1102,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/validation-queues/clinical": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clinical Queue
+         * @description QA sets with a base-language answer, with that answer and its question variants.
+         */
+        get: operations["clinical_queue_validation_queues_clinical_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/validation-queues/translation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Translation Queue
+         * @description Translated answers and question variants, with the base-language text they translate.
+         */
+        get: operations["translation_queue_validation_queues_translation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/validation-queues/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Audio Queue
+         * @description Recordings, with the answer or question variant they voice.
+         */
+        get: operations["audio_queue_validation_queues_audio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1193,6 +1253,47 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** AudioQueueItemResponse */
+        AudioQueueItemResponse: {
+            /**
+             * Qaset Id
+             * Format: uuid
+             */
+            qaset_id: string;
+            project: components["schemas"]["NamedRefResponse"];
+            protocol: components["schemas"]["NamedRefResponse"];
+            theme: components["schemas"]["NamedRefResponse"];
+            /**
+             * Audio Id
+             * Format: uuid
+             */
+            audio_id: string;
+            /**
+             * Item Kind
+             * @enum {string}
+             */
+            item_kind: "answer" | "variant";
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Language Code */
+            language_code: string;
+            /** Text */
+            text: string;
+            /** State */
+            state: string;
+        };
+        /** AudioQueueResponse */
+        AudioQueueResponse: {
+            /** Items */
+            items: components["schemas"]["AudioQueueItemResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
+        };
         /** AudioResponse */
         AudioResponse: {
             /**
@@ -1263,6 +1364,34 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /** ClinicalQueueItemResponse */
+        ClinicalQueueItemResponse: {
+            /**
+             * Qaset Id
+             * Format: uuid
+             */
+            qaset_id: string;
+            project: components["schemas"]["NamedRefResponse"];
+            protocol: components["schemas"]["NamedRefResponse"];
+            theme: components["schemas"]["NamedRefResponse"];
+            /** Base Language Code */
+            base_language_code: string;
+            /** Answer Text */
+            answer_text: string;
+            /** Variant Texts */
+            variant_texts: string[];
+            /** State */
+            state: string;
+        };
+        /** ClinicalQueueResponse */
+        ClinicalQueueResponse: {
+            /** Items */
+            items: components["schemas"]["ClinicalQueueItemResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
         };
         /**
          * CompletenessResponse
@@ -1502,6 +1631,16 @@ export interface components {
             /** Permissions */
             permissions: string[];
         };
+        /** NamedRefResponse */
+        NamedRefResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** PermissionsResponse */
         PermissionsResponse: {
             /** Items */
@@ -1688,6 +1827,16 @@ export interface components {
             /** Items */
             items: components["schemas"]["RoleResponse"][];
         };
+        /** SourceTextResponse */
+        SourceTextResponse: {
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Text */
+            text: string;
+        };
         /** TextRequest */
         TextRequest: {
             /** Text */
@@ -1737,6 +1886,46 @@ export interface components {
         TranslatedVariantResponse: {
             variant: components["schemas"]["QuestionVariantResponse"];
             link: components["schemas"]["VariantLinkResponse"];
+        };
+        /** TranslationQueueItemResponse */
+        TranslationQueueItemResponse: {
+            /**
+             * Qaset Id
+             * Format: uuid
+             */
+            qaset_id: string;
+            project: components["schemas"]["NamedRefResponse"];
+            protocol: components["schemas"]["NamedRefResponse"];
+            theme: components["schemas"]["NamedRefResponse"];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "answer" | "variant";
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Language Code */
+            language_code: string;
+            /** Text */
+            text: string;
+            /** Sources */
+            sources: components["schemas"]["SourceTextResponse"][];
+            /** Fallback Base Answer Text */
+            fallback_base_answer_text: string | null;
+            /** State */
+            state: string;
+        };
+        /** TranslationQueueResponse */
+        TranslationQueueResponse: {
+            /** Items */
+            items: components["schemas"]["TranslationQueueItemResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
         };
         /**
          * TranslationResponse
@@ -4574,6 +4763,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clinical_queue_validation_queues_clinical_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+                theme_id?: string | null;
+                state?: string;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicalQueueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translation_queue_validation_queues_translation_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+                theme_id?: string | null;
+                state?: string;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranslationQueueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audio_queue_validation_queues_audio_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+                theme_id?: string | null;
+                state?: string;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudioQueueResponse"];
                 };
             };
             /** @description Validation Error */

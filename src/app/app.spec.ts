@@ -23,9 +23,21 @@ describe('App', () => {
       'protocols/:protocolId',
       'themes/:themeId',
       'qasets/:qasetId',
+      'validation/clinical',
+      'validation/translation',
+      'validation/audio',
       'status',
     ]) {
       expect(children.find((route) => route.path === path)?.loadComponent).toBeDefined();
+    }
+  });
+
+  it('guards each validation queue by its own permission', () => {
+    const children = routes[0].children ?? [];
+    for (const kind of ['clinical', 'translation', 'audio']) {
+      const route = children.find((r) => r.path === `validation/${kind}`);
+      expect(route?.canMatch).toHaveLength(1);
+      expect(route?.data?.['kind']).toBe(kind);
     }
   });
 });

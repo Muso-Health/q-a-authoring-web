@@ -1,4 +1,10 @@
 import type { Routes } from '@angular/router';
+import {
+  VALIDATE_AUDIO,
+  VALIDATE_CLINICAL,
+  VALIDATE_TRANSLATION,
+} from './core/access/current-user';
+import { permissionGuard } from './core/access/permission-guard';
 import { Shell } from './layout/shell';
 
 export const routes: Routes = [
@@ -29,6 +35,19 @@ export const routes: Routes = [
         path: 'qasets/:qasetId',
         loadComponent: () => import('./features/qaset/qaset-page').then((m) => m.QASetPage),
       },
+      ...(
+        [
+          ['clinical', VALIDATE_CLINICAL],
+          ['translation', VALIDATE_TRANSLATION],
+          ['audio', VALIDATE_AUDIO],
+        ] as const
+      ).map(([kind, permission]) => ({
+        path: `validation/${kind}`,
+        canMatch: [permissionGuard(permission)],
+        data: { kind },
+        loadComponent: () =>
+          import('./features/validation/validation-page').then((m) => m.ValidationPage),
+      })),
       {
         path: 'status',
         loadComponent: () =>

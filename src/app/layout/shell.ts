@@ -1,7 +1,13 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import {
+  CurrentUser,
+  VALIDATE_AUDIO,
+  VALIDATE_CLINICAL,
+  VALIDATE_TRANSLATION,
+} from '../core/access/current-user';
 
 /** The frame every feature renders into: skip link, banner, navigation, main. */
 @Component({
@@ -21,6 +27,15 @@ import { TranslocoPipe } from '@jsverse/transloco';
               {{ 'nav.projects' | transloco }}
             </a>
           </li>
+          @for (queue of queues; track queue.path) {
+            @if (queue.allowed()) {
+              <li>
+                <a [routerLink]="queue.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+                  {{ queue.label | transloco }}
+                </a>
+              </li>
+            }
+          }
           <li>
             <a routerLink="/status" routerLinkActive="active" ariaCurrentWhenActive="page">
               {{ 'nav.status' | transloco }}
@@ -100,4 +115,21 @@ import { TranslocoPipe } from '@jsverse/transloco';
     }
   `,
 })
-export class Shell {}
+export class Shell {
+  readonly #user = inject(CurrentUser);
+
+  /** Each queue is offered only to those who may validate in it. */
+  protected readonly queues = [
+    {
+      path: '/validation/clinical',
+      label: 'nav.clinical',
+      allowed: this.#user.can(VALIDATE_CLINICAL),
+    },
+    {
+      path: '/validation/translation',
+      label: 'nav.translation',
+      allowed: this.#user.can(VALIDATE_TRANSLATION),
+    },
+    { path: '/validation/audio', label: 'nav.audio', allowed: this.#user.can(VALIDATE_AUDIO) },
+  ];
+}

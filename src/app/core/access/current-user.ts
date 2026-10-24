@@ -6,6 +6,9 @@ export const AUTHOR_QASETS = 'author_qasets';
 export const MANAGE_INTENTS = 'manage_intents';
 export const MANAGE_CATEGORIES = 'manage_categories';
 export const MANAGE_AUDIO = 'manage_audio';
+export const VALIDATE_CLINICAL = 'validate_clinical';
+export const VALIDATE_TRANSLATION = 'validate_translation';
+export const VALIDATE_AUDIO = 'validate_audio';
 
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine
@@ -14,14 +17,29 @@ export const MANAGE_AUDIO = 'manage_audio';
 @Service()
 export class CurrentUser {
   readonly #api = inject(ApiPort);
+  #me: Promise<MeResponse> | undefined;
 
-  readonly #me = resource({ loader: () => this.#api.get<MeResponse>('/me') });
+  readonly #read = resource({ loader: () => this.#fetch() });
 
   readonly #permissions = computed(() =>
-    this.#me.hasValue() ? new Set(this.#me.value().permissions) : new Set<string>(),
+    this.#read.hasValue() ? new Set(this.#read.value().permissions) : new Set<string>(),
   );
 
   can(permission: string): Signal<boolean> {
     return computed(() => this.#permissions().has(permission));
+  }
+
+  /** For a guard, which must wait for the answer rather than read "not yet" as "no". */
+  async has(permission: string): Promise<boolean> {
+    try {
+      return (await this.#fetch()).permissions.includes(permission);
+    } catch {
+      return false;
+    }
+  }
+
+  #fetch(): Promise<MeResponse> {
+    this.#me ??= this.#api.get<MeResponse>('/me');
+    return this.#me;
   }
 }
