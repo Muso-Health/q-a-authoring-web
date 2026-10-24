@@ -1,0 +1,47 @@
+import { InjectionToken, type Signal } from '@angular/core';
+
+/** French first: it is the default and the fallback. */
+export const UI_LANGUAGES = ['fr', 'en'] as const;
+export type UiLanguage = (typeof UI_LANGUAGES)[number];
+
+export const DEFAULT_LANGUAGE: UiLanguage = 'fr';
+
+export function isUiLanguage(value: string): value is UiLanguage {
+  return (UI_LANGUAGES as readonly string[]).includes(value);
+}
+
+/** The first tag whose primary subtag we speak wins; anything else is French. */
+export function detectUiLanguage(candidates: readonly string[] | undefined): UiLanguage {
+  for (const tag of candidates ?? []) {
+    const primary = tag.split('-')[0]?.toLowerCase() ?? '';
+    if (isUiLanguage(primary)) return primary;
+  }
+  return DEFAULT_LANGUAGE;
+}
+
+/** Overrides the browser's language list; tests pin it, the application leaves it unset. */
+export const UI_LANGUAGE_CANDIDATES = new InjectionToken<readonly string[]>(
+  'UI_LANGUAGE_CANDIDATES',
+);
+
+/**
+ * Translation, as TypeScript asks for it. Templates use Transloco's pipe/directive directly
+ * (accepted platform coupling); code goes through here. `t()` reads `language`, so a computed
+ * calling it re-translates on a switch.
+ */
+export abstract class Translator {
+  abstract readonly language: Signal<UiLanguage>;
+  /** Whether the bundle for `language` has arrived; until then `t()` can only echo keys. */
+  abstract readonly ready: Signal<boolean>;
+  abstract use(language: UiLanguage): void;
+  /** The words for a key; a missing key returns the key itself. */
+  abstract t(key: string, params?: Record<string, unknown>): string;
+
+  /** The `{ one, other, … }` branch a count needs in the active language, via `Intl.PluralRules`. */
+  plural(key: string, count: number, params: Record<string, unknown> = {}): string {
+    const category = new Intl.PluralRules(this.language()).select(count);
+    const withCount = { count, ...params };
+    const words = this.t(`${key}.${category}`, withCount);
+    return words === `${key}.${category}` ? this.t(`${key}.other`, withCount) : words;
+  }
+}

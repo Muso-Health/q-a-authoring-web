@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "Muso Questions-Réponses",
+    "skipToContent": "Aller au contenu principal"
+  },
+  "nav": {
+    "label": "Navigation principale",
+    "status": "État du moteur"
+  },
+  "status": {
+    "title": "État du moteur",
+    "engine": "Moteur",
+    "up": "Opérationnel",
+    "down": "Moteur injoignable",
+    "checking": "Vérification…",
+    "identity": "Identité",
+    "permissions": "Permissions",
+    "noPermissions": "Aucune permission",
+    "unknownUser": "Identité non reconnue par le moteur"
+  }
+}

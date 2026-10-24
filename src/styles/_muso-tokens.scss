@@ -1,0 +1,302 @@
+// Muso's brand, as tokens. THE single source — nothing else in this application states a brand
+// value, and no component contains a colour or a font name.
+//
+// Three layers, and the direction of dependency is the whole point:
+//
+//   1. BRAND CONSTANTS — the seven colours and three families from the brand spec. The only
+//      literal brand values in the code base. They are declared once as Sass constants and then
+//      emitted as custom properties, because two consumers cannot both read a custom property:
+//      Angular Material's theme mixin needs the font families at BUILD time, and it is handed
+//      these same constants rather than a second copy of them.
+//   2. DERIVED — tints, surfaces, text roles, borders. Written as `color-mix()` of layer 1
+//      rather than as more hexes, so they cannot drift from the brand: re-seed `--muso-navy` and
+//      every border, muted label and meter track in the app follows in the same paint.
+//   3. APPLICATION ALIASES — the names the screens were already written against (`--fg`,
+//      `--card-border`, `--danger-bg`…). Re-pointing them at layer 2 is what made every existing
+//      screen brand-compliant without opening it.
+//
+// Contrast ratios in the comments are computed against the surface named, not estimated. The
+// brand spec's own table is the reference: navy on white 10.2:1, teal on white 3.8:1 — which is
+// why teal never carries text here, only rules, meters, focus rings and icons.
+//
+// `brand.spec.ts` holds this file to all of it: that it is the only place a brand hex appears,
+// that no component style contains one, and that the PWA manifest and index.html — the two
+// consumers that cannot read a custom property — carry the same navy this file declares.
+
+// ── 1. Brand constants ────────────────────────────────────────────────────────────────────────
+// Primaries. Navy carries text and dark surfaces; yellow is an accent and NEVER body text.
+$navy: #01475b;
+$yellow: #ffc126;
+// Secondaries. Never text: teal is for UI at ≥24px or non-text, the rest are surfaces.
+$teal: #00919e;
+$blue: #60dbdf;
+$orange: #ff8725;
+$cream: #f1f3e8;
+$white: #ffffff;
+// THE ONE COLOUR OUTSIDE THE CHARTE, and it is not a brand colour: a deep red (Material's error
+// red) for the actions nothing can undo — abandoning a round, which deletes its configuration, its
+// payroll files and every submitted line. The brand has no red and its danger tone is orange, but
+// white on that orange is 2.4:1 and navy 4.3:1, so a FILLED destructive control cannot be drawn in
+// it. Reserved: it is `--danger-strong`, used by the cancel-round card and nothing else; the
+// everyday danger surfaces stay the orange tint below. `brand.spec.ts` names it as the single
+// sanctioned exception and recomputes its contrast.
+$danger-red: #b3261e;
+// THREE MORE, and approved as such: the line tables' row tints by acceptance state. A table row
+// saying "accepted", "refused" and "waiting" reads as green, red and yellow to every reader of a
+// spreadsheet, and the charte's teal and orange tints said it less plainly. Light tints for a row
+// BACKGROUND only, never text or a control, light theme only (there is no dark palette); navy text
+// stays well above AA on each. The badge in the State column still says the state in words and an
+// icon — the tint is an aid, never the only cue (WCAG 1.4.1). `brand.spec.ts` names all three.
+$row-accepted: #e6f4ea;
+$row-rejected: #fce8e6;
+$row-waiting: #fef7e0;
+
+// ── Breakpoints ───────────────────────────────────────────────────────────────────────────────
+// Two, and both are arithmetic rather than convention.
+//
+//  - COMPACT (48rem / 768px) is where a layout stops being able to hold two things side by side:
+//    the context bar's two 15rem pickers plus the round it describes need about that much before
+//    they stop competing. Below it the application is one column and its gutters step down.
+//  - RAIL (64rem / 1024px) is where the permanent navigation stops paying for itself. The rail is
+//    19.5rem and the widest card is 44rem, so a pane that can still hold a card beside the rail
+//    needs 44rem + 3rem of gutter + 19.5rem ≈ 66.5rem. Below 64rem the rail is taking more room
+//    than the work it sits next to, so it becomes an overlay you open when you want it.
+//
+// THE RAIL BREAKPOINT HAS A CONSUMER THAT CANNOT READ SASS. The shell has to know which mode the
+// drawer is in, and that is TypeScript. Rather than write the number twice — the drift this file
+// exists to prevent — it is emitted below as `--muso-breakpoint-rail` and the shell reads it at
+// runtime, exactly as the PWA manifest and index.html are handled for navy.
+$bp-compact: 48rem;
+$bp-rail: 64rem;
+
+$font-heading: 'Noto Serif JP';
+// PP Neue Montreal is a commercial Pangram Pangram licence this project does not hold. The spec
+// names the substitution itself, so this is a decision already taken, not an improvisation.
+$font-subheading: 'Inter Tight';
+$font-body: 'Inter';
+// Icons, not type. Material Symbols is Apache-2.0 and the brand spec says nothing about
+// pictograms, so this is a platform choice like Angular Material itself — see `_muso-icons.scss`.
+$font-icon: 'Material Symbols Outlined';
+
+:root {
+  --muso-navy: #{$navy};
+  --muso-yellow: #{$yellow};
+  --muso-teal: #{$teal};
+  --muso-blue: #{$blue};
+  --muso-orange: #{$orange};
+  --muso-cream: #{$cream};
+  --muso-white: #{$white};
+
+  // ── 2. Derived ──────────────────────────────────────────────────────────────────────────────
+  // The spec's 5-step tint ramps, as lightness steps of the base. Only ever surfaces, rules and
+  // non-text UI — a tint of navy is not navy, and the contrast table above stops applying.
+  --muso-navy-80: color-mix(in srgb, var(--muso-navy) 80%, var(--muso-white));
+  --muso-navy-60: color-mix(in srgb, var(--muso-navy) 60%, var(--muso-white));
+  --muso-navy-40: color-mix(in srgb, var(--muso-navy) 40%, var(--muso-white));
+  --muso-navy-20: color-mix(in srgb, var(--muso-navy) 20%, var(--muso-white));
+  --muso-teal-12: color-mix(in srgb, var(--muso-teal) 12%, var(--muso-white));
+  --muso-blue-12: color-mix(in srgb, var(--muso-blue) 12%, var(--muso-white));
+  --muso-yellow-12: color-mix(in srgb, var(--muso-yellow) 12%, var(--muso-white));
+  --muso-orange-12: color-mix(in srgb, var(--muso-orange) 12%, var(--muso-white));
+
+  // SURFACES, and the one rule that makes elevation legible: a surface you act on is LIGHTER than
+  // the ground it sits on, because that is what being nearer the light means. Invert it and a card
+  // reads as a hole in the page no matter how much shadow it is given.
+  //
+  // So the ground is a near-white cool neutral and the things on it are pure white. The brand's
+  // cream is deliberately NOT the ground: it is a warm tint (green 243 over blue 232) and it cast
+  // the whole application slightly green. It stays in the palette above — it is a brand colour and
+  // the spec documents it — but the application is laid out on white.
+  --muso-surface: var(--muso-white);
+  /* 5% navy. This was 3% — chosen as the LEAST tint that separates a white card from its ground —
+     and least turned out to be the wrong target. A minimum ground gives a card a 1.03:1 luminance
+     step, which leaves the shadow carrying the whole separation on its own; and when the shadow is
+     also navy-tinted (see the elevation block in `_muso-material.scss`) the two shortfalls
+     compound and the card stops reading as an object. Five percent is still unmistakably a white
+     theme — navy holds 9.4:1 on it and muted navy-80 holds 5.4:1, both AA — and it is the tint at
+     which a white card has an edge before its shadow is asked for one.
+
+     Not written here as a hex on purpose: the value IS the mix, and a second spelling of it beside
+     the first is exactly the drift `brand.spec.ts` exists to prevent. It caught this comment when
+     it was. */
+  --muso-surface-page: color-mix(in srgb, var(--muso-navy) 5%, var(--muso-white));
+  /* Quiet bands INSIDE a surface: zebra rows, empty-state panels. Deeper than the page, never a
+     card — so it moves with the page rather than being overtaken by it. */
+  --muso-surface-sunken: color-mix(in srgb, var(--muso-navy) 7%, var(--muso-white));
+  --muso-surface-inverse: var(--muso-navy);
+
+  --muso-text: var(--muso-navy); // 10.2:1 on white, 9.1:1 on cream
+  --muso-text-inverse: var(--muso-white); // 10.2:1 on navy
+  --muso-text-muted: var(--muso-navy-80); // 5.9:1 on white, 5.2:1 on cream — AA at any size
+  --muso-text-accent: var(--muso-teal); // ≥24px headings and icons ONLY (3.8:1)
+
+  --muso-border: color-mix(in srgb, var(--muso-navy) 18%, transparent);
+  --muso-border-strong: var(--muso-navy-40);
+  --muso-focus: var(--muso-teal);
+
+  --muso-font-heading: #{$font-heading}, georgia, serif;
+  --muso-font-subheading: #{$font-subheading}, #{$font-body}, system-ui, sans-serif;
+  --muso-font-body: #{$font-body}, system-ui, sans-serif;
+  // The icon face. Not a brand typeface — it carries no words, only pictograms — but it lives here
+  // for the same reason the others do: so nothing else in the application names a font.
+  --muso-font-icon: #{$font-icon};
+  // The code face — the system's own monospace, fetched from nowhere. For a contract code shown
+  // beside the words that name it (a permission's \`submit\`), never for prose.
+  --muso-font-mono: ui-monospace, 'SFMono-Regular', menlo, consolas, monospace;
+
+  // The guidelines' layout grid is flush and rectangular throughout. Every rounded corner in the
+  // app reads from this, so "how round is this product" is one number.
+  --muso-radius: 2px;
+
+  // ── Spacing ─────────────────────────────────────────────────────────────────────────────────
+  // The unit was declared here from the start and nothing ever read it, so the application drifted
+  // into nine unrelated spacings — 0.15rem, 0.35rem, 0.4rem, 0.6rem, 0.75rem, 1rem, 1.25rem,
+  // 1.5rem. A scale is what turns a unit into a rhythm: every gap in the app is one of these six
+  // steps, so vertical distances relate to each other by whole units instead of by taste.
+  //
+  // They are px, not rem, deliberately. These are LAYOUT distances — a card's gutter, the gap
+  // between two cards — and they should not grow when someone raises their text size; the type
+  // scale is what should. Anything measured against the text (a label's margin below itself) stays
+  // in em where it already is.
+  --muso-space-unit: 8px;
+  --muso-space-1: var(--muso-space-unit); //  8px — inside a control
+  --muso-space-2: 16px; // between related things
+  --muso-space-3: 24px; // a surface's gutter
+  --muso-space-4: 32px; // between blocks on a page
+  --muso-space-6: 48px; // between sections
+  --muso-space-8: 64px; // page top, under a title block
+
+  // ── Gutters, which are the spacing that has to change with the viewport ─────────────────────
+  // Two named distances rather than a media query in every screen: how far the content is held off
+  // the edge of the page, and how far a card's contents are held off its own edge. A phone cannot
+  // afford 24px on both sides of a 345px viewport — that is fourteen percent of the screen spent
+  // on nothing — so both step down to one unit less below the compact breakpoint.
+  //
+  // Screens read these; only this file decides them. That is what keeps "how tight does this get
+  // on a phone" a single decision instead of a habit each component picks up separately.
+  --muso-page-gutter: var(--muso-space-3);
+  --muso-card-gutter: var(--muso-space-3);
+
+  // The one value the shell's TypeScript needs and cannot read from Sass. See the note above.
+  //
+  // Only the rail's, and the compact one is deliberately NOT emitted beside it. The months cell
+  // wanted it — whether twelve amounts start laid out is `open` on a `<details>`, which is DOM
+  // state rather than style — and measuring said the question was the wrong one: because the rail
+  // changes the content pane discontinuously, the pane is NARROWER at 1024 than at 768, so no
+  // viewport threshold answers "do these fit side by side". See `own-lines.ts`. A token nothing
+  // can correctly read is not a token.
+  --muso-breakpoint-rail: #{$bp-rail};
+
+  // ── Stacking ────────────────────────────────────────────────────────────────────────────────
+  // ONE SCALE for what sits above what, so a new layer is placed by name rather than by picking a
+  // number bigger than the last. Gaps are left on purpose.
+  //
+  //   raised    furniture over its neighbours' shadows — the context bar
+  //   chrome    the toolbar over rail and content; a hover card inside a screen
+  //   skip      the skip link, over the chrome it skips
+  //   floating  a fixed widget over every screen — the assistant's bubble and panel
+  //   scrim     a modal's dimmed backdrop
+  //   drawer    a modal side sheet
+  //
+  // The last two are the TOP LAYER's: a native `<dialog>` opened with `showModal()` sits above any
+  // z-index there is, and makes everything else — the floating widget included — inert until it
+  // closes. So the drawer is above the assistant by construction; the numbers only say so.
+  --muso-z-raised: 1;
+  --muso-z-chrome: 2;
+  --muso-z-skip: 10;
+  --muso-z-floating: 20;
+  --muso-z-scrim: 30;
+  --muso-z-drawer: 31;
+
+  // ── 3. Application aliases ──────────────────────────────────────────────────────────────────
+  // What the screens already asked for, answered in brand terms.
+  --surface: var(--muso-surface);
+  /* The ground the application is laid out on. */
+  --surface-page: var(--muso-surface-page);
+  --surface-alt: var(--muso-surface-sunken);
+  --fg: var(--muso-text);
+  --muted-fg: var(--muso-text-muted);
+  --card-border: var(--muso-border);
+
+  // A link is body-size text, so it cannot be teal (3.8:1). It is navy like its surroundings and
+  // distinguished by an underline — which is then free to be teal, because a rule is not text.
+  --link: var(--muso-text);
+  --link-underline: var(--muso-teal);
+
+  // The context bar is chrome, not work: it belongs with the toolbar above it rather than with the
+  // page below, so it is a white surface separated by its own shadow instead of a tinted band.
+  --bar-bg: var(--muso-surface);
+
+  --meter-track: var(--muso-navy-20);
+  --meter-fill: var(--muso-teal);
+
+  // STATUS. The brand has no red and no green, and it forbids a secondary colour from carrying
+  // text, so status here is never colour alone: each of these is a navy label plus a coloured
+  // rule, and every badge and notice already says in words what it is. That is the spec's rule
+  // ("yellow/orange carry meaning only with a shape or label") and it is also WCAG 1.4.1.
+  --ok-fg: var(--muso-text);
+  --ok-accent: var(--muso-teal);
+
+  --danger-fg: var(--muso-text); // 9.2:1 on the tint below
+  --danger-bg: var(--muso-orange-12);
+  --danger-border: var(--muso-orange);
+  // IRREVERSIBLE ONLY — see `$danger-red`. White on it is 6.5:1. There is no dark palette in this
+  // application (see `inDarkScheme` in the e2e audits), so one value serves both schemes.
+  --danger-strong: #{$danger-red};
+  --on-danger-strong: var(--muso-white);
+  --danger-strong-hover: color-mix(in srgb, var(--danger-strong) 85%, var(--muso-navy));
+
+  // A LINE ROW'S ACCEPTANCE STATE, as its background — see `$row-accepted`. Row tints only.
+  --row-accepted-bg: #{$row-accepted};
+  --row-rejected-bg: #{$row-rejected};
+  --row-waiting-bg: #{$row-waiting};
+
+  --warning-fg: var(--muso-text);
+  --warning-bg: var(--muso-yellow-12);
+  --warning-border: var(--muso-yellow);
+
+  --info-fg: var(--muso-text);
+  --info-bg: var(--muso-blue-12);
+  --info-border: var(--muso-teal);
+
+  // ── DATA, which is the one place the palette is asked to do something it was not drawn for ──
+  // A categorical set has to keep four segments of one bar apart for every reader, including the
+  // ~8% of men with a colour vision deficiency — a stricter job than "look like the brand". The
+  // three below were chosen by running the charte's own hues through a CVD/contrast validator and
+  // keeping the only combination that passed every pair (teal · blue-over-navy · orange): worst
+  // pair ΔE 15+ in normal vision and under protan, deutan and tritan simulation alike.
+  //
+  // THE FOURTH IS NOT A HUE, and that is a finding rather than a shortcut. This is a blue-green
+  // brand: every remaining candidate — a navy tint, a second teal step, the yellow — collided with
+  // teal or with orange below the legibility floor. "Autres" is also not a category but a
+  // RESIDUAL (what the three named charges do not account for), so it takes the neutral the
+  // convention reserves for "other" and earns its distinctness from a 45° hatch instead of a hue.
+  // Colour is never the only signal here: every segment is named in the legend, in the hover
+  // breakdown and in a column of the table below it. WCAG 1.4.1, the same rule as the status
+  // colours above.
+  --muso-data-gross: var(--muso-teal);
+  --muso-data-social: color-mix(in srgb, var(--muso-blue) 85%, var(--muso-navy));
+  --muso-data-fiscal: var(--muso-orange);
+  --muso-data-residual: var(--muso-navy-40);
+  // The hatch the residual is told apart by when colour cannot be trusted — print, forced
+  // colours, a deuteranope reading a stacked bar. Built from the residual itself so it re-seeds.
+  --muso-data-residual-texture: repeating-linear-gradient(
+    45deg,
+    var(--muso-data-residual) 0 4px,
+    color-mix(in srgb, var(--muso-data-residual) 55%, var(--muso-white)) 4px 8px
+  );
+  // The gap between two stacked segments: a sliver of the surface, so a boundary is a boundary
+  // and not a colour change somebody has to trust their eyes on.
+  --muso-data-gap: 2px;
+}
+
+// ── The compact end of the range ──────────────────────────────────────────────────────────────
+// The ONLY place in the application that decides how tight a small viewport gets. Re-declaring the
+// two gutter tokens re-flows every screen at once, because every screen reads them — the same
+// property that made the brand land everywhere without opening a component.
+@media (max-width: #{$bp-compact}) {
+  :root {
+    --muso-page-gutter: var(--muso-space-2);
+    --muso-card-gutter: var(--muso-space-2);
+  }
+}

@@ -1,0 +1,311 @@
+// The application's one global stylesheet.
+//
+// Mirrored from budgetisation-angular: it styles ELEMENTS, not screens, so every feature written
+// in native HTML is on-brand without opening it.
+//
+// Nothing here names a colour, a font or a radius. It reads tokens, exactly like the components.
+@use 'styles/muso-tokens';
+@use 'styles/muso-typography';
+@use 'styles/muso-material';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--muso-font-body);
+  font-size: var(--muso-body-size);
+  line-height: var(--muso-body-leading);
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Type ──────────────────────────────────────────────────────────────────────────────────────
+// Headings are the brand's serif, sentence case, never caps. The sizes are the spec's scale, held
+// as tokens so the whole hierarchy moves together.
+h1,
+h2,
+h3 {
+  font-family: var(--muso-font-heading);
+  font-weight: 600;
+  color: var(--muso-text);
+  text-wrap: balance;
+  margin-block: 0 0.4em;
+}
+
+h1 {
+  font-size: var(--muso-h1-size);
+  line-height: var(--muso-h1-leading);
+  letter-spacing: -0.015em;
+}
+
+h2 {
+  font-size: var(--muso-h2-size);
+  line-height: var(--muso-h2-leading);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--muso-h3-size);
+  line-height: var(--muso-h3-leading);
+}
+
+// INSIDE THE APPLICATION the scale steps down one.
+//
+// The brand's h1 is a display size — it is sized for a cover, a title card, an identity surface,
+// and at 3.5rem it is the loudest thing on a working screen. So within the shell's content pane a
+// page title takes the h2 step and everything below follows.
+// The tokens are unchanged and no screen overrides anything: the scale is simply read one step in
+// from where the identity starts. One rule, in the one stylesheet, for every screen there will
+// ever be.
+main h1 {
+  font-size: var(--muso-h2-size);
+  line-height: var(--muso-h2-leading);
+}
+
+main h2 {
+  font-size: var(--muso-h3-size);
+  line-height: var(--muso-h3-leading);
+}
+
+// The spec's SUBHEADING: an uppercase eyebrow, set above what it introduces. h4–h6 get it by
+// default, and `.muso-eyebrow` applies it to the small standing labels that are subheadings in
+// everything but tag name.
+h4,
+h5,
+h6,
+.muso-eyebrow {
+  font-family: var(--muso-font-subheading);
+  font-weight: 700;
+  font-size: var(--muso-subheading-size);
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muso-text-muted);
+  margin-block: 0 0.5em;
+}
+
+small,
+.muso-caption {
+  font-size: var(--muso-caption-size);
+}
+
+// ── Links ─────────────────────────────────────────────────────────────────────────────────────
+// Navy, because a link is body-size text and teal fails contrast at that size. The underline is
+// where the brand's teal is allowed to show: a rule is not text.
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--link-underline);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-color: var(--muso-text);
+}
+
+// The spec is explicit: 2px teal, always visible.
+:focus-visible {
+  outline: 2px solid var(--muso-focus);
+  outline-offset: 2px;
+}
+
+// AND VISIBLE ON A MATERIAL BUTTON TOO, which it was not. `.mdc-button` sets `outline: none`
+// unconditionally; it has the same specificity as the rule above and Angular injects component
+// styles after this sheet, so Material won the tie and every `matButton` on every screen took
+// keyboard focus with nothing to show for it. Verified by tabbing to one: computed
+// `outline-style: none`. Material's intention is that its own focus indicator take over, but this
+// theme states the ring once, in brand terms, and that is the one that should apply. The `html`
+// prefix buys the specificity to say so.
+//
+// This is WCAG 2.4.7, and the brand spec's own words — so it is a defect, not a preference.
+html .mat-mdc-button-base:focus-visible {
+  outline: 2px solid var(--muso-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--muso-yellow);
+  color: var(--muso-text);
+}
+
+// ── Depth on the primary action ───────────────────────────────────────────────────────────────
+// M3 draws a FILLED button flat and reserves elevation for its own `elevated` variant — but that
+// variant is a pale surface, and on this brand the primary action is navy. Taking the variant
+// would have traded the strongest thing on the screen for a shadow.
+//
+// So the filled button keeps its navy and is given the shadow instead: raised at rest, higher and
+// a millimetre nearer under the pointer, pressed back down flat while it is held.
+//
+// IT NEEDS ITS OWN SHADOW, not a card's. A card is a light surface, so a shadow at its edge is the
+// first dark thing there and a small one is legible. A navy button is ALREADY the darkest thing on
+// the screen, and a navy shadow hugging it just thickens its own silhouette — which is exactly
+// what the level-1 it used to carry did: measured, its visible extent was about two pixels. To
+// read, the shadow has to clear the shape and land on the page, so this one is thrown further
+// down and wider than any card's, and its contact layer is tighter and darker so the button still
+// looks planted rather than floating.
+//
+// The lift is a `translateY`, not a size change: nothing around the button may move when it is
+// hovered.
+//
+// BOTH BUTTON SYSTEMS, because the application has two: Material's `matButton="filled"` and the
+// plain `<button>` the older screens use, which the rule further down paints navy. They are the
+// same control to the person clicking it, so they are given the same depth here rather than one
+// of them looking pressed-in beside the other.
+[matButton='filled']:not([disabled]),
+button:not(.mat-mdc-button-base):not([disabled]) {
+  box-shadow:
+    0 1px 1px var(--muso-shadow-lift),
+    0 3px 6px -1px var(--muso-shadow-key),
+    0 8px 14px -6px var(--muso-shadow-ambient);
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+[matButton='filled']:not([disabled]):hover,
+button:not(.mat-mdc-button-base):not([disabled]):hover {
+  box-shadow:
+    0 1px 1px var(--muso-shadow-lift),
+    0 6px 10px -2px var(--muso-shadow-key),
+    0 14px 24px -8px var(--muso-shadow-ambient);
+  transform: translateY(-1px);
+}
+
+[matButton='filled']:not([disabled]):active,
+button:not(.mat-mdc-button-base):not([disabled]):active {
+  box-shadow: 0 1px 1px var(--muso-shadow-lift);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [matButton='filled'],
+  button:not(.mat-mdc-button-base) {
+    transition: none;
+  }
+  [matButton='filled']:not([disabled]):hover,
+  button:not(.mat-mdc-button-base):not([disabled]):hover {
+    transform: none;
+  }
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────────────────────
+// Filled navy with a white label, flush corners. Every button in the application is a native
+// `<button>`, so this one rule is the whole app's button.
+button {
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--muso-navy);
+  border-radius: var(--muso-radius);
+  background: var(--muso-navy);
+  color: var(--muso-text-inverse);
+  cursor: pointer;
+}
+
+// NOT MATERIAL'S BUTTONS, which is the same exclusion the depth rules above make and for a
+// sharper reason. This rule is written for the app's own navy button, whose label is WHITE:
+// navy-80 under white is 5.6:1. An outlined Material button keeps a NAVY label, and this rule —
+// an element selector with a `:not()`, which outweighs Material's class — was painting navy-80
+// behind it on hover. Measured by axe at 1.63:1: a control whose text all but vanishes under the
+// pointer, on every outlined button in the application.
+button:hover:not([disabled]):not(.mat-mdc-button-base) {
+  background: var(--muso-navy-80);
+  border-color: var(--muso-navy-80);
+}
+
+button[disabled] {
+  background: var(--muso-navy-40);
+  border-color: var(--muso-navy-40);
+  cursor: progress;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--muso-surface);
+  border: 1px solid var(--muso-border-strong);
+  border-radius: var(--muso-radius);
+  padding: 0.45rem 0.6rem;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--muso-text);
+}
+
+label {
+  font-weight: 600;
+}
+
+// A DISCLOSURE IS A CONTROL, and it is stated here rather than in the two components that use one
+// for two reasons. The first is the usual one: this sheet styles elements, so every `summary` the
+// application ever grows is already dressed. The second is mechanical and was found by measuring.
+//
+// Angular's emulated encapsulation compiles a component's `summary { … }` to `summary[_ngcontent]`
+// — one attribute of specificity — and NOTHING written with element selectors alone can outrank
+// that. So a component that sets its own `padding-block` here quietly wins against the
+// coarse-pointer rule further down, and the finger-sized target silently does not happen. It was
+// 30px when it should have been 47. Keeping the whole of a `summary`'s treatment in this file is
+// what keeps the touch rule able to do its job.
+//
+// The look is the quiet one the tables' secondary text already uses; the browser's own marker
+// does the work of saying it opens, so nothing is invented for it.
+summary {
+  cursor: pointer;
+  color: var(--muted-fg);
+  padding-block: 0.15rem;
+  // The count is two words and a number. Wrapping it would make the cell wider than the thing it
+  // exists to keep narrow.
+  white-space: nowrap;
+}
+
+fieldset {
+  border: 1px solid var(--card-border);
+  border-radius: var(--muso-radius);
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────────────────────
+// Inter 400, navy text, brand rules, cream zebra — the spec's table treatment, applied to every
+// table in the application.
+table {
+  border-collapse: collapse;
+  inline-size: 100%;
+}
+
+th,
+td {
+  text-align: start;
+  padding: 0.5rem 0.75rem;
+  border-block-end: 1px solid var(--card-border);
+}
+
+thead th {
+  font-family: var(--muso-font-subheading);
+  font-weight: 700;
+  font-size: var(--muso-caption-size);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muso-text-muted);
+  border-block-end: 2px solid var(--muso-navy);
+}
+
+tbody tr:nth-child(even) {
+  background: var(--surface-alt);
+}
+
+// Figures in a column line up: one figure width, one decimal point.
+.amount,
+.numeric,
+td {
+  font-variant-numeric: tabular-nums;
+}

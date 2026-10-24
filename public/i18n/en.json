@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "Muso Q&A Authoring",
+    "skipToContent": "Skip to main content"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "status": "Engine status"
+  },
+  "status": {
+    "title": "Engine status",
+    "engine": "Engine",
+    "up": "Operational",
+    "down": "Engine unreachable",
+    "checking": "Checking…",
+    "identity": "Identity",
+    "permissions": "Permissions",
+    "noPermissions": "No permissions",
+    "unknownUser": "Identity not recognised by the engine"
+  }
+}

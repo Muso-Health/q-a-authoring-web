@@ -1,0 +1,5 @@
+# Generated from the engine's OpenAPI contract by `npm run gen:api`.
+src/app/core/api/generated/
+
+# The engine's spec, copied in verbatim.
+src/app/core/api/contract/

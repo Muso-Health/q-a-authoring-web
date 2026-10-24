@@ -1,0 +1,116 @@
+// The brand's three voices, self-hosted.
+//
+// LOADING. Every face is served from this origin out of `public/fonts/` (see
+// `scripts/sync-fonts.mjs` for where the binaries come from and how to reproduce them). No CDN:
+// an application whose promise is that it starts without a connection cannot fetch its type from
+// somebody else's server, and a third-party font request is a third party watching every page
+// load. `font-display: swap` means text is readable in the fallback from the first paint and
+// never invisible; the two faces a first paint actually needs — Inter 400 and Noto Serif JP 600
+// — are preloaded from index.html, so the swap lands within the first frames rather than
+// visibly later.
+//
+// SUBSETS. latin and latin-ext only, each with its `unicode-range` from the upstream package.
+// The ranges are what keep this cheap: a French or English page fetches the three latin files
+// (~66 kB total) and never touches latin-ext at all. The full Noto Serif JP family is ~94 MB of
+// Japanese and none of it ships.
+
+// ── Inter — body, UI, data ───────────────────────────────────────────────────────────────────
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-latin-400-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-latin-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+// ── Inter Tight — subheadings, standing in for PP Neue Montreal ──────────────────────────────
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/inter-tight-latin-700-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+// ── Noto Serif JP — headings ─────────────────────────────────────────────────────────────────
+@font-face {
+  font-family: 'Noto Serif JP';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/noto-serif-jp-latin-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Noto Serif JP';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/noto-serif-jp-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+:root {
+  // The spec's scale. Its desktop and mobile columns are the two ends of each clamp, so the type
+  // is fluid between them instead of stepping at one arbitrary breakpoint.
+  --muso-h1-size: clamp(2.5rem, 1.75rem + 3.2vw, 3.5rem);
+  --muso-h1-leading: 1.05;
+  --muso-h2-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.25rem);
+  --muso-h2-leading: 1.15;
+  --muso-h3-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  --muso-h3-leading: 1.2;
+  --muso-subheading-size: 0.875rem;
+  --muso-body-lg-size: 1.125rem;
+  --muso-body-size: 1rem;
+  // Small body text — table cells, notes, compact controls: below body, above caption.
+  --muso-body-sm-size: 0.875rem;
+  --muso-body-leading: 1.55;
+  --muso-caption-size: 0.8125rem;
+}
