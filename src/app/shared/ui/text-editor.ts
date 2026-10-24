@@ -13,7 +13,7 @@ let nextId = 0;
       <label [for]="fieldId">{{ label() }}</label>
       <textarea
         [id]="fieldId"
-        rows="3"
+        [rows]="rows()"
         [formField]="field.text"
         [attr.lang]="lang()"
         [attr.aria-invalid]="blank() ? 'true' : null"
@@ -41,6 +41,7 @@ export class TextEditor {
 
   readonly label = input.required<string>();
   readonly initial = input('');
+  readonly rows = input(3);
   readonly required = input(true);
   /** The content's language, so assistive technology reads the draft in it. */
   readonly lang = input<string>();

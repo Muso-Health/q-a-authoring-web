@@ -1,5 +1,7 @@
 import type { Routes } from '@angular/router';
 import {
+  MANAGE_ACCESS,
+  MANAGE_PROMPTS,
   VALIDATE_AUDIO,
   VALIDATE_CLINICAL,
   VALIDATE_TRANSLATION,
@@ -48,6 +50,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/validation/validation-page').then((m) => m.ValidationPage),
       })),
+      {
+        path: 'admin',
+        canMatch: [permissionGuard(MANAGE_PROMPTS, MANAGE_ACCESS)],
+        loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+      },
       {
         path: 'status',
         loadComponent: () =>

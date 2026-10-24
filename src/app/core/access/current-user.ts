@@ -9,6 +9,8 @@ export const MANAGE_AUDIO = 'manage_audio';
 export const VALIDATE_CLINICAL = 'validate_clinical';
 export const VALIDATE_TRANSLATION = 'validate_translation';
 export const VALIDATE_AUDIO = 'validate_audio';
+export const MANAGE_PROMPTS = 'manage_prompts';
+export const MANAGE_ACCESS = 'manage_access';
 
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine

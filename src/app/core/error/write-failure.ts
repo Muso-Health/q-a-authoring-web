@@ -25,6 +25,12 @@ const BY_CODE: Readonly<Record<string, string>> = {
   no_base_language_presence: 'validation.errors.noBaseLanguage',
   not_a_translation: 'validation.errors.notATranslation',
   invalid_decision: 'validation.errors.invalidDecision',
+  email_already_exists: 'admin.errors.emailExists',
+  invalid_email: 'admin.errors.invalidEmail',
+  role_name_exists: 'admin.errors.roleNameExists',
+  role_in_use: 'admin.errors.roleInUse',
+  unknown_permission: 'admin.errors.unknownPermission',
+  invalid_prompt_template: 'admin.errors.invalidPromptTemplate',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {
@@ -51,4 +57,21 @@ export function writeFailureOf(error: unknown): WriteFailure {
     return failure('authoring.errors.unreachable');
   }
   return failure('authoring.errors.unexpected');
+}
+
+/** The placeholders a refused prompt template is missing or should not have. */
+export interface PlaceholderProblems {
+  readonly missing: readonly string[];
+  readonly unknown: readonly string[];
+}
+
+const strings = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+export function placeholderProblemsOf(error: unknown): PlaceholderProblems | null {
+  if (!(error instanceof HttpErrorResponse) || engineCode(error) !== 'invalid_prompt_template') {
+    return null;
+  }
+  const body = error.error as { details?: { missing?: unknown; unknown?: unknown } | null };
+  return { missing: strings(body.details?.missing), unknown: strings(body.details?.unknown) };
 }

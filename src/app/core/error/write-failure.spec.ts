@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { engineError } from '../api/testing/fake-api-port';
-import { writeFailureOf } from './write-failure';
+import { placeholderProblemsOf, writeFailureOf } from './write-failure';
 
 describe('writeFailureOf', () => {
   it('reacts to the engine’s code, not its message', () => {
@@ -82,5 +82,47 @@ describe('writeFailureOf', () => {
     );
     expect(writeFailureOf(engineError(500, 'boom')).key).toBe('authoring.errors.unexpected');
     expect(writeFailureOf(new Error('x')).key).toBe('authoring.errors.unexpected');
+  });
+});
+
+describe('writeFailureOf, for the administration', () => {
+  it('maps the access and prompt refusals', () => {
+    const cases: [number, string, string][] = [
+      [409, 'email_already_exists', 'admin.errors.emailExists'],
+      [409, 'role_name_exists', 'admin.errors.roleNameExists'],
+      [409, 'role_in_use', 'admin.errors.roleInUse'],
+      [422, 'unknown_permission', 'admin.errors.unknownPermission'],
+      [422, 'invalid_email', 'admin.errors.invalidEmail'],
+      [422, 'invalid_prompt_template', 'admin.errors.invalidPromptTemplate'],
+    ];
+    for (const [status, code, key] of cases) {
+      expect(writeFailureOf(engineError(status, code))).toEqual({ key, gone: false });
+    }
+  });
+
+  it('treats a vanished user, role or template as gone', () => {
+    for (const code of ['user_not_found', 'role_not_found', 'role_not_assigned']) {
+      expect(writeFailureOf(engineError(404, code)).gone).toBe(true);
+    }
+  });
+});
+
+describe('placeholderProblemsOf', () => {
+  it('reads the placeholders the engine says are missing or unknown', () => {
+    const error = new HttpErrorResponse({
+      status: 422,
+      error: {
+        code: 'invalid_prompt_template',
+        message: 'm',
+        details: { missing: ['text'], unknown: ['texte'] },
+      },
+    });
+
+    expect(placeholderProblemsOf(error)).toEqual({ missing: ['text'], unknown: ['texte'] });
+  });
+
+  it('has nothing to say about any other refusal', () => {
+    expect(placeholderProblemsOf(engineError(422, 'invalid_name'))).toBeNull();
+    expect(placeholderProblemsOf(new Error('boom'))).toBeNull();
   });
 });

@@ -33,6 +33,12 @@ describe('permissionGuard', () => {
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/projects');
   });
 
+  it('lets in whoever holds any of several permissions', async () => {
+    const guard = permissionGuard('manage_prompts', 'manage_access');
+
+    expect(await run(guard, ['manage_access'])).toBe(true);
+  });
+
   it('refuses when who we are cannot be read', async () => {
     expect(await run(permissionGuard('validate_audio'), null)).toBeInstanceOf(UrlTree);
   });

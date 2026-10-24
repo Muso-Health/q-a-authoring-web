@@ -55,6 +55,23 @@ describe('Shell', () => {
     ]);
   });
 
+  it('offers the administration to whoever manages prompts or access', async () => {
+    for (const permission of ['manage_prompts', 'manage_access']) {
+      TestBed.resetTestingModule();
+      const element = await render([permission]);
+      const admin = [...element.querySelectorAll('nav a')].find(
+        (a) => a.textContent?.trim() === 'Administration',
+      );
+      expect(admin?.getAttribute('href')).toBe('/admin');
+    }
+  });
+
+  it('hides the administration from everyone else', async () => {
+    const element = await render(['author_qasets', 'validate_clinical']);
+
+    expect(element.querySelector('nav a[href="/admin"]')).toBeNull();
+  });
+
   it('offers a skip link to the main content', async () => {
     const element = await render();
 

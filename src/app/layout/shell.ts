@@ -1,9 +1,11 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   CurrentUser,
+  MANAGE_ACCESS,
+  MANAGE_PROMPTS,
   VALIDATE_AUDIO,
   VALIDATE_CLINICAL,
   VALIDATE_TRANSLATION,
@@ -35,6 +37,13 @@ import {
                 </a>
               </li>
             }
+          }
+          @if (administers()) {
+            <li>
+              <a routerLink="/admin" routerLinkActive="active" ariaCurrentWhenActive="page">
+                {{ 'nav.admin' | transloco }}
+              </a>
+            </li>
           }
           <li>
             <a routerLink="/status" routerLinkActive="active" ariaCurrentWhenActive="page">
@@ -132,4 +141,8 @@ export class Shell {
     },
     { path: '/validation/audio', label: 'nav.audio', allowed: this.#user.can(VALIDATE_AUDIO) },
   ];
+
+  readonly #managesPrompts = this.#user.can(MANAGE_PROMPTS);
+  readonly #managesAccess = this.#user.can(MANAGE_ACCESS);
+  protected readonly administers = computed(() => this.#managesPrompts() || this.#managesAccess());
 }

@@ -32,6 +32,13 @@ describe('App', () => {
     }
   });
 
+  it('loads the administration lazily, for whoever may use any of it', () => {
+    const route = (routes[0].children ?? []).find((r) => r.path === 'admin');
+
+    expect(route?.loadChildren).toBeDefined();
+    expect(route?.canMatch).toHaveLength(1);
+  });
+
   it('guards each validation queue by its own permission', () => {
     const children = routes[0].children ?? [];
     for (const kind of ['clinical', 'translation', 'audio']) {

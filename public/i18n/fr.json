@@ -9,7 +9,8 @@
     "projects": "Projets",
     "clinical": "Validation clinique",
     "translation": "Validation des traductions",
-    "audio": "Validation audio"
+    "audio": "Validation audio",
+    "admin": "Administration"
   },
   "status": {
     "title": "État du moteur",
@@ -305,5 +306,91 @@
     "sendFile": "Téléverser",
     "denied": "L’accès au micro a été refusé. Vous pouvez téléverser un fichier à la place.",
     "unsupported": "L’enregistrement au micro n’est pas disponible sur ce navigateur. Vous pouvez téléverser un fichier à la place."
+  },
+  "admin": {
+    "title": "Administration",
+    "required": "Ce champ est obligatoire.",
+    "nav": {
+      "label": "Sections de l’administration",
+      "prompts": "Modèles de prompt",
+      "users": "Utilisateurs",
+      "roles": "Rôles"
+    },
+    "prompts": {
+      "title": "Modèles de prompt",
+      "lead": "Les consignes envoyées aux modèles de langue pour traduire et générer des variantes. Chaque modification s’applique à tout le monde.",
+      "back": "Modèles de prompt",
+      "placeholders": "Placeholders attendus",
+      "placeholdersHelp": "Le contenu doit utiliser exactement ces placeholders, chacun entre accolades, ni plus ni moins.",
+      "bracesHelp": "Pour écrire une accolade littérale, doublez-la.",
+      "content": "Contenu du modèle",
+      "missing": "Manquants :",
+      "unknown": "Inconnus :",
+      "saved": "Modèle enregistré.",
+      "updatedBy": "Modifié par {{email}}",
+      "seeded": "Modèle par défaut"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "create": "Ajouter un utilisateur",
+      "email": "Adresse e-mail",
+      "displayName": "Nom affiché",
+      "createSubmit": "Ajouter",
+      "invalidEmail": "Saisissez une adresse e-mail valide.",
+      "active": "Actif",
+      "inactive": "Désactivé",
+      "roles": "Rôles",
+      "noRole": "Aucun rôle : ce compte ne peut rien faire pour l’instant.",
+      "assign": "Attribuer un rôle",
+      "chooseRole": "Choisir un rôle…",
+      "assignSubmit": "Attribuer",
+      "roleRequired": "Choisissez un rôle.",
+      "unassign": "Retirer le rôle {{role}} à {{user}}",
+      "rename": "Modifier le nom",
+      "renameName": "Modifier le nom de {{user}}",
+      "deactivate": "Désactiver",
+      "deactivateName": "Désactiver le compte de {{user}}",
+      "deactivateWarning": "Désactiver le compte de {{user}} ? Cette personne ne pourra plus rien faire tant qu’il n’est pas réactivé.",
+      "reactivate": "Réactiver",
+      "reactivateName": "Réactiver le compte de {{user}}",
+      "empty": "Aucun utilisateur pour l’instant."
+    },
+    "roles": {
+      "title": "Rôles",
+      "create": "Créer un rôle",
+      "name": "Nom du rôle",
+      "permissions": "Permissions",
+      "noCatalogue": "Le catalogue des permissions n’a pas pu être lu.",
+      "noPermission": "Aucune permission.",
+      "createSubmit": "Créer le rôle",
+      "edit": "Modifier",
+      "editName": "Modifier le rôle {{role}}",
+      "delete": "Supprimer",
+      "deleteName": "Supprimer le rôle {{role}}",
+      "deleteWarning": "Supprimer définitivement le rôle « {{role}} » ?",
+      "empty": "Aucun rôle pour l’instant."
+    },
+    "permissions": {
+      "manage_languages": "Gérer les langues",
+      "manage_catalog": "Gérer les projets, protocoles et thèmes",
+      "author_qasets": "Rédiger les ensembles",
+      "manage_intents": "Gérer les intentions",
+      "manage_categories": "Gérer les catégories",
+      "manage_audio": "Gérer les enregistrements audio",
+      "validate_clinical": "Valider cliniquement",
+      "validate_translation": "Valider les traductions",
+      "validate_audio": "Valider les enregistrements audio",
+      "manage_access": "Gérer les accès",
+      "manage_prompts": "Gérer les modèles de prompt",
+      "export_corpus": "Exporter le corpus"
+    },
+    "errors": {
+      "emailExists": "Un compte existe déjà avec cette adresse e-mail.",
+      "invalidEmail": "Cette adresse e-mail a été refusée par le moteur.",
+      "roleNameExists": "Un rôle porte déjà ce nom.",
+      "roleInUse": "Ce rôle est encore attribué à des utilisateurs : retirez-le-leur avant de le supprimer.",
+      "unknownPermission": "Une des permissions n’existe pas dans le catalogue du moteur.",
+      "invalidPromptTemplate": "Le modèle a été refusé : ses placeholders ne correspondent pas à ceux attendus."
+    }
   }
 }

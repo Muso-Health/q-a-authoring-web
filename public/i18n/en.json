@@ -9,7 +9,8 @@
     "projects": "Projects",
     "clinical": "Clinical validation",
     "translation": "Translation validation",
-    "audio": "Audio validation"
+    "audio": "Audio validation",
+    "admin": "Administration"
   },
   "status": {
     "title": "Engine status",
@@ -305,5 +306,91 @@
     "sendFile": "Upload",
     "denied": "Microphone access was refused. You can upload a file instead.",
     "unsupported": "Microphone recording is not available in this browser. You can upload a file instead."
+  },
+  "admin": {
+    "title": "Administration",
+    "required": "This field is required.",
+    "nav": {
+      "label": "Administration sections",
+      "prompts": "Prompt templates",
+      "users": "Users",
+      "roles": "Roles"
+    },
+    "prompts": {
+      "title": "Prompt templates",
+      "lead": "The instructions sent to language models to translate and generate variants. Every change applies to everyone.",
+      "back": "Prompt templates",
+      "placeholders": "Expected placeholders",
+      "placeholdersHelp": "The content must use exactly these placeholders, each in braces, no more and no fewer.",
+      "bracesHelp": "To write a literal brace, double it.",
+      "content": "Template content",
+      "missing": "Missing:",
+      "unknown": "Unknown:",
+      "saved": "Template saved.",
+      "updatedBy": "Changed by {{email}}",
+      "seeded": "Default template"
+    },
+    "users": {
+      "title": "Users",
+      "create": "Add a user",
+      "email": "Email address",
+      "displayName": "Display name",
+      "createSubmit": "Add",
+      "invalidEmail": "Enter a valid email address.",
+      "active": "Active",
+      "inactive": "Deactivated",
+      "roles": "Roles",
+      "noRole": "No role: this account cannot do anything yet.",
+      "assign": "Assign a role",
+      "chooseRole": "Choose a role…",
+      "assignSubmit": "Assign",
+      "roleRequired": "Choose a role.",
+      "unassign": "Remove the role {{role}} from {{user}}",
+      "rename": "Rename",
+      "renameName": "Rename {{user}}",
+      "deactivate": "Deactivate",
+      "deactivateName": "Deactivate {{user}}’s account",
+      "deactivateWarning": "Deactivate {{user}}’s account? They will not be able to do anything until it is reactivated.",
+      "reactivate": "Reactivate",
+      "reactivateName": "Reactivate {{user}}’s account",
+      "empty": "No users yet."
+    },
+    "roles": {
+      "title": "Roles",
+      "create": "Create a role",
+      "name": "Role name",
+      "permissions": "Permissions",
+      "noCatalogue": "The permission catalogue could not be read.",
+      "noPermission": "No permissions.",
+      "createSubmit": "Create the role",
+      "edit": "Edit",
+      "editName": "Edit the role {{role}}",
+      "delete": "Delete",
+      "deleteName": "Delete the role {{role}}",
+      "deleteWarning": "Permanently delete the role “{{role}}”?",
+      "empty": "No roles yet."
+    },
+    "permissions": {
+      "manage_languages": "Manage languages",
+      "manage_catalog": "Manage projects, protocols and themes",
+      "author_qasets": "Author QA sets",
+      "manage_intents": "Manage intents",
+      "manage_categories": "Manage categories",
+      "manage_audio": "Manage audio recordings",
+      "validate_clinical": "Validate clinically",
+      "validate_translation": "Validate translations",
+      "validate_audio": "Validate audio recordings",
+      "manage_access": "Manage access",
+      "manage_prompts": "Manage prompt templates",
+      "export_corpus": "Export the corpus"
+    },
+    "errors": {
+      "emailExists": "An account already exists with this email address.",
+      "invalidEmail": "The engine refused this email address.",
+      "roleNameExists": "A role already has this name.",
+      "roleInUse": "This role is still assigned to users: remove it from them before deleting it.",
+      "unknownPermission": "One of the permissions is not in the engine’s catalogue.",
+      "invalidPromptTemplate": "The template was refused: its placeholders do not match the expected ones."
+    }
   }
 }
