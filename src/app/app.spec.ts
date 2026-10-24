@@ -11,12 +11,21 @@ describe('App', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('router-outlet')).not.toBeNull();
   });
 
-  it('lands on the engine status inside the shell, lazily', () => {
+  it('lands on the projects inside the shell, every page lazily', () => {
     const [shell] = routes;
     const children = shell.children ?? [];
 
     expect(shell.path).toBe('');
-    expect(children.find((route) => route.path === '')?.redirectTo).toBe('status');
-    expect(children.find((route) => route.path === 'status')?.loadComponent).toBeDefined();
+    expect(children.find((route) => route.path === '')?.redirectTo).toBe('projects');
+    for (const path of [
+      'projects',
+      'projects/:projectId',
+      'protocols/:protocolId',
+      'themes/:themeId',
+      'qasets/:qasetId',
+      'status',
+    ]) {
+      expect(children.find((route) => route.path === path)?.loadComponent).toBeDefined();
+    }
   });
 });

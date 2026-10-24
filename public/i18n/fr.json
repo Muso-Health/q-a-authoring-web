@@ -5,7 +5,8 @@
   },
   "nav": {
     "label": "Navigation principale",
-    "status": "État du moteur"
+    "status": "État du moteur",
+    "projects": "Projets"
   },
   "status": {
     "title": "État du moteur",
@@ -17,5 +18,83 @@
     "permissions": "Permissions",
     "noPermissions": "Aucune permission",
     "unknownUser": "Identité non reconnue par le moteur"
+  },
+  "browse": {
+    "breadcrumb": "Fil d’Ariane",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "baseLanguage": "Langue de base",
+    "failure": {
+      "notFound": "Élément introuvable : il a peut-être été supprimé.",
+      "forbidden": "Accès refusé : votre compte n’a pas la permission de consulter ceci.",
+      "unreachable": "Le moteur est injoignable. Vérifiez la connexion puis réessayez.",
+      "unexpected": "Une erreur inattendue est survenue."
+    },
+    "projects": {
+      "title": "Projets",
+      "empty": "Aucun projet pour le moment."
+    },
+    "project": {
+      "protocols": "Protocoles",
+      "empty": "Aucun protocole dans ce projet."
+    },
+    "protocol": {
+      "themes": "Thèmes",
+      "empty": "Aucun thème dans ce protocole."
+    },
+    "theme": {
+      "qasets": "Ensembles questions-réponses",
+      "empty": "Aucun ensemble questions-réponses dans ce thème.",
+      "qasetLabel": "Ensemble {{ number }}",
+      "languages": "Langues et nombre de variantes",
+      "variantCount": {
+        "one": "{{ count }} variante",
+        "other": "{{ count }} variantes"
+      }
+    }
+  },
+  "qaset": {
+    "eyebrow": "Ensemble questions-réponses",
+    "untitled": "Ensemble sans question",
+    "categories": "Catégories",
+    "noCategories": "Aucune catégorie",
+    "baseLanguage": "Langue de base",
+    "answer": "Réponse",
+    "variants": "Variantes de la question",
+    "noVariants": "Aucune variante dans cette langue.",
+    "intents": "Intentions",
+    "noAudio": "Pas d’audio",
+    "translatedAs": "Traduit en :",
+    "answerAudio": "la réponse",
+    "variantAudio": "la variante {{ number }}",
+    "yes": "Oui",
+    "no": "Non",
+    "counts": {
+      "variants": "Variantes",
+      "withAudio": "Variantes avec audio"
+    },
+    "coverage": {
+      "caption": "Couverture par langue",
+      "language": "Langue",
+      "answerAudio": "Audio de la réponse"
+    }
+  },
+  "validation": {
+    "kind": {
+      "clinical": "Validation clinique",
+      "translation": "Traduction",
+      "audio": "Qualité audio"
+    },
+    "status": {
+      "validated": "validée",
+      "rejected": "rejetée",
+      "pending": "en attente"
+    }
+  },
+  "audio": {
+    "play": "Écouter",
+    "retry": "Réessayer",
+    "loading": "Chargement de l’audio…",
+    "failed": "Lecture impossible."
   }
 }

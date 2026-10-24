@@ -17,6 +17,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
       <nav [attr.aria-label]="'nav.label' | transloco">
         <ul>
           <li>
+            <a routerLink="/projects" routerLinkActive="active" ariaCurrentWhenActive="page">
+              {{ 'nav.projects' | transloco }}
+            </a>
+          </li>
+          <li>
             <a routerLink="/status" routerLinkActive="active" ariaCurrentWhenActive="page">
               {{ 'nav.status' | transloco }}
             </a>
@@ -89,6 +94,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     }
     main {
       flex: 1 1 20rem;
+      background: var(--surface-page);
       min-inline-size: 0;
       padding: var(--muso-space-4) var(--muso-page-gutter);
     }

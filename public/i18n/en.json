@@ -5,7 +5,8 @@
   },
   "nav": {
     "label": "Main navigation",
-    "status": "Engine status"
+    "status": "Engine status",
+    "projects": "Projects"
   },
   "status": {
     "title": "Engine status",
@@ -17,5 +18,83 @@
     "permissions": "Permissions",
     "noPermissions": "No permissions",
     "unknownUser": "Identity not recognised by the engine"
+  },
+  "browse": {
+    "breadcrumb": "Breadcrumb",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "baseLanguage": "Base language",
+    "failure": {
+      "notFound": "Not found: it may have been deleted.",
+      "forbidden": "Access denied: your account may not view this.",
+      "unreachable": "The engine is unreachable. Check the connection and try again.",
+      "unexpected": "An unexpected error occurred."
+    },
+    "projects": {
+      "title": "Projects",
+      "empty": "No projects yet."
+    },
+    "project": {
+      "protocols": "Protocols",
+      "empty": "No protocols in this project."
+    },
+    "protocol": {
+      "themes": "Themes",
+      "empty": "No themes in this protocol."
+    },
+    "theme": {
+      "qasets": "Q&A sets",
+      "empty": "No Q&A sets in this theme.",
+      "qasetLabel": "Set {{ number }}",
+      "languages": "Languages and variant counts",
+      "variantCount": {
+        "one": "{{ count }} variant",
+        "other": "{{ count }} variants"
+      }
+    }
+  },
+  "qaset": {
+    "eyebrow": "Q&A set",
+    "untitled": "Set without a question",
+    "categories": "Categories",
+    "noCategories": "No categories",
+    "baseLanguage": "Base language",
+    "answer": "Answer",
+    "variants": "Question variants",
+    "noVariants": "No variants in this language.",
+    "intents": "Intents",
+    "noAudio": "No audio",
+    "translatedAs": "Translated as:",
+    "answerAudio": "the answer",
+    "variantAudio": "variant {{ number }}",
+    "yes": "Yes",
+    "no": "No",
+    "counts": {
+      "variants": "Variants",
+      "withAudio": "Variants with audio"
+    },
+    "coverage": {
+      "caption": "Coverage by language",
+      "language": "Language",
+      "answerAudio": "Answer audio"
+    }
+  },
+  "validation": {
+    "kind": {
+      "clinical": "Clinical validation",
+      "translation": "Translation",
+      "audio": "Audio quality"
+    },
+    "status": {
+      "validated": "validated",
+      "rejected": "rejected",
+      "pending": "pending"
+    }
+  },
+  "audio": {
+    "play": "Play",
+    "retry": "Try again",
+    "loading": "Loading audio…",
+    "failed": "Playback failed."
   }
 }

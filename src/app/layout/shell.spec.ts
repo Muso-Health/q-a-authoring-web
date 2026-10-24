@@ -22,13 +22,15 @@ describe('Shell', () => {
     expect(element.querySelector('main router-outlet')).not.toBeNull();
   });
 
-  it('names the application in French and links to the engine status', async () => {
+  it('names the application in French and links to the projects and the engine status', async () => {
     const element = await render();
 
     expect(element.querySelector('header')?.textContent).toContain('Muso Questions-Réponses');
-    const link = element.querySelector<HTMLAnchorElement>('nav a');
-    expect(link?.textContent?.trim()).toBe('État du moteur');
-    expect(link?.getAttribute('href')).toBe('/status');
+    const links = [...element.querySelectorAll<HTMLAnchorElement>('nav a')];
+    expect(links.map((a) => [a.textContent?.trim(), a.getAttribute('href')])).toEqual([
+      ['Projets', '/projects'],
+      ['État du moteur', '/status'],
+    ]);
   });
 
   it('offers a skip link to the main content', async () => {

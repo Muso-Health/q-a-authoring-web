@@ -309,3 +309,100 @@ tbody tr:nth-child(even) {
 td {
   font-variant-numeric: tabular-nums;
 }
+
+// ── Browsing ──────────────────────────────────────────────────────────────────────────────────
+// The shared furniture of the read pages, stated once so every page has the same shape.
+.muso-cards {
+  display: grid;
+  gap: var(--muso-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.muso-card {
+  padding: var(--muso-card-gutter);
+  background: var(--muso-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--muso-radius);
+  box-shadow: var(--mat-sys-level1);
+  margin-block-end: var(--muso-space-3);
+
+  .muso-cards > & {
+    margin-block-end: 0;
+  }
+
+  > p {
+    margin-block: var(--muso-space-1) 0;
+  }
+}
+
+.muso-card-link {
+  font-family: var(--muso-font-heading);
+  font-size: var(--muso-body-lg-size);
+  font-weight: 600;
+}
+
+.muso-lead {
+  font-size: var(--muso-body-lg-size);
+  margin-block-start: 0;
+}
+
+.muso-meta {
+  color: var(--muted-fg);
+  font-size: var(--muso-body-sm-size);
+}
+
+.muso-empty {
+  padding: var(--muso-space-2) var(--muso-space-3);
+  border: 1px dashed var(--muso-border-strong);
+  border-radius: var(--muso-radius);
+  color: var(--muted-fg);
+}
+
+.muso-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--muso-space-1);
+  margin: var(--muso-space-1) 0 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    padding: 0.1rem var(--muso-space-2);
+    border-radius: 999px;
+    background: var(--muso-blue-12);
+    border: 1px solid var(--info-border);
+    font-size: var(--muso-caption-size);
+    overflow-wrap: anywhere;
+  }
+}
+
+.muso-notice {
+  padding: var(--muso-space-2) var(--muso-space-3);
+  border: 1px solid var(--info-border);
+  border-radius: var(--muso-radius);
+  background: var(--info-bg);
+
+  &.danger {
+    border-color: var(--danger-border);
+    background: var(--danger-bg);
+    color: var(--danger-fg);
+  }
+
+  > p {
+    margin-block: 0 var(--muso-space-1);
+  }
+}
+
+// A wide table keeps its shape and scrolls inside its box; the box is a named, focusable region
+// so a keyboard can reach it (WCAG 2.1.1) — the markup carries `tabindex="0"` and `role="region"`.
+.muso-table-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  position: relative;
+  background: var(--muso-surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--muso-radius);
+  padding: var(--muso-space-2);
+}
