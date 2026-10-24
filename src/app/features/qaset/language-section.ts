@@ -1,6 +1,7 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
+import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { TextEditor } from '../../shared/ui/text-editor';
 import { Typeahead } from '../../shared/ui/typeahead';
 import { ItemMeta } from './item-meta';
@@ -23,12 +24,14 @@ import type { LanguageSectionView, VariantView } from './qaset-view';
     TranslateForm,
     VariantGenerator,
     Typeahead,
+    FocusReturnTarget,
   ],
   templateUrl: './language-section.html',
   styleUrl: './language-section.scss',
 })
 export class LanguageSection {
   protected readonly editor = inject(QASetEditor);
+  readonly #focus = inject(FocusReturn);
 
   readonly section = input.required<LanguageSectionView>();
 
@@ -44,16 +47,21 @@ export class LanguageSection {
   protected async saveAnswer(text: string): Promise<void> {
     if (await this.editor.editAnswer(this.section().language.id, text)) {
       this.editingAnswer.set(false);
+      this.#focus.to(`edit-answer:${this.section().language.id}`);
     }
   }
 
   protected async saveVariant(variantId: string, text: string): Promise<void> {
-    if (await this.editor.editVariant(variantId, text)) this.editingVariant.set(null);
+    if (await this.editor.editVariant(variantId, text)) {
+      this.editingVariant.set(null);
+      this.#focus.to(`edit-variant:${variantId}`);
+    }
   }
 
   protected async addVariant(text: string): Promise<void> {
     if (await this.editor.addVariant(this.section().language.id, text)) {
       this.addingVariant.set(false);
+      this.#focus.to(`add-variant:${this.section().language.id}`);
     }
   }
 
@@ -61,6 +69,7 @@ export class LanguageSection {
     const answerId = this.section().answer.id;
     if (await this.editor.translateAnswer(answerId, targetLanguageId, engine)) {
       this.translating.set(null);
+      this.#focus.to(`translate:${answerId}`);
     }
   }
 
@@ -70,6 +79,7 @@ export class LanguageSection {
   ): Promise<void> {
     if (await this.editor.translateVariant(variantId, targetLanguageId, engine)) {
       this.translating.set(null);
+      this.#focus.to(`translate:${variantId}`);
     }
   }
 
@@ -78,11 +88,16 @@ export class LanguageSection {
   }
 
   protected async attachIntent(variantId: string, intentId: string): Promise<void> {
-    if (await this.editor.attachIntent(variantId, intentId)) this.addingIntent.set(null);
+    if (await this.editor.attachIntent(variantId, intentId)) this.#closeIntent(variantId);
   }
 
   protected async createIntent(variantId: string, text: string): Promise<void> {
-    if (await this.editor.createIntent(variantId, text)) this.addingIntent.set(null);
+    if (await this.editor.createIntent(variantId, text)) this.#closeIntent(variantId);
+  }
+
+  #closeIntent(variantId: string): void {
+    this.addingIntent.set(null);
+    this.#focus.to(`add-intent:${variantId}`);
   }
 
   protected readonly cancelIntent = () => this.addingIntent.set(null);
@@ -91,8 +106,15 @@ export class LanguageSection {
   protected readonly cancelVariant = () => this.editingVariant.set(null);
   protected readonly cancelAddVariant = () => this.addingVariant.set(false);
 
-  protected close(target: string, close: () => void): void {
+  /** Closes a panel, forgets its refusal, and returns focus to the control that opened it. */
+  protected close(target: string, close: () => void, opener = target): void {
     close();
     this.editor.clearError(target);
+    this.#focus.to(opener);
+  }
+
+  protected closeGenerator(): void {
+    this.generating.set(false);
+    this.#focus.to(`generate:${this.section().answer.id}`);
   }
 }

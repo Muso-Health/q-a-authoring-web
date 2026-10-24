@@ -42,6 +42,16 @@ describe('writeFailureOf', () => {
     );
   });
 
+  it('maps the audio refusals', () => {
+    expect(writeFailureOf(engineError(422, 'unsupported_audio_type')).key).toBe(
+      'authoring.errors.unsupportedAudioType',
+    );
+    expect(writeFailureOf(engineError(422, 'audio_too_large')).key).toBe(
+      'authoring.errors.audioTooLarge',
+    );
+    expect(writeFailureOf(engineError(404, 'audio_not_found')).gone).toBe(true);
+  });
+
   it('reads every not-found code as the item being gone', () => {
     for (const code of [
       'variant_not_found',

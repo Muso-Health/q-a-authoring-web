@@ -8,12 +8,21 @@ import { trailOf } from '../../core/catalog/trail';
 import { writeFailureOf } from '../../core/error/write-failure';
 import { Translator } from '../../core/i18n/translator';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
+import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
 
 @Component({
   selector: 'app-theme-page',
-  imports: [RouterLink, TranslocoPipe, Breadcrumb, LanguageAnswerForm, Loading, LoadError],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    Breadcrumb,
+    LanguageAnswerForm,
+    Loading,
+    LoadError,
+    FocusReturnTarget,
+  ],
   template: `
     @if (page.hasValue()) {
       @let p = page.value();
@@ -37,7 +46,7 @@ import { LoadError, Loading } from '../../shared/ui/load-state';
                 (cancel)="closeCreate()"
               />
             } @else {
-              <button type="button" (click)="creating.set(true)">
+              <button type="button" appFocusReturn="create-set" (click)="creating.set(true)">
                 {{ 'authoring.createSet.open' | transloco }}
               </button>
             }
@@ -75,6 +84,7 @@ export class ThemePage {
   readonly #authoring = inject(QASetAuthoringApi);
   readonly #router = inject(Router);
   readonly #tasks = inject(PendingTasks);
+  readonly #focus = inject(FocusReturn);
 
   protected readonly canAuthor = inject(CurrentUser).can(AUTHOR_QASETS);
   protected readonly creating = signal(false);
@@ -130,5 +140,6 @@ export class ThemePage {
   protected closeCreate(): void {
     this.creating.set(false);
     this.createError.set(null);
+    this.#focus.to('create-set');
   }
 }

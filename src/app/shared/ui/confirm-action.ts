@@ -13,7 +13,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * A destructive action that asks first, inline: the trigger gives way to the warning and an
- * explicit confirmation. Focus lands on Cancel, so a stray Enter backs out.
+ * explicit confirmation. Focus lands on Cancel, so a stray Enter backs out, and returns to the
+ * trigger when backing out.
  */
 @Component({
   selector: 'app-confirm-action',
@@ -36,8 +37,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
       </div>
     } @else {
       <button
+        #trigger
         type="button"
         class="secondary"
+        [class.small]="small()"
         [disabled]="busy()"
         [attr.aria-label]="accessibleName()"
         (click)="ask()"
@@ -71,18 +74,23 @@ export class ConfirmAction {
   readonly accessibleName = input<string>();
   readonly warning = input.required<string>();
   readonly busy = input(false);
+  /** The compact trigger, for a row of small controls. */
+  readonly small = input(false);
   readonly confirmed = output();
 
   protected readonly asking = signal(false);
   private readonly cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
+  private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>('trigger');
 
   protected ask(): void {
     this.asking.set(true);
     afterNextRender(() => this.cancelButton()?.nativeElement.focus(), { injector: this.#injector });
   }
 
+  /** Backing out returns focus to the trigger, which reappears in place of the question. */
   protected cancel(): void {
     this.asking.set(false);
+    afterNextRender(() => this.trigger()?.nativeElement.focus(), { injector: this.#injector });
   }
 
   protected confirm(): void {

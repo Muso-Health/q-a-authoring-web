@@ -3,9 +3,11 @@ import { Router } from '@angular/router';
 import {
   AUTHOR_QASETS,
   CurrentUser,
+  MANAGE_AUDIO,
   MANAGE_CATEGORIES,
   MANAGE_INTENTS,
 } from '../../core/access/current-user';
+import { AudioApi } from '../../core/audio/audio-api';
 import { CatalogApi } from '../../core/catalog/catalog-api';
 import { QASetAuthoringApi, type TranslationEngine } from '../../core/catalog/qaset-authoring-api';
 import type { Language } from '../../core/catalog/catalog.model';
@@ -43,6 +45,7 @@ export class QASetEditor {
   readonly #tasks = inject(PendingTasks);
 
   readonly #taxonomy = inject(TaxonomyApi);
+  readonly #audio = inject(AudioApi);
   readonly #user = inject(CurrentUser);
 
   readonly qasetId = signal<string | undefined>(undefined);
@@ -50,6 +53,8 @@ export class QASetEditor {
   /** Creating a catalogue entry is its own permission; attaching an existing one is authoring. */
   readonly canCreateIntents = this.#user.can(MANAGE_INTENTS);
   readonly canCreateCategories = this.#user.can(MANAGE_CATEGORIES);
+  /** Recording is its own permission, distinct from authoring text. */
+  readonly canManageAudio = this.#user.can(MANAGE_AUDIO);
 
   readonly searchIntents = (prefix: string) => this.#taxonomy.searchIntents(prefix);
   readonly searchCategories = (prefix: string) => this.#taxonomy.searchCategories(prefix);
@@ -291,6 +296,17 @@ export class QASetEditor {
         ? this.#authoring.unlinkAnswers(q, linkId)
         : this.#authoring.unlinkVariants(q, linkId),
     );
+  }
+
+  /** Sets or replaces the item's recording: the same call either way. */
+  setAudio(role: ItemRole, itemId: string, file: Blob, filename: string): Promise<boolean> {
+    return this.#run(`audio:${itemId}`, (q) =>
+      this.#audio.setAudio(q, role, itemId, file, filename),
+    );
+  }
+
+  deleteAudio(role: ItemRole, itemId: string): Promise<boolean> {
+    return this.#run(`audio:${itemId}`, (q) => this.#audio.deleteAudio(q, role, itemId));
   }
 
   async #run(

@@ -164,7 +164,9 @@
       "generationEngine": "Generation failed: no variants were proposed. Try again.",
       "linkAlreadyExists": "These two items are already linked as translations.",
       "selfLink": "An item cannot be linked to itself.",
-      "invalidName": "The name was refused: it cannot be empty."
+      "invalidName": "The name was refused: it cannot be empty.",
+      "unsupportedAudioType": "Unsupported audio format: record again or choose another file.",
+      "audioTooLarge": "File too large: choose a shorter or lighter file."
     },
     "translate": {
       "open": "Translate",
@@ -214,5 +216,28 @@
     "required": "Choose the item to link.",
     "submit": "Link",
     "unlinkName": "Unlink the translation ({{ language }})"
+  },
+  "capture": {
+    "record": "Record",
+    "recordName": "Record the audio of {{ label }}",
+    "upload": "Upload a file",
+    "uploadName": "Upload the audio of {{ label }}",
+    "replace": "Replace",
+    "replaceName": "Replace the audio of {{ label }}",
+    "delete": "Delete the audio",
+    "deleteName": "Delete the audio of {{ label }}",
+    "deleteWarning": "The audio of {{ label }} will be deleted. This cannot be undone.",
+    "panelName": "Audio of {{ label }}",
+    "requesting": "Asking for the microphone…",
+    "recording": "Recording",
+    "stop": "Stop",
+    "send": "Save",
+    "sendName": "Save this audio",
+    "redo": "Redo",
+    "file": "Audio file",
+    "selected": "Chosen file: {{ name }}",
+    "sendFile": "Upload",
+    "denied": "Microphone access was refused. You can upload a file instead.",
+    "unsupported": "Microphone recording is not available in this browser. You can upload a file instead."
   }
 }

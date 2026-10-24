@@ -2,6 +2,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, requiredError, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { QASetEditor } from './qaset-editor';
 import type { ItemRole, ItemView } from './qaset-view';
 
@@ -13,7 +14,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-item-links',
-  imports: [FormField, RouterLink, TranslocoPipe],
+  imports: [FormField, RouterLink, TranslocoPipe, FocusReturnTarget],
   template: `
     @let it = item();
     @if (it.links.length > 0) {
@@ -79,6 +80,7 @@ let nextId = 0;
           <button
             type="button"
             class="secondary small"
+            [appFocusReturn]="'link:' + it.id"
             [disabled]="editor.busy()"
             (click)="linking.set(true)"
           >
@@ -115,6 +117,7 @@ let nextId = 0;
 })
 export class ItemLinks {
   protected readonly editor = inject(QASetEditor);
+  readonly #focus = inject(FocusReturn);
   protected readonly id = `item-links-${nextId++}`;
 
   readonly item = input.required<ItemView>();
@@ -145,5 +148,6 @@ export class ItemLinks {
     this.tried.set(false);
     this.#model.set({ counterpartId: '' });
     this.editor.clearError(this.target());
+    this.#focus.to(`link:${this.item().id}`);
   }
 }

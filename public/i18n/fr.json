@@ -164,7 +164,9 @@
       "generationEngine": "La génération a échoué : aucune variante n’a été proposée. Réessayez.",
       "linkAlreadyExists": "Ces deux éléments sont déjà liés comme traductions.",
       "selfLink": "Un élément ne peut pas être lié à lui-même.",
-      "invalidName": "Le nom a été refusé : il ne peut pas être vide."
+      "invalidName": "Le nom a été refusé : il ne peut pas être vide.",
+      "unsupportedAudioType": "Format audio non pris en charge : enregistrez à nouveau ou choisissez un autre fichier.",
+      "audioTooLarge": "Fichier trop volumineux : choisissez un fichier plus court ou plus léger."
     },
     "translate": {
       "open": "Traduire",
@@ -214,5 +216,28 @@
     "required": "Choisissez l’élément à lier.",
     "submit": "Lier",
     "unlinkName": "Délier la traduction ({{ language }})"
+  },
+  "capture": {
+    "record": "Enregistrer",
+    "recordName": "Enregistrer l’audio de {{ label }}",
+    "upload": "Téléverser un fichier",
+    "uploadName": "Téléverser l’audio de {{ label }}",
+    "replace": "Remplacer",
+    "replaceName": "Remplacer l’audio de {{ label }}",
+    "delete": "Supprimer l’audio",
+    "deleteName": "Supprimer l’audio de {{ label }}",
+    "deleteWarning": "L’audio de {{ label }} sera supprimé. Cette action est irréversible.",
+    "panelName": "Audio de {{ label }}",
+    "requesting": "Autorisation du micro…",
+    "recording": "Enregistrement en cours",
+    "stop": "Arrêter",
+    "send": "Enregistrer",
+    "sendName": "Enregistrer cet audio",
+    "redo": "Refaire",
+    "file": "Fichier audio",
+    "selected": "Fichier choisi : {{ name }}",
+    "sendFile": "Téléverser",
+    "denied": "L’accès au micro a été refusé. Vous pouvez téléverser un fichier à la place.",
+    "unsupported": "L’enregistrement au micro n’est pas disponible sur ce navigateur. Vous pouvez téléverser un fichier à la place."
   }
 }

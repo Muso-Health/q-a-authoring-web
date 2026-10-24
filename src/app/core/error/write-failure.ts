@@ -20,6 +20,8 @@ const BY_CODE: Readonly<Record<string, string>> = {
   link_already_exists: 'authoring.errors.linkAlreadyExists',
   self_link: 'authoring.errors.selfLink',
   invalid_name: 'authoring.errors.invalidName',
+  unsupported_audio_type: 'authoring.errors.unsupportedAudioType',
+  audio_too_large: 'authoring.errors.audioTooLarge',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {

@@ -47,7 +47,7 @@
         [busy]="editor.busy()"
         [error]="editor.errorFor('answer:' + lang.id)"
         (save)="saveAnswer($event)"
-        (cancel)="close('answer:' + lang.id, cancelAnswer)"
+        (cancel)="close('answer:' + lang.id, cancelAnswer, 'edit-answer:' + lang.id)"
       />
     } @else {
       <p class="text" [attr.lang]="lang.code">{{ s.answer.text }}</p>
@@ -56,6 +56,7 @@
           <button
             type="button"
             class="secondary"
+            [appFocusReturn]="'edit-answer:' + lang.id"
             [disabled]="editor.busy()"
             (click)="editingAnswer.set(true)"
           >
@@ -66,6 +67,7 @@
               type="button"
               class="secondary"
               [disabled]="editor.busy()"
+              [appFocusReturn]="'translate:' + s.answer.id"
               [attr.aria-label]="'authoring.translate.answerName' | transloco"
               (click)="translating.set(s.answer.id)"
             >
@@ -75,6 +77,7 @@
           <button
             type="button"
             class="secondary"
+            [appFocusReturn]="'generate:' + s.answer.id"
             [disabled]="editor.busy()"
             (click)="generating.set(true)"
           >
@@ -99,7 +102,7 @@
         <app-variant-generator
           [answerId]="s.answer.id"
           [language]="lang"
-          (closed)="generating.set(false)"
+          (closed)="closeGenerator()"
         />
       </div>
     }
@@ -121,7 +124,7 @@
               [busy]="editor.busy()"
               [error]="editor.errorFor('variant:' + variant.id)"
               (save)="saveVariant(variant.id, $event)"
-              (cancel)="close('variant:' + variant.id, cancelVariant)"
+              (cancel)="close('variant:' + variant.id, cancelVariant, 'edit-variant:' + variant.id)"
             />
           } @else {
             <p class="text" [attr.lang]="lang.code">{{ variant.text }}</p>
@@ -157,7 +160,7 @@
               [error]="editor.errorFor('intents:' + variant.id)"
               (picked)="attachIntent(variant.id, $event.id)"
               (created)="createIntent(variant.id, $event)"
-              (cancel)="close('intents:' + variant.id, cancelIntent)"
+              (cancel)="close('intents:' + variant.id, cancelIntent, 'add-intent:' + variant.id)"
             />
           } @else if (editor.errorFor('intents:' + variant.id); as message) {
             <p class="field-error" role="alert">{{ message }}</p>
@@ -173,6 +176,7 @@
                 type="button"
                 class="secondary"
                 [disabled]="editor.busy()"
+                [appFocusReturn]="'edit-variant:' + variant.id"
                 [attr.aria-label]="'authoring.editVariantName' | transloco: { number: n + 1 }"
                 (click)="editingVariant.set(variant.id)"
               >
@@ -183,6 +187,7 @@
                   type="button"
                   class="secondary"
                   [disabled]="editor.busy()"
+                  [appFocusReturn]="'add-intent:' + variant.id"
                   [attr.aria-label]="'classification.addIntentName' | transloco: { number: n + 1 }"
                   (click)="addingIntent.set(variant.id)"
                 >
@@ -193,6 +198,7 @@
                 <button
                   type="button"
                   class="secondary"
+                  [appFocusReturn]="'translate:' + variant.id"
                   [disabled]="editor.busy()"
                   [attr.aria-label]="
                     'authoring.translate.variantName' | transloco: { number: n + 1 }
@@ -246,6 +252,7 @@
         <button
           type="button"
           class="secondary"
+          [appFocusReturn]="'add-variant:' + lang.id"
           [disabled]="editor.busy()"
           (click)="addingVariant.set(true)"
         >

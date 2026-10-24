@@ -5,6 +5,7 @@ import type { MeResponse } from '../api/api-types';
 export const AUTHOR_QASETS = 'author_qasets';
 export const MANAGE_INTENTS = 'manage_intents';
 export const MANAGE_CATEGORIES = 'manage_categories';
+export const MANAGE_AUDIO = 'manage_audio';
 
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine

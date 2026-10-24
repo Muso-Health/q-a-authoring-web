@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
+import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { ConfirmAction } from '../../shared/ui/confirm-action';
 import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
@@ -21,6 +22,7 @@ import { QASetEditor } from './qaset-editor';
     ValidationBadge,
     LanguageSection,
     Typeahead,
+    FocusReturnTarget,
   ],
   providers: [QASetEditor],
   template: `
@@ -60,6 +62,7 @@ import { QASetEditor } from './qaset-editor';
             <button
               type="button"
               class="secondary small"
+              appFocusReturn="add-category"
               [disabled]="editor.busy()"
               (click)="addingCategory.set(true)"
             >
@@ -156,7 +159,7 @@ import { QASetEditor } from './qaset-editor';
               (cancel)="closeAddLanguage()"
             />
           } @else {
-            <button type="button" (click)="addingLanguage.set(true)">
+            <button type="button" appFocusReturn="add-language" (click)="addingLanguage.set(true)">
               {{ 'authoring.addLanguage.open' | transloco }}
             </button>
           }
@@ -199,6 +202,7 @@ import { QASetEditor } from './qaset-editor';
 })
 export class QASetPage {
   protected readonly editor = inject(QASetEditor);
+  readonly #focus = inject(FocusReturn);
 
   readonly qasetId = input.required<string>();
 
@@ -213,24 +217,26 @@ export class QASetPage {
   }
 
   protected async addLanguage({ languageId, answerText }: LanguageAnswer): Promise<void> {
-    if (await this.editor.addLanguage(languageId, answerText)) this.addingLanguage.set(false);
+    if (await this.editor.addLanguage(languageId, answerText)) this.closeAddLanguage();
   }
 
   protected async addCategory(categoryId: string): Promise<void> {
-    if (await this.editor.addCategory(categoryId)) this.addingCategory.set(false);
+    if (await this.editor.addCategory(categoryId)) this.closeCategory();
   }
 
   protected async createCategory(name: string): Promise<void> {
-    if (await this.editor.createCategory(name)) this.addingCategory.set(false);
+    if (await this.editor.createCategory(name)) this.closeCategory();
   }
 
   protected closeCategory(): void {
     this.addingCategory.set(false);
     this.editor.clearError('categories');
+    this.#focus.to('add-category');
   }
 
   protected closeAddLanguage(): void {
     this.addingLanguage.set(false);
     this.editor.clearError('add-language');
+    this.#focus.to('add-language');
   }
 }

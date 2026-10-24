@@ -1,0 +1,60 @@
+:host {
+  display: contents;
+}
+.controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--muso-space-1);
+}
+.capture {
+  // A row of its own under the player: a capped width would let it sit beside « Pas d’audio ».
+  flex: 1 0 100%;
+  display: grid;
+  gap: var(--muso-space-1);
+  padding: var(--muso-space-2);
+  border: 1px solid var(--card-border);
+  border-radius: var(--muso-radius);
+  background: var(--muso-surface);
+
+  > * {
+    max-inline-size: 40rem;
+  }
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--muso-space-1);
+}
+.live {
+  display: flex;
+  align-items: center;
+  gap: var(--muso-space-1);
+  margin: 0;
+  font-weight: 600;
+}
+.dot {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 50%;
+  background: var(--danger-strong);
+}
+.timer {
+  font-variant-numeric: tabular-nums;
+}
+.preview {
+  inline-size: 100%;
+}
+p {
+  margin: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dot {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
