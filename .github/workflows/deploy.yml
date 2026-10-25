@@ -1,0 +1,124 @@
+# The front end's deploy, mirroring budgetisation-angular's: push to `develop` ships the test
+# site, push to `master` ships production. The engine is deployed separately, by script, and is
+# not this workflow's business. The `demo` site is never deployed from here: it stays manual
+# (`npm run deploy:demo`) and is deleted once Entra is live.
+#
+# READ THIS BEFORE CREATING THE SECRET.
+#
+# Required GitHub secret (Settings → Secrets and variables → Actions):
+#   FIREBASE_SERVICE_ACCOUNT_QA_AUTHORING — the JSON key of a service account in the
+#     `q-a-authoring` Firebase project allowed to deploy Hosting (Firebase Hosting Admin). Until
+#     it exists the authenticate step fails loudly; nothing half-deploys.
+# The moment it exists, every push to `master` ships to the live prod site. If that is not
+# wanted, change the trigger or gate the job on a GitHub Environment with a reviewer.
+#
+# Before a CI build can deploy, the values the build bakes in must be filled and committed —
+# they are public, not secret (the demo's dev email is NOT: it never goes in the repository):
+#   master  → src/app/core/config/environment.ts       apiBaseUrl: the PRODUCTION engine's URL
+#   develop → src/app/core/config/environment.test.ts  apiBaseUrl: the TEST engine's URL
+#   both    → auth.tenantId / clientId / engineScope from the Entra app registrations
+# Until then the placeholder step below refuses the build, exactly as `scripts/deploy.sh` does.
+
+name: Deploy
+
+on:
+  push:
+    branches: [master, develop]
+
+permissions:
+  contents: read
+
+# Deploys queue rather than cancel: a half-finished release is worse than a slow one.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Sites and targets are bound in the committed `.firebaserc` (prod → qa-authoring,
+  # test → qa-authoring-test), so unlike the reference there is no `target:apply` here: only the
+  # project is named.
+  FIREBASE_PROJECT_ID: q-a-authoring
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      # The committed .npmrc carries legacy-peer-deps; npm reads it for `ci` too.
+      - name: Install
+        run: npm ci
+
+      # THE GATE, run here rather than waiting on another workflow, so it is THIS commit that
+      # passes. A failing step aborts the job: nothing below runs unless the tests pass.
+      - name: Test
+        run: npm test
+
+      # Which site this branch ships to, and which engine that site's build calls. Chosen BEFORE
+      # the build, because the engine is fixed at build time.
+      - name: Choose the target
+        id: target
+        run: |
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            echo "name=prod" >> "$GITHUB_OUTPUT"
+            echo "configuration=production" >> "$GITHUB_OUTPUT"
+            echo "environment=environment.ts" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref_name }}" = "develop" ]; then
+            echo "name=test" >> "$GITHUB_OUTPUT"
+            echo "configuration=test" >> "$GITHUB_OUTPUT"
+            echo "environment=environment.test.ts" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::No deploy target for branch ${{ github.ref_name }}."
+            exit 1
+          fi
+
+      - name: Build
+        run: npm run build -- --configuration "${{ steps.target.outputs.configuration }}"
+
+      # The same refusal as `scripts/deploy.sh`: a build still carrying a placeholder would call
+      # no engine or sign nobody in, so it is not published.
+      - name: Refuse placeholders
+        env:
+          ENVIRONMENT_FILE: src/app/core/config/${{ steps.target.outputs.environment }}
+        run: |
+          output=dist/qa-authoring-web/browser
+          if grep -rqF 'replace-me.invalid' "$output"; then
+            echo "::error::The build still calls a placeholder engine: fill apiBaseUrl in $ENVIRONMENT_FILE."
+            exit 1
+          fi
+          if grep -rqF '<ENTRA_TENANT_ID>' "$output"; then
+            echo "::error::The build still holds Entra placeholders: fill auth in $ENVIRONMENT_FILE."
+            exit 1
+          fi
+
+      # The service account, as a file the CLI can read.
+      - name: Authenticate to Firebase
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_QA_AUTHORING }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_QA_AUTHORING is not set."
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-key.json"
+
+      - name: Deploy to hosting:${{ steps.target.outputs.name }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
+        run: |
+          npx --yes firebase-tools@15 deploy \
+            --only "hosting:${{ steps.target.outputs.name }}" \
+            --project "$FIREBASE_PROJECT_ID" \
+            --non-interactive \
+            --message "${{ github.sha }}"
+
+      # The key is on a throw-away runner, but it is not left lying there.
+      - name: Remove the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/firebase-key.json"
