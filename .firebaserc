@@ -10,6 +10,9 @@
         ],
         "test": [
           "qa-authoring-test"
+        ],
+        "demo": [
+          "qa-authoring-demo"
         ]
       }
     }

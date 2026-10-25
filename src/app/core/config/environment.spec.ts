@@ -64,4 +64,32 @@ describe('the environment', () => {
     expect(test).toMatch(/^https:\/\//);
     expect(test).not.toBe(production);
   });
+
+  // TEMPORARY, until Entra is live: a dev-auth build for the operator alone.
+  it('signs the demo site in as the single dev user, against its own engine', () => {
+    expect(swapOf('demo')).toBe('src/app/core/config/environment.demo.ts');
+    const { fileReplacements, ...demoSettings } = configurations['demo'];
+    expect(fileReplacements).toHaveLength(1);
+    expect(demoSettings).toEqual(configurations['production']);
+
+    const demo = read('src/app/core/config/environment.demo.ts');
+    expect(demo).toContain("provider: 'dev'");
+    expect(demo).toContain("email: '<DEMO_DEV_EMAIL>'");
+    expect(demo).toContain("apiBaseUrl: 'https://demo-engine-url.replace-me.invalid'");
+    expect(demo).toContain('QA_AUTHORING_AUTH_PROVIDER=dev');
+    expect(demo).toContain('https://qa-authoring-demo.web.app');
+    expect(demo).toContain('https://qa-authoring-demo.firebaseapp.com');
+    expect(demo).not.toContain("provider: 'entra'");
+  });
+
+  it('leaves the test and production builds as they were', () => {
+    expect(swapOf('production')).toBeUndefined();
+    expect(swapOf('test')).toBe('src/app/core/config/environment.test.ts');
+    expect(read('src/app/core/config/environment.ts')).toContain(
+      "apiBaseUrl: 'https://prod-engine-url.replace-me.invalid'",
+    );
+    expect(read('src/app/core/config/environment.test.ts')).toContain(
+      "apiBaseUrl: 'https://test-engine-url.replace-me.invalid'",
+    );
+  });
 });

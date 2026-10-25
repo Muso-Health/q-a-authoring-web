@@ -12,7 +12,8 @@
     "gen:api": "openapi-typescript src/app/core/api/contract/openapi.json -o src/app/core/api/generated/schema.ts",
     "fonts:sync": "node scripts/sync-fonts.mjs",
     "deploy:test": "bash scripts/deploy.sh test",
-    "deploy:prod": "bash scripts/deploy.sh prod"
+    "deploy:prod": "bash scripts/deploy.sh prod",
+    "deploy:demo": "bash scripts/deploy-demo.sh"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -36,18 +37,25 @@ const cacheOf = (target: HostingTarget, source: string) =>
     ?.headers.find((header) => header.key === 'Cache-Control')?.value;
 
 describe('the Firebase Hosting setup', () => {
-  it('hosts in its own project, a test and a prod site, never the engine’s project', () => {
+  it('hosts in its own project, a test, a prod and a demo site, never the engine’s project', () => {
     expect(firebaserc.projects).toEqual({ default: 'q-a-authoring' });
     expect(firebaserc.targets).toEqual({
-      'q-a-authoring': { hosting: { prod: ['qa-authoring'], test: ['qa-authoring-test'] } },
+      'q-a-authoring': {
+        hosting: {
+          prod: ['qa-authoring'],
+          test: ['qa-authoring-test'],
+          demo: ['qa-authoring-demo'],
+        },
+      },
     });
     expect(read('.firebaserc')).not.toContain('musohealth');
   });
 
   it('names one hosting entry per target, the same in all but the name', () => {
-    expect(hosting.map((target) => target.target)).toEqual(['prod', 'test']);
-    const [prod, test] = hosting.map(({ target: _, ...rest }) => rest);
+    expect(hosting.map((target) => target.target)).toEqual(['prod', 'test', 'demo']);
+    const [prod, test, demo] = hosting.map(({ target: _, ...rest }) => rest);
     expect(test).toEqual(prod);
+    expect(demo).toEqual(test);
   });
 
   for (const target of hosting) {
@@ -104,5 +112,44 @@ describe('the deploy script', () => {
   it('refuses to ship an engine or an Entra placeholder', () => {
     expect(script).toContain('replace-me.invalid');
     expect(script).toContain('<ENTRA_TENANT_ID>');
+  });
+
+  it('is left exactly as it was: the demo target has a script of its own', () => {
+    // The demo is throwaway; deleting it must not mean editing the test/prod path back.
+    expect(createHash('sha256').update(script).digest('hex')).toBe(
+      'f82acbdd7202cfd6878744789705250946ee11a861a843e4fed334bb95a84cea',
+    );
+    expect(script).not.toContain('demo');
+  });
+});
+
+/** TEMPORARY: the dev-auth demo site, until Entra is live. Delete with `scripts/deploy-demo.sh`. */
+describe('the demo deploy script', () => {
+  const script = read('scripts/deploy-demo.sh');
+  const scripts = (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts;
+
+  it('is run as `npm run deploy:demo`', () => {
+    expect(scripts['deploy:demo']).toBe('bash scripts/deploy-demo.sh');
+  });
+
+  it('builds the demo configuration and deploys it to the demo site only', () => {
+    expect(script).toContain('configuration=demo');
+    expect(script).toContain('environment=environment.demo.ts');
+    expect(script).toContain('target=demo');
+    expect(script).toContain('--only "hosting:$target"');
+    expect(script).toContain('--project "$project"');
+    expect(script).toContain('project=q-a-authoring');
+  });
+
+  it('runs the tests before building, as the main script does', () => {
+    expect(script.indexOf('npx ng test --watch=false')).toBeGreaterThan(-1);
+    expect(script.indexOf('npx ng test --watch=false')).toBeLessThan(
+      script.indexOf('npm run build'),
+    );
+  });
+
+  it('refuses to ship the engine or the dev-email placeholder', () => {
+    expect(script).toContain("grep -rqF 'replace-me.invalid'");
+    expect(script).toContain("grep -rqF '<DEMO_DEV_EMAIL>'");
   });
 });
