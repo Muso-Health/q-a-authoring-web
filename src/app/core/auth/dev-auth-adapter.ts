@@ -13,4 +13,9 @@ export class DevAuthAdapter extends AuthPort {
   async authHeaders(): Promise<Readonly<Record<string, string>>> {
     return this.#email === '' ? {} : { [DEV_USER_HEADER]: this.#email };
   }
+
+  /** The identity is fixed by configuration: a refusal is the engine's answer, not a lapse. */
+  async reauthenticate(): Promise<void> {}
+
+  async signOut(): Promise<void> {}
 }

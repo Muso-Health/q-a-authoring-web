@@ -36,6 +36,21 @@ describe('the environment', () => {
     expect(development).toContain("provider: 'dev'");
   });
 
+  it('signs the deployed builds in with Entra, from placeholders until the registration exists', () => {
+    for (const path of [
+      'src/app/core/config/environment.ts',
+      'src/app/core/config/environment.test.ts',
+    ]) {
+      const source = read(path);
+      expect(source).toContain("provider: 'entra'");
+      expect(source).toContain("tenantId: '<ENTRA_TENANT_ID>'");
+      expect(source).toContain("clientId: '<ENTRA_SPA_CLIENT_ID>'");
+      expect(source).toContain("engineScope: '<ENGINE_API_SCOPE>'");
+      expect(source).toContain('QA_AUTHORING_AUTH_ENTRA_AUDIENCE');
+      expect(source).not.toContain("provider: 'dev'");
+    }
+  });
+
   it('points the test site at its own engine, built otherwise exactly as production', () => {
     expect(swapOf('test')).toBe('src/app/core/config/environment.test.ts');
     const { fileReplacements, ...testSettings } = configurations['test'];

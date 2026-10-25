@@ -101,7 +101,8 @@ describe('the deploy script', () => {
     expect(script).toContain('--only "hosting:$target"');
   });
 
-  it('refuses to ship an engine placeholder', () => {
+  it('refuses to ship an engine or an Entra placeholder', () => {
     expect(script).toContain('replace-me.invalid');
+    expect(script).toContain('<ENTRA_TENANT_ID>');
   });
 });

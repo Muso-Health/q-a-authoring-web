@@ -60,16 +60,22 @@ npx ng test --watch=false
 
 npm run build -- --configuration "$configuration"
 
-# The environment files ship `.replace-me.invalid` until the real engine URL is filled in. A
-# build still carrying one would call nothing; refuse it rather than publish a dead site.
-if grep -rqF 'replace-me.invalid' "$output"; then
-  message="The $configuration build still calls a placeholder engine: fill apiBaseUrl in src/app/core/config/$environment."
+# The environment files ship placeholders until the real values are filled in: the engine URL
+# (`.replace-me.invalid`) and the Entra registration (`<ENTRA_TENANT_ID>` and friends). A build
+# still carrying either would call nothing or sign nobody in; refuse it rather than publish it.
+refuse() {
   if $dry_run; then
-    echo "WARNING (a real deploy would stop here): $message" >&2
+    echo "WARNING (a real deploy would stop here): $1" >&2
   else
-    echo "ERROR: $message" >&2
+    echo "ERROR: $1" >&2
     exit 1
   fi
+}
+if grep -rqF 'replace-me.invalid' "$output"; then
+  refuse "The $configuration build still calls a placeholder engine: fill apiBaseUrl in src/app/core/config/$environment."
+fi
+if grep -rqF '<ENTRA_TENANT_ID>' "$output"; then
+  refuse "The $configuration build still holds Entra placeholders: fill auth in src/app/core/config/$environment."
 fi
 
 deploy=(npx --yes firebase-tools@15 deploy --only "hosting:$target" --project "$project"

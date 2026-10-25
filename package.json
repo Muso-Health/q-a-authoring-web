@@ -25,6 +25,7 @@
     "@angular/material": "^22.0.6",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "@azure/msal-browser": "^5.17.1",
     "@jsverse/transloco": "^8.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
