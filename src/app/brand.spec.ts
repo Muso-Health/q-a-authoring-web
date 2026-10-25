@@ -11,7 +11,7 @@ import { join } from 'node:path';
  * Three things are asserted, and the third is the interesting one:
  *  - `_muso-tokens.scss` states each brand value exactly once, and nothing else states one.
  *  - The one consumer that CANNOT read a custom property — index.html's `theme-color` — carries
- *    the same navy the token file declares. It is the only duplication in the system, so it is
+ *    the same teal the token file gives the header. It is the only duplication in the system, so it is
  *    the only duplication that is checked.
  *  - The contrast the brand spec claims is recomputed from the tokens themselves. Re-seed navy
  *    and this says whether muted labels are still legible, instead of leaving it to be noticed.
@@ -31,12 +31,18 @@ const read = (path: string): string => readFileSync(join(ROOT, path), 'utf8');
  * And the line tables' three row tints by acceptance state (`--row-*-bg`): light green accepted,
  * light red refused, light yellow waiting — approved as an exception to "no green, no red", for a
  * row background only. Each is held to AA under navy text below.
+ *
+ * And the validation badges' two rules: a green for « validée » and an ochre for « en attente »
+ * (the rejected badge takes the deep red above). Each is a badge's BORDER on its own tint, held to
+ * 5:1 there below — the charte's teal now belongs to the header, and its yellow is 1.6:1 on white.
  */
 const SANCTIONED_COLOURS = {
   'danger-red': '#b3261e',
   'row-accepted': '#e6f4ea',
   'row-rejected': '#fce8e6',
   'row-waiting': '#fef7e0',
+  'badge-validated': '#137333',
+  'badge-pending': '#8a6100',
 };
 
 /** The seven colours of the brand spec's canonical table. */
@@ -159,10 +165,10 @@ describe('the brand tokens', () => {
 });
 
 describe('the brand values that CANNOT read a token', () => {
-  const navy = BRAND_COLOURS.navy;
+  const teal = BRAND_COLOURS.teal;
 
-  it("gives the browser chrome the same navy in index.html's theme-color", () => {
-    expect(read('src/index.html')).toContain(`<meta name="theme-color" content="${navy}" />`);
+  it("gives the browser chrome the header's teal in index.html's theme-color", () => {
+    expect(read('src/index.html')).toContain(`<meta name="theme-color" content="${teal}" />`);
   });
 
   it('serves every face the stylesheet asks for', () => {
@@ -226,5 +232,93 @@ describe('the contrast the brand promises', () => {
     // 3.8:1 — the reason `--muso-text-accent` is documented for ≥24px and non-text UI only, and
     // the reason links are navy with a teal underline rather than teal.
     expect(contrast(teal, white)).toBeLessThan(4.5);
+  });
+});
+
+/**
+ * What tells this application from budgetisation at a glance: the same charte, but a teal header
+ * — the logo's white variant is sanctioned on teal as on navy — 56px and flat, ruled off in navy,
+ * with its own wordmark; rounder corners; badges in their own hues; eyebrows in sentence case.
+ */
+describe('the header that sets this app apart from its siblings', () => {
+  const { navy, white, teal } = BRAND_COLOURS;
+  const shell = read('src/app/layout/shell.ts');
+  const tokenOf = (name: string) => tokensFile.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1];
+
+  it('is stated as tokens: teal, 56px, a navy-20 rule, a white focus ring', () => {
+    expect(tokenOf('--muso-chrome-bg')).toBe('var(--muso-teal)');
+    expect(tokenOf('--muso-chrome-fg')).toBe('var(--muso-text-inverse)');
+    expect(tokenOf('--muso-chrome-block-size')).toBe('56px');
+    expect(tokenOf('--muso-chrome-rule')).toBe('1px solid var(--muso-navy-20)');
+    expect(tokenOf('--muso-chrome-focus')).toBe('var(--muso-white)');
+    // Everywhere else the ring stays teal.
+    expect(tokenOf('--muso-focus')).toBe('var(--muso-teal)');
+  });
+
+  it('is drawn from those tokens by the shell, flat', () => {
+    const header = shell.match(/\n {4}header \{([^}]+)\}/)?.[1] ?? '';
+
+    expect(header).toContain('background: var(--muso-chrome-bg)');
+    expect(header).toContain('color: var(--muso-chrome-fg)');
+    expect(header).toContain('block-size: var(--muso-chrome-block-size)');
+    expect(header).toContain('border-block-end: var(--muso-chrome-rule)');
+    expect(header).toContain('--muso-focus: var(--muso-chrome-focus)');
+    expect(header).not.toContain('box-shadow');
+  });
+
+  it('carries its white wordmark and white focus ring on teal', () => {
+    // Both need 3:1: the wordmark is 24px bold (large text), a focus ring is non-text UI.
+    // White on teal is 3.79:1; the default teal ring would be 1:1 there, hence the override.
+    expect(contrast(white, teal)).toBeGreaterThanOrEqual(3);
+    expect(contrast(teal, teal)).toBeLessThan(3);
+  });
+
+  it('sets the wordmark in the subheading face, bold, at 24px', () => {
+    const product = shell.match(/\.product \{([^}]+)\}/)?.[1] ?? '';
+
+    expect(product).toContain('font-family: var(--muso-font-subheading)');
+    expect(product).toContain('font-weight: 700');
+    expect(product).toContain('font-size: var(--muso-wordmark-size)');
+    // With the type scale, where every size is stated.
+    expect(read('src/styles/_muso-typography.scss')).toContain('--muso-wordmark-size: 1.5rem;');
+  });
+
+  it('rounds every corner to 4px', () => {
+    expect(tokenOf('--muso-radius')).toBe('4px');
+  });
+
+  it('draws each validation badge in its own hue, at 5:1 on its tint and navy text at AA', () => {
+    const red = SANCTIONED_COLOURS['danger-red'];
+    const badges = [
+      [SANCTIONED_COLOURS['badge-validated'], SANCTIONED_COLOURS['row-accepted']],
+      [red, mix(red, white, 0.12)],
+      [SANCTIONED_COLOURS['badge-pending'], mix(BRAND_COLOURS.yellow, white, 0.12)],
+    ];
+    for (const [rule, tint] of badges) {
+      expect(contrast(rule, tint)).toBeGreaterThanOrEqual(5);
+      expect(contrast(navy, tint)).toBeGreaterThanOrEqual(4.5);
+    }
+
+    expect(tokenOf('--badge-validated-border')).toBe('#{$badge-validated}');
+    expect(tokenOf('--badge-validated-bg')).toBe('var(--row-accepted-bg)');
+    expect(tokenOf('--badge-rejected-border')).toBe('var(--danger-strong)');
+    expect(tokenOf('--badge-rejected-bg')).toBe(
+      'color-mix(in srgb, var(--danger-strong) 12%, var(--muso-white))',
+    );
+    expect(tokenOf('--badge-pending-border')).toBe('#{$badge-pending}');
+    expect(tokenOf('--badge-pending-bg')).toBe('var(--muso-yellow-12)');
+
+    const badge = read('src/app/shared/ui/validation-badge.ts');
+    for (const status of ['validated', 'rejected', 'pending']) {
+      expect(badge).toContain(`background: var(--badge-${status}-bg)`);
+      expect(badge).toContain(`border-color: var(--badge-${status}-border)`);
+    }
+  });
+
+  it('sets eyebrows in sentence case, untracked', () => {
+    const eyebrow = read('src/styles.scss').match(/\.muso-eyebrow \{([^}]+)\}/)?.[1] ?? '';
+
+    expect(eyebrow).not.toContain('uppercase');
+    expect(eyebrow).toContain('letter-spacing: 0;');
   });
 });

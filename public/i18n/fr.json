@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "Muso Questions-Réponses",
+    "wordmark": "Questions-Réponses",
     "skipToContent": "Aller au contenu principal"
   },
   "nav": {

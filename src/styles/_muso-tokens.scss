@@ -50,6 +50,13 @@ $danger-red: #b3261e;
 $row-accepted: #e6f4ea;
 $row-rejected: #fce8e6;
 $row-waiting: #fef7e0;
+// TWO MORE, for the validation badges' rules — a badge's BORDER on its own tint, never text (the
+// badge's words stay navy): a green for « validée », and an ochre for « en attente » because the
+// brand yellow is 1.6:1 on white, under the 3:1 a non-text cue needs. Each holds ≥5:1 on its tint;
+// the rejected badge takes `$danger-red`. Teal is not used for "validated" any more: in this
+// application teal is the header's. `brand.spec.ts` names both and recomputes them.
+$badge-validated: #137333;
+$badge-pending: #8a6100;
 
 // ── Breakpoints ───────────────────────────────────────────────────────────────────────────────
 // Two, and both are arithmetic rather than convention.
@@ -144,9 +151,24 @@ $font-icon: 'Material Symbols Outlined';
   // beside the words that name it (a permission's \`submit\`), never for prose.
   --muso-font-mono: ui-monospace, 'SFMono-Regular', menlo, consolas, monospace;
 
-  // The guidelines' layout grid is flush and rectangular throughout. Every rounded corner in the
-  // app reads from this, so "how round is this product" is one number.
-  --muso-radius: 2px;
+  // The guidelines' layout grid is rectangular throughout. Every rounded corner in the app reads
+  // from this, so "how round is this product" is one number — and it is one of the numbers that
+  // tell this application from budgetisation (2px there): still square at a glance, softer in hand.
+  --muso-radius: 4px;
+
+  // ── The header ("chrome") ───────────────────────────────────────────────────────────────────
+  // WHAT TELLS THIS APPLICATION FROM ITS SIBLINGS AT A GLANCE. Budgetisation's header is navy; this
+  // one is teal — the other ground the logo's white variant is sanctioned on, so the lockup is the
+  // same artwork. White on teal is 3.79:1: enough for the 24px bold wordmark (large text, 3:1) and
+  // for a focus ring (non-text, 3:1), never for body text, which the header does not carry. The
+  // ring is white here because teal on teal is 1:1; everywhere else it stays `--muso-focus`.
+  // Flat — no shadow — and ruled off from the page by a navy-20 line. index.html's theme-color
+  // carries the same teal; `brand.spec.ts` keeps the two in step.
+  --muso-chrome-bg: var(--muso-teal);
+  --muso-chrome-fg: var(--muso-text-inverse);
+  --muso-chrome-block-size: 56px;
+  --muso-chrome-rule: 1px solid var(--muso-navy-20);
+  --muso-chrome-focus: var(--muso-white);
 
   // ── Spacing ─────────────────────────────────────────────────────────────────────────────────
   // The unit was declared here from the start and nothing ever read it, so the application drifted
@@ -250,6 +272,14 @@ $font-icon: 'Material Symbols Outlined';
   --row-accepted-bg: #{$row-accepted};
   --row-rejected-bg: #{$row-rejected};
   --row-waiting-bg: #{$row-waiting};
+
+  // A VALIDATION BADGE, by state — see `$badge-validated`. A rule on a tint; the words stay navy.
+  --badge-validated-border: #{$badge-validated};
+  --badge-validated-bg: var(--row-accepted-bg);
+  --badge-rejected-border: var(--danger-strong);
+  --badge-rejected-bg: color-mix(in srgb, var(--danger-strong) 12%, var(--muso-white));
+  --badge-pending-border: #{$badge-pending};
+  --badge-pending-bg: var(--muso-yellow-12);
 
   --warning-fg: var(--muso-text);
   --warning-bg: var(--muso-yellow-12);

@@ -36,20 +36,20 @@ const STATUS_KEYS = {
       white-space: nowrap;
     }
     .validated {
-      background: var(--muso-teal-12);
-      border-color: var(--ok-accent);
-      color: var(--ok-fg);
+      background: var(--badge-validated-bg);
+      border-color: var(--badge-validated-border);
+      color: var(--muso-text);
     }
     .rejected {
-      background: var(--danger-bg);
-      border-color: var(--danger-border);
-      color: var(--danger-fg);
+      background: var(--badge-rejected-bg);
+      border-color: var(--badge-rejected-border);
+      color: var(--muso-text);
     }
     .pending {
-      background: var(--warning-bg);
-      border-color: var(--warning-border);
+      background: var(--badge-pending-bg);
+      border-color: var(--badge-pending-border);
       border-style: dashed;
-      color: var(--warning-fg);
+      color: var(--muso-text);
     }
   `,
 })

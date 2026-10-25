@@ -32,7 +32,11 @@ describe('Shell', () => {
   it('names the application in French and links to the projects and the engine status', async () => {
     const element = await render();
 
-    expect(element.querySelector('header')?.textContent).toContain('Muso Questions-Réponses');
+    // The logo says Muso; the wordmark beside it says which Muso application this is.
+    expect(element.querySelector('header img')?.getAttribute('alt')).toBe('Muso');
+    expect(element.querySelector('header .product')?.textContent?.trim()).toBe(
+      'Questions-Réponses',
+    );
     const links = [...element.querySelectorAll<HTMLAnchorElement>('nav a')];
     expect(links.map((a) => [a.textContent?.trim(), a.getAttribute('href')])).toEqual([
       ['Projets', '/projects'],

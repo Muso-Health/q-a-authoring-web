@@ -107,6 +107,9 @@
   --muso-h3-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
   --muso-h3-leading: 1.2;
   --muso-subheading-size: 0.875rem;
+  // The header's wordmark: large text by WCAG's measure (24px bold), which is what lets it sit
+  // white on teal at 3.79:1.
+  --muso-wordmark-size: 1.5rem;
   --muso-body-lg-size: 1.125rem;
   --muso-body-size: 1rem;
   // Small body text — table cells, notes, compact controls: below body, above caption.

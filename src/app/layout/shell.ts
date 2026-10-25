@@ -18,7 +18,7 @@ import {
     <a class="skip-link" href="#main">{{ 'app.skipToContent' | transloco }}</a>
     <header>
       <img ngSrc="brand/logo-p3_3x.avif" alt="Muso" width="118" height="44" priority />
-      <span class="product">{{ 'app.name' | transloco }}</span>
+      <span class="product">{{ 'app.wordmark' | transloco }}</span>
     </header>
     <div class="body">
       <nav [attr.aria-label]="'nav.label' | transloco">
@@ -73,13 +73,18 @@ import {
     .skip-link:focus {
       inset-block-start: var(--muso-space-2);
     }
+    /* Every value the header shows is a charte token; see "The header" in _muso-tokens.scss. */
     header {
       display: flex;
       align-items: center;
       gap: var(--muso-space-3);
-      padding: var(--muso-space-2) var(--muso-page-gutter);
-      background: var(--muso-surface-inverse);
-      color: var(--muso-text-inverse);
+      box-sizing: border-box;
+      block-size: var(--muso-chrome-block-size);
+      padding-inline: var(--muso-page-gutter);
+      background: var(--muso-chrome-bg);
+      color: var(--muso-chrome-fg);
+      border-block-end: var(--muso-chrome-rule);
+      --muso-focus: var(--muso-chrome-focus);
     }
     header img {
       block-size: 2rem;
@@ -88,6 +93,8 @@ import {
     .product {
       font-family: var(--muso-font-subheading);
       font-weight: 700;
+      font-size: var(--muso-wordmark-size);
+      line-height: 1;
     }
     .body {
       display: flex;

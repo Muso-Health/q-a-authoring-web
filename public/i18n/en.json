@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "Muso Q&A Authoring",
+    "wordmark": "Q&A Authoring",
     "skipToContent": "Skip to main content"
   },
   "nav": {
