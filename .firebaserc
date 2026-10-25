@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "q-a-authoring"
+  },
+  "targets": {
+    "q-a-authoring": {
+      "hosting": {
+        "prod": [
+          "qa-authoring"
+        ],
+        "test": [
+          "qa-authoring-test"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

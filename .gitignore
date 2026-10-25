@@ -39,6 +39,10 @@ testem.log
 /typings
 __screenshots__/
 
+# Firebase — firebase.json and .firebaserc are shared config; the rest is local state.
+.firebase/
+firebase-debug.log
+
 # System files
 .DS_Store
 Thumbs.db

@@ -6,6 +6,7 @@ const read = (path: string): string => readFileSync(join(ROOT, path), 'utf8');
 
 interface BuildConfiguration {
   readonly fileReplacements?: readonly { readonly replace: string; readonly with: string }[];
+  readonly [setting: string]: unknown;
 }
 
 const configurations = (
@@ -33,5 +34,19 @@ describe('the environment', () => {
     const development = read('src/app/core/config/environment.development.ts');
     expect(development).toContain("apiBaseUrl: 'http://localhost:8000'");
     expect(development).toContain("provider: 'dev'");
+  });
+
+  it('points the test site at its own engine, built otherwise exactly as production', () => {
+    expect(swapOf('test')).toBe('src/app/core/config/environment.test.ts');
+    const { fileReplacements, ...testSettings } = configurations['test'];
+    expect(fileReplacements).toHaveLength(1);
+    expect(testSettings).toEqual(configurations['production']);
+
+    const engineOf = (path: string) => read(path).match(/apiBaseUrl: '([^']+)'/)?.[1];
+    const production = engineOf('src/app/core/config/environment.ts');
+    const test = engineOf('src/app/core/config/environment.test.ts');
+    expect(production).toMatch(/^https:\/\//);
+    expect(test).toMatch(/^https:\/\//);
+    expect(test).not.toBe(production);
   });
 });
