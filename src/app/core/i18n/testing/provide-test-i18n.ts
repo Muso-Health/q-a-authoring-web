@@ -17,7 +17,7 @@ import {
   DEFAULT_LANGUAGE,
   Translator,
   UI_LANGUAGES,
-  UI_LANGUAGE_CANDIDATES,
+  LANGUAGE_STORAGE_KEY,
   UI_LANGUAGE_STORAGE,
   type UiLanguage,
 } from '../translator';
@@ -32,17 +32,23 @@ class DiskLoader implements TranslocoLoader {
   }
 }
 
+/** A fresh in-memory storage in which `language` is the saved choice. */
+function savedAs(language: UiLanguage): Storage {
+  const storage = new MemoryStorage();
+  storage.setItem(LANGUAGE_STORAGE_KEY, language);
+  return storage;
+}
+
 /**
- * Pinned to French by default — jsdom reports no languages, and French is the product default.
- * The remembered choice lives in a fresh in-memory storage per call unless one is passed, so a
- * test that switches language never hands its choice to the next.
+ * French by default. A test asks for English the way a person gets it — as the saved choice —
+ * in a fresh in-memory storage per call, so a test that switches language never hands its choice
+ * to the next. A test that passes its own storage starts in whatever that storage holds.
  */
 export function provideTestI18n(
   language: UiLanguage = DEFAULT_LANGUAGE,
-  storage: Storage | null = new MemoryStorage(),
+  storage: Storage | null = savedAs(language),
 ): (Provider | EnvironmentProviders)[] {
   return [
-    { provide: UI_LANGUAGE_CANDIDATES, useValue: [language] },
     { provide: UI_LANGUAGE_STORAGE, useValue: storage },
     ...provideTransloco({
       config: {

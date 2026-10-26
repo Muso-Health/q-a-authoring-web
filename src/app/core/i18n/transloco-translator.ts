@@ -1,31 +1,22 @@
 import { DOCUMENT, Service, effect, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import {
+  DEFAULT_LANGUAGE,
   LANGUAGE_STORAGE_KEY,
   Translator,
-  UI_LANGUAGE_CANDIDATES,
   UI_LANGUAGE_STORAGE,
-  detectUiLanguage,
   isUiLanguage,
   type UiLanguage,
 } from './translator';
-
-/** The browser's ordered language list, or its single language when the list is empty. */
-export function browserLanguages(
-  browser: Pick<Navigator, 'languages' | 'language'> | undefined = globalThis.navigator,
-): readonly string[] | undefined {
-  if (browser === undefined) return undefined;
-  if (browser.languages !== undefined && browser.languages.length > 0) return browser.languages;
-  return browser.language ? [browser.language] : undefined;
-}
 
 /**
  * Transloco behind `Translator`. The signal is the source of truth and is pushed one way into the
  * library and `<html lang>`; nothing else in TypeScript imports `@jsverse/transloco`.
  *
- * The first language is the one last chosen, if any; else the browser's, if we speak it; else
- * French. A switch is written to storage, so it survives a reload. (budgetisation remembers
- * nothing and detects on every load; here the choice is asked to stick.)
+ * The first language is the one last chosen, if any; else French — the browser's language is
+ * not consulted. A switch is written to storage, so it survives a reload. (budgetisation
+ * remembers nothing and detects from the browser on every load; here the choice is asked to
+ * stick, and the default is the product's.)
  */
 @Service()
 export class TranslocoTranslator extends Translator {
@@ -33,10 +24,7 @@ export class TranslocoTranslator extends Translator {
   readonly #document = inject(DOCUMENT);
   readonly #storage = inject(UI_LANGUAGE_STORAGE);
 
-  readonly #language = signal<UiLanguage>(
-    this.#remembered() ??
-      detectUiLanguage(inject(UI_LANGUAGE_CANDIDATES, { optional: true }) ?? browserLanguages()),
-  );
+  readonly #language = signal<UiLanguage>(this.#remembered() ?? DEFAULT_LANGUAGE);
   readonly language = this.#language.asReadonly();
 
   readonly #ready = signal(false);
@@ -48,7 +36,7 @@ export class TranslocoTranslator extends Translator {
     this.#transloco.events$.subscribe((event) => {
       if (event.type === 'translationLoadSuccess') queueMicrotask(() => this.#ready.set(true));
     });
-    // Synchronously first, so the first paint is already in the detected language.
+    // Synchronously first, so the first paint is already in the starting language.
     this.#apply(this.#language());
     effect(() => this.#apply(this.#language()));
   }

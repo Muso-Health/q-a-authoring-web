@@ -4,14 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { MemoryStorage } from './testing/memory-storage';
 import { provideTestI18n } from './testing/provide-test-i18n';
-import { browserLanguages } from './transloco-translator';
-import {
-  DEFAULT_LANGUAGE,
-  LANGUAGE_STORAGE_KEY,
-  Translator,
-  UI_LANGUAGES,
-  detectUiLanguage,
-} from './translator';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Translator, UI_LANGUAGES } from './translator';
 
 const ROOT = process.cwd();
 const read = (language: string): Record<string, unknown> =>
@@ -58,36 +51,28 @@ describe('the default language', () => {
   });
 });
 
-describe('language detection', () => {
-  it('matches on the primary subtag', () => {
-    expect(detectUiLanguage(['fr-ML'])).toBe('fr');
-    expect(detectUiLanguage(['en-GB'])).toBe('en');
-    expect(detectUiLanguage(['bm', 'en-US', 'fr'])).toBe('en');
-  });
-
-  it('falls back to French for every other locale, or none', () => {
-    for (const other of ['es-ES', 'de', 'bm', 'ar']) {
-      expect(detectUiLanguage([other])).toBe('fr');
-    }
-    expect(detectUiLanguage([])).toBe('fr');
-    expect(detectUiLanguage(undefined)).toBe('fr');
-  });
-
-  it('reads the browser ordered list, then its single language', () => {
-    expect(browserLanguages({ languages: ['es', 'en-GB'], language: 'es' })).toEqual([
-      'es',
-      'en-GB',
-    ]);
-    expect(browserLanguages({ languages: [], language: 'en-US' })).toEqual(['en-US']);
-    expect(browserLanguages({ languages: [], language: '' })).toBeUndefined();
-  });
-});
-
-describe('the remembered choice', () => {
-  const start = (storage: Storage | null, browser: 'fr' | 'en' = 'fr') => {
-    TestBed.configureTestingModule({ providers: [provideTestI18n(browser, storage)] });
+describe('the starting language: the saved choice, else French', () => {
+  const start = (storage: Storage | null) => {
+    TestBed.configureTestingModule({ providers: [provideTestI18n(DEFAULT_LANGUAGE, storage)] });
     return TestBed.inject(Translator);
   };
+
+  /** The browser as an anglophone's: every way it can say so says English. */
+  const browserInEnglish = () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['en-US', 'en']);
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('en-US');
+  };
+  afterEach(() => vi.restoreAllMocks());
+
+  it('is French when nothing is saved, whatever language the browser asks for', () => {
+    browserInEnglish();
+
+    const translator = start(new MemoryStorage());
+
+    expect(translator.language()).toBe('fr');
+    expect(TestBed.inject(TranslocoService).getActiveLang()).toBe('fr');
+    expect(document.documentElement.lang).toBe('fr');
+  });
 
   it('is written down on a switch, and only then', () => {
     const storage = new MemoryStorage();
@@ -99,11 +84,11 @@ describe('the remembered choice', () => {
     expect(storage.getItem(LANGUAGE_STORAGE_KEY)).toBe('en');
   });
 
-  it('is restored on the next load, over what the browser asks for', () => {
+  it('is the saved choice when there is one', () => {
     const storage = new MemoryStorage();
     storage.setItem(LANGUAGE_STORAGE_KEY, 'en');
 
-    const translator = start(storage, 'fr');
+    const translator = start(storage);
 
     expect(translator.language()).toBe('en');
     expect(TestBed.inject(TranslocoService).getActiveLang()).toBe('en');
@@ -114,14 +99,11 @@ describe('the remembered choice', () => {
     const storage = new MemoryStorage();
     storage.setItem(LANGUAGE_STORAGE_KEY, 'es');
 
-    expect(start(storage, 'fr').language()).toBe('fr');
+    browserInEnglish();
+    expect(start(storage).language()).toBe('fr');
   });
 
-  it('defaults to French when nothing is remembered and the browser offers nothing we speak', () => {
-    expect(start(new MemoryStorage(), 'fr').language()).toBe('fr');
-  });
-
-  it('still switches where the browser refuses storage', () => {
+  it('is French, and still switches, where the browser refuses storage', () => {
     const refusing = new MemoryStorage();
     refusing.getItem = () => {
       throw new DOMException('denied', 'SecurityError');
@@ -134,8 +116,10 @@ describe('the remembered choice', () => {
     expect(translator.language()).toBe('en');
   });
 
-  it('works with no storage at all', () => {
+  it('is French, and still switches, with no storage at all', () => {
+    browserInEnglish();
     const translator = start(null);
+    expect(translator.language()).toBe('fr');
     translator.use('en');
     expect(translator.language()).toBe('en');
   });

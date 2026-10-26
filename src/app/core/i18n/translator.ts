@@ -10,20 +10,6 @@ export function isUiLanguage(value: string): value is UiLanguage {
   return (UI_LANGUAGES as readonly string[]).includes(value);
 }
 
-/** The first tag whose primary subtag we speak wins; anything else is French. */
-export function detectUiLanguage(candidates: readonly string[] | undefined): UiLanguage {
-  for (const tag of candidates ?? []) {
-    const primary = tag.split('-')[0]?.toLowerCase() ?? '';
-    if (isUiLanguage(primary)) return primary;
-  }
-  return DEFAULT_LANGUAGE;
-}
-
-/** Overrides the browser's language list; tests pin it, the application leaves it unset. */
-export const UI_LANGUAGE_CANDIDATES = new InjectionToken<readonly string[]>(
-  'UI_LANGUAGE_CANDIDATES',
-);
-
 /** What a language is called in its own language — never translated, by definition. */
 export const LANGUAGE_ENDONYMS: Record<UiLanguage, string> = {
   fr: 'Français',

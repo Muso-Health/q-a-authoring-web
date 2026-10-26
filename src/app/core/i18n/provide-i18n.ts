@@ -30,7 +30,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
     }),
     { provide: Translator, useClass: TranslocoTranslator },
     // Eager: templates reach Transloco directly, so nothing else would construct the adapter
-    // and apply the detected language.
+    // and apply the starting language.
     provideEnvironmentInitializer(() => void inject(Translator)),
   ];
 }
