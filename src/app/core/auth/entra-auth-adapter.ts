@@ -1,4 +1,4 @@
-import { DOCUMENT, InjectionToken, Service, inject } from '@angular/core';
+import { DOCUMENT, InjectionToken, Service, inject, signal } from '@angular/core';
 import type { Configuration, IPublicClientApplication } from '@azure/msal-browser';
 import type { EntraAuthConfig } from '../config/environment.model';
 import { AuthPort } from './auth-port';
@@ -26,6 +26,16 @@ export const ENTRA_CONFIG = new InjectionToken<EntraAuthConfig>('ENTRA_CONFIG');
 export const REAUTH_WINDOW_MS = 60_000;
 const REAUTH_KEY = 'qa-authoring.reauth-at';
 
+/**
+ * Reading your own profile: a delegated, low-privilege scope an ordinary user consents to for
+ * themselves. Asked for at SIGN-IN beside the engine's scope, so consent is settled in the
+ * redirect the user was already making — never by a prompt in the middle of their work.
+ */
+const GRAPH_USER_SCOPE = 'User.Read';
+
+/** The photo's bytes (`$value`), not its metadata. 404 for someone who never set one. */
+const GRAPH_PHOTO_URL = 'https://graph.microsoft.com/v1.0/me/photo/$value';
+
 /** `<ENTRA_TENANT_ID>` and friends: the shape is right, the value has not been supplied. */
 const isPlaceholder = (value: string): boolean => value.trim() === '' || value.startsWith('<');
 
@@ -49,7 +59,8 @@ function missingConfig(config: EntraAuthConfig): readonly string[] {
  * no screen needed a login button, and a lapsed session takes the same path.
  *
  * The account is kept to MSAL: who the user is, as shown, is `/me`'s answer, and the Entra object
- * id is neither read nor surfaced here.
+ * id is neither read nor surfaced here. The one thing taken from Entra for display is the
+ * PHOTO, from Microsoft Graph, as budgetisation does — see `#fetchPhoto`.
  *
  * UNTIL REAL VALUES ARRIVE: with `<…>` placeholders this builds no MSAL instance at all —
  * `authHeaders()` answers empty, a refusal does not redirect (it says what is missing instead),
@@ -62,6 +73,11 @@ export class EntraAuthAdapter extends AuthPort {
 
   /** Resolves to null when the config is still placeholders. Started once, shared by all callers. */
   #ready: Promise<Started | null> | null = null;
+
+  readonly #photo = signal<string | null>(null);
+  readonly photo = this.#photo.asReadonly();
+  /** Asked, not found: a user with no photo 404s every time, so one attempt per session. */
+  #photoAsked = false;
 
   /**
    * Where the MSAL instance comes from. `protected` for one reason: a unit test substitutes a
@@ -96,8 +112,9 @@ export class EntraAuthAdapter extends AuthPort {
     this.#storage?.setItem(REAUTH_KEY, String(Date.now()));
 
     const account = started.client.getActiveAccount();
+    // Two resources, so two tokens later — but one consent, now. See GRAPH_USER_SCOPE.
     await started.client.loginRedirect({
-      scopes: [this.#config.engineScope],
+      scopes: [this.#config.engineScope, GRAPH_USER_SCOPE],
       ...(account === null ? {} : { loginHint: account.username }),
     });
   }
@@ -105,6 +122,7 @@ export class EntraAuthAdapter extends AuthPort {
   async signOut(): Promise<void> {
     const started = await this.#start();
     if (started === null) throw new Error(this.#notConfigured());
+    this.#releasePhoto();
     await started.client.logoutRedirect({ postLogoutRedirectUri: this.#config.redirectUri });
   }
 
@@ -159,7 +177,44 @@ export class EntraAuthAdapter extends AuthPort {
     const redirected = await client.handleRedirectPromise();
     const account = redirected?.account ?? client.getActiveAccount() ?? client.getAllAccounts()[0];
     if (account) client.setActiveAccount(account);
-    return { client, msal };
+    const started = { client, msal };
+    // Beside the application, not in front of it: nothing awaits the photo.
+    if (account) void this.#fetchPhoto(started);
+    return started;
+  }
+
+  /**
+   * The photo, fetched with a Graph token of its OWN (one token, one resource — the engine's
+   * would be refused by Graph and vice versa). Every failure ends the same way: no photo, and the
+   * initials already on screen stay. In particular a missing consent is NOT answered with a
+   * redirect, as the engine's token is — throwing someone out of their work for a picture would
+   * be indefensible.
+   */
+  async #fetchPhoto({ client }: Started): Promise<void> {
+    if (this.#photoAsked) return;
+    this.#photoAsked = true;
+    try {
+      const account = client.getActiveAccount();
+      if (account === null) return;
+      const graph = await client.acquireTokenSilent({ scopes: [GRAPH_USER_SCOPE], account });
+      const response = await fetch(GRAPH_PHOTO_URL, {
+        headers: { Authorization: `Bearer ${graph.accessToken}` },
+      });
+      if (!response.ok) return;
+      const blob = await response.blob();
+      if (blob.size === 0) return;
+      // Held for the session; released on sign-out (an object URL lives until revoked).
+      this.#photo.set(URL.createObjectURL(blob));
+    } catch {
+      // Unconsented, offline, Graph down: no photo.
+    }
+  }
+
+  #releasePhoto(): void {
+    const held = this.#photo();
+    if (held !== null) URL.revokeObjectURL(held);
+    this.#photo.set(null);
+    this.#photoAsked = false;
   }
 
   #notConfigured(): string {

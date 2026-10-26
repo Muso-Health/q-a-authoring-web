@@ -90,6 +90,13 @@ import {
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    /* On a phone-width header: no minimum width, little padding (see the shell). */
+    @media (max-width: 40rem) {
+      .trigger {
+        --mat-button-text-horizontal-padding: calc(var(--muso-space-unit) / 2);
+        min-inline-size: 0;
+      }
+    }
     .code {
       letter-spacing: 0.02em;
     }

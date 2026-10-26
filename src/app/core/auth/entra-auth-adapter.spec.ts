@@ -48,6 +48,8 @@ class FakeMsalClient {
   activeAccount: AccountInfo | null = null;
   redirectResult: AuthenticationResult | null = null;
   silent: () => Promise<AuthenticationResult> = async () => resultFor('engine-token');
+  /** Microsoft Graph's own token, asked for separately — one token per resource. */
+  graphSilent: () => Promise<AuthenticationResult> = async () => resultFor('graph-token');
   readonly calls: { method: string; request?: unknown }[] = [];
 
   async initialize(): Promise<void> {
@@ -65,9 +67,9 @@ class FakeMsalClient {
   setActiveAccount(account: AccountInfo | null): void {
     this.activeAccount = account;
   }
-  async acquireTokenSilent(request: unknown): Promise<AuthenticationResult> {
+  async acquireTokenSilent(request: { scopes: string[] }): Promise<AuthenticationResult> {
     this.calls.push({ method: 'acquireTokenSilent', request });
-    return this.silent();
+    return request.scopes.includes('User.Read') ? this.graphSilent() : this.silent();
   }
   async acquireTokenRedirect(request: unknown): Promise<void> {
     this.calls.push({ method: 'acquireTokenRedirect', request });
@@ -83,6 +85,9 @@ class FakeMsalClient {
   }
   requestOf(method: string): unknown {
     return this.calls.find((call) => call.method === method)?.request;
+  }
+  requestsOf(method: string): unknown[] {
+    return this.calls.filter((call) => call.method === method).map((call) => call.request);
   }
 }
 
@@ -111,8 +116,19 @@ function setUp(config: EntraAuthConfig = CONFIG) {
   };
 }
 
+const GRAPH_PHOTO = 'https://graph.microsoft.com/v1.0/me/photo/$value';
+
 describe('EntraAuthAdapter', () => {
-  beforeEach(() => sessionStorage.clear());
+  /** Graph's photo endpoint, answering as told; every test gets a fresh one. */
+  let graph: ReturnType<typeof vi.fn<(url: string, init?: RequestInit) => Promise<Response>>>;
+  beforeEach(() => {
+    sessionStorage.clear();
+    graph = vi.fn(async () => new Response(new Blob(['jpeg-bytes'], { type: 'image/jpeg' })));
+    vi.stubGlobal('fetch', graph);
+    URL.createObjectURL = vi.fn(() => 'blob:the-photo');
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(() => vi.unstubAllGlobals());
 
   it('configures MSAL for the tenant, the SPA and a localStorage cache, once', async () => {
     const { auth, client, created } = setUp();
@@ -137,7 +153,8 @@ describe('EntraAuthAdapter', () => {
     client.activeAccount = ACCOUNT;
 
     expect(await auth.authHeaders()).toEqual({ Authorization: 'Bearer engine-token' });
-    expect(client.requestOf('acquireTokenSilent')).toEqual({
+    // The photo's Graph token is asked for too, separately; this is the engine's.
+    expect(client.requestsOf('acquireTokenSilent')).toContainEqual({
       scopes: [CONFIG.engineScope],
       account: ACCOUNT,
     });
@@ -191,8 +208,9 @@ describe('EntraAuthAdapter', () => {
 
       await auth.reauthenticate();
 
+      // User.Read rides along: consent for the photo is settled in this same redirect.
       expect(client.requestOf('loginRedirect')).toEqual({
-        scopes: [CONFIG.engineScope],
+        scopes: [CONFIG.engineScope, 'User.Read'],
         loginHint: ACCOUNT.username,
       });
     });
@@ -213,23 +231,99 @@ describe('EntraAuthAdapter', () => {
     });
   });
 
-  it('signs out through Entra, back to the app', async () => {
+  it('signs out through Entra, back to the app, and lets the photo go', async () => {
     const { auth, client } = setUp();
     client.activeAccount = ACCOUNT;
+    await auth.start();
+    await vi.waitFor(() => expect(auth.photo()).toBe('blob:the-photo'));
 
     await auth.signOut();
 
     expect(client.requestOf('logoutRedirect')).toEqual({ postLogoutRedirectUri: '/' });
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:the-photo');
+    expect(auth.photo()).toBeNull();
+  });
+
+  describe('the profile photo, from Microsoft Graph', () => {
+    it('is fetched with a Graph token of its own once someone is signed in', async () => {
+      const { auth, client } = setUp();
+      client.activeAccount = ACCOUNT;
+      expect(auth.photo()).toBeNull();
+
+      await auth.start();
+
+      await vi.waitFor(() => expect(auth.photo()).toBe('blob:the-photo'));
+      expect(client.requestsOf('acquireTokenSilent')).toContainEqual({
+        scopes: ['User.Read'],
+        account: ACCOUNT,
+      });
+      expect(graph).toHaveBeenCalledWith(GRAPH_PHOTO, {
+        headers: { Authorization: 'Bearer graph-token' },
+      });
+    });
+
+    it('is asked for once per session', async () => {
+      const { auth, client } = setUp();
+      client.activeAccount = ACCOUNT;
+
+      await auth.start();
+      await auth.authHeaders();
+      await vi.waitFor(() => expect(auth.photo()).not.toBeNull());
+
+      expect(graph).toHaveBeenCalledTimes(1);
+    });
+
+    it('is simply absent when the user has none (404)', async () => {
+      const { auth, client } = setUp();
+      client.activeAccount = ACCOUNT;
+      graph.mockResolvedValue(new Response(null, { status: 404 }));
+
+      await auth.start();
+      await vi.waitFor(() => expect(graph).toHaveBeenCalled());
+      await Promise.resolve();
+
+      expect(auth.photo()).toBeNull();
+    });
+
+    it('never interrupts anyone: no consent means no photo, not a redirect', async () => {
+      const { auth, client } = setUp();
+      client.activeAccount = ACCOUNT;
+      client.graphSilent = async () => {
+        throw new InteractionRequiredAuthError('consent_required', 'User.Read not consented');
+      };
+
+      await auth.start();
+      await vi.waitFor(() =>
+        expect(client.requestsOf('acquireTokenSilent')).toContainEqual({
+          scopes: ['User.Read'],
+          account: ACCOUNT,
+        }),
+      );
+
+      expect(auth.photo()).toBeNull();
+      expect(client.methods()).not.toContain('acquireTokenRedirect');
+      expect(graph).not.toHaveBeenCalled();
+    });
+
+    it('is not asked for while nobody is signed in', async () => {
+      const { auth } = setUp();
+
+      await auth.start();
+
+      expect(graph).not.toHaveBeenCalled();
+      expect(auth.photo()).toBeNull();
+    });
   });
 
   describe('until the app registration values are supplied', () => {
-    it('builds no MSAL client and sends no header', async () => {
+    it('builds no MSAL client, sends no header and fetches no photo', async () => {
       const { auth, created } = setUp(PLACEHOLDERS);
 
       await auth.start();
 
       expect(await auth.authHeaders()).toEqual({});
       expect(created()).toBe(0);
+      expect(graph).not.toHaveBeenCalled();
     });
 
     it('does not redirect on a refusal, and refuses sign-out by name', async () => {

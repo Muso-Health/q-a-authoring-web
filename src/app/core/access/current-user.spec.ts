@@ -42,4 +42,16 @@ describe('CurrentUser', () => {
 
     expect(api.reads).toEqual(['/me']);
   });
+
+  it('names who is signed in — display name and email, nothing else', async () => {
+    const { user } = await setUp({ '/me': ME_AUTHOR });
+
+    expect(user.profile()).toEqual({ displayName: 'Awa Traoré', email: 'author@example.org' });
+  });
+
+  it('names nobody while /me has not answered, or failed', async () => {
+    const { user } = await setUp({});
+
+    expect(user.profile()).toBeNull();
+  });
 });

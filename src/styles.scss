@@ -131,6 +131,12 @@ html .mat-mdc-menu-item:focus-visible {
   outline-offset: 2px;
 }
 
+// Inset on a menu item: the item fills its panel edge to edge and the panel clips what overflows,
+// so an outer ring showed only as two lines above and below.
+html .mat-mdc-menu-item:focus-visible {
+  outline-offset: -2px;
+}
+
 ::selection {
   background: var(--muso-yellow);
   color: var(--muso-text);

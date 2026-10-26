@@ -15,6 +15,11 @@
     "language": "Language: {{ code }}",
     "chooseLanguage": "Choose a language"
   },
+  "user": {
+    "menuLabel": "{{ name }}, {{ email }}: account menu",
+    "signedInAs": "Signed in as",
+    "signOut": "Log out"
+  },
   "status": {
     "title": "Engine status",
     "engine": "Engine",

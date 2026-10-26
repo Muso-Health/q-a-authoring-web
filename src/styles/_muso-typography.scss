@@ -110,6 +110,8 @@
   // The header's wordmark: large text by WCAG's measure (24px bold), which is what lets it sit
   // white on teal at 3.79:1.
   --muso-wordmark-size: 1.5rem;
+  // On a phone-width header: still large text (bold from 18.66px), so the 3.79:1 still holds.
+  --muso-wordmark-size-compact: 1.25rem;
   --muso-body-lg-size: 1.125rem;
   --muso-body-size: 1rem;
   // Small body text — table cells, notes, compact controls: below body, above caption.
