@@ -1,11 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { ApiPort } from '../api/api-port';
+import { toAssignment, toGrant, type Assignment, type Grant } from '../access/scoped-access';
 import type { Schemas } from '../api/api-types';
-
-export interface RoleRef {
-  readonly id: string;
-  readonly name: string;
-}
 
 /** A user as the administration shows them — never their identity-provider subject. */
 export interface AdminUser {
@@ -13,7 +9,15 @@ export interface AdminUser {
   readonly email: string;
   readonly displayName: string;
   readonly active: boolean;
-  readonly roles: readonly RoleRef[];
+  readonly assignments: readonly Assignment[];
+  readonly grants: readonly Grant[];
+}
+
+/** What to assign: a role, in a project and a language — null for any. */
+export interface AssignmentDraft {
+  readonly roleId: string;
+  readonly projectId: string | null;
+  readonly languageId: string | null;
 }
 
 export interface AdminRole {
@@ -33,7 +37,8 @@ const toUser = (raw: Schemas['UserResponse']): AdminUser => ({
   email: raw.email,
   displayName: raw.display_name,
   active: raw.is_active,
-  roles: raw.roles.map(({ id, name }) => ({ id, name })),
+  assignments: raw.assignments.map(toAssignment),
+  grants: raw.grants.map(toGrant),
 });
 
 const toRole = (raw: Schemas['RoleResponse']): AdminRole => ({
@@ -65,13 +70,22 @@ export class AccessApi {
     await this.#api.patch(`/users/${userId}`, body);
   }
 
-  async assignRole(userId: string, roleId: string): Promise<void> {
-    const body: Schemas['AssignRoleRequest'] = { role_id: roleId };
-    await this.#api.post(`/users/${userId}/roles`, body);
+  /**
+   * Idempotent on the engine's side: 201 when new, 200 when the user already held the role in
+   * exactly that scope — both are success. The nulls are sent, not omitted, so "any" is said.
+   */
+  async assign(userId: string, draft: AssignmentDraft): Promise<void> {
+    const body: Schemas['AssignRoleRequest'] = {
+      role_id: draft.roleId,
+      project_id: draft.projectId,
+      language_id: draft.languageId,
+    };
+    await this.#api.post(`/users/${userId}/assignments`, body);
   }
 
-  async unassignRole(userId: string, roleId: string): Promise<void> {
-    await this.#api.delete(`/users/${userId}/roles/${roleId}`);
+  /** By the assignment's own id: a role may be held in several scopes at once. */
+  async unassign(userId: string, assignmentId: string): Promise<void> {
+    await this.#api.delete(`/users/${userId}/assignments/${assignmentId}`);
   }
 
   async roles(): Promise<AdminRole[]> {

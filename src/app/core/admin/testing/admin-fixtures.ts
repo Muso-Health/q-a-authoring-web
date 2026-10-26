@@ -1,10 +1,13 @@
 import type { Schemas } from '../../api/api-types';
+import { IDS, PROJECT } from '../../catalog/testing/catalog-fixtures';
 
 export const ADMIN_IDS = {
   awa: 'a0000000-0000-0000-0000-000000000001',
   moussa: 'a0000000-0000-0000-0000-000000000002',
   authors: 'b0000000-0000-0000-0000-000000000001',
   validators: 'b0000000-0000-0000-0000-000000000002',
+  awaAuthorsInProject: 'e0000000-0000-0000-0000-000000000001',
+  awaValidatorsInBambara: 'e0000000-0000-0000-0000-000000000002',
 } as const;
 
 export const PERMISSIONS: Schemas['PermissionsResponse'] = {
@@ -28,12 +31,34 @@ export const ROLES: Schemas['RolesResponse'] = { items: [AUTHORS, VALIDATORS] };
 /** The engine's identity-provider subject: something the UI must never show. */
 export const LEAKED_SUBJECT = 'entra-oid-7f3c2b9e-secret';
 
+/**
+ * Awa writes in one project, in every language; and validates in Bambara, in every project. One
+ * assignment scoped on each axis, so a test can tell the two scopes and their "any" apart.
+ */
 export const AWA: Schemas['UserResponse'] = {
   id: ADMIN_IDS.awa,
   email: 'awa@example.org',
   display_name: 'Awa Traoré',
   is_active: true,
-  roles: [{ id: ADMIN_IDS.authors, name: 'Auteurs' }],
+  assignments: [
+    {
+      id: ADMIN_IDS.awaAuthorsInProject,
+      role: { id: ADMIN_IDS.authors, name: 'Auteurs' },
+      project: { id: PROJECT.id, name: PROJECT.name },
+      language: null,
+    },
+    {
+      id: ADMIN_IDS.awaValidatorsInBambara,
+      role: { id: ADMIN_IDS.validators, name: 'Validateurs cliniques' },
+      project: null,
+      language: { id: IDS.bm, code: 'bm', name: 'Bambara' },
+    },
+  ],
+  grants: [
+    { permission: 'author_qasets', project_id: PROJECT.id, language_id: null },
+    { permission: 'manage_audio', project_id: PROJECT.id, language_id: null },
+    { permission: 'validate_clinical', project_id: null, language_id: IDS.bm },
+  ],
 };
 
 export const MOUSSA: Schemas['UserResponse'] = {
@@ -41,7 +66,8 @@ export const MOUSSA: Schemas['UserResponse'] = {
   email: 'moussa@example.org',
   display_name: 'Moussa Keita',
   is_active: false,
-  roles: [],
+  assignments: [],
+  grants: [],
 };
 
 /** As a careless engine might send them: with the subject riding along. */

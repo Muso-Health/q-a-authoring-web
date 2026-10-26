@@ -103,7 +103,7 @@ export interface paths {
         patch: operations["update_user_users__user_id__patch"];
         trace?: never;
     };
-    "/users/{user_id}/roles": {
+    "/users/{user_id}/assignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -114,16 +114,18 @@ export interface paths {
         put?: never;
         /**
          * Assign Role
-         * @description Idempotent: 201 when assigned, 200 when the user already held the role.
+         * @description Assign a role within a scope; a null project or language means any. Idempotent: 201
+         *     when assigned, 200 when the user already held the role in that scope. 404 if the role,
+         *     project or language does not exist.
          */
-        post: operations["assign_role_users__user_id__roles_post"];
+        post: operations["assign_role_users__user_id__assignments_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/users/{user_id}/roles/{role_id}": {
+    "/users/{user_id}/assignments/{assignment_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -134,7 +136,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Unassign Role */
-        delete: operations["unassign_role_users__user_id__roles__role_id__delete"];
+        delete: operations["unassign_role_users__user_id__assignments__assignment_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -236,7 +238,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Projects */
+        /**
+         * List Projects
+         * @description The projects the caller can see: those any of their role assignments covers.
+         */
         get: operations["list_projects_projects_get"];
         put?: never;
         /**
@@ -1217,13 +1222,34 @@ export interface components {
             audio: components["schemas"]["AudioSummaryResponse"] | null;
             translation_validation: components["schemas"]["ValidationStateResponse"] | null;
         };
-        /** AssignRoleRequest */
+        /**
+         * AssignRoleRequest
+         * @description A null (or absent) project or language means any.
+         */
         AssignRoleRequest: {
             /**
              * Role Id
              * Format: uuid
              */
             role_id: string;
+            /** Project Id */
+            project_id?: string | null;
+            /** Language Id */
+            language_id?: string | null;
+        };
+        /**
+         * AssignmentResponse
+         * @description A role held within a scope; a null project or language means any.
+         */
+        AssignmentResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            role: components["schemas"]["RoleSummaryResponse"];
+            project: components["schemas"]["ProjectRefResponse"] | null;
+            language: components["schemas"]["LanguageRefResponse"] | null;
         };
         /** AttachIntentRequest */
         AttachIntentRequest: {
@@ -1519,6 +1545,19 @@ export interface components {
             /** Candidates */
             candidates: string[];
         };
+        /**
+         * GrantResponse
+         * @description An effective permission within its scope (null means any), normalized to the
+         *     permission's scope class: global permissions carry no scope, project ones no language.
+         */
+        GrantResponse: {
+            /** Permission */
+            permission: string;
+            /** Project Id */
+            project_id: string | null;
+            /** Language Id */
+            language_id: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1560,6 +1599,18 @@ export interface components {
             variants: components["schemas"]["QuestionVariantResponse"][];
             /** Variant Count */
             variant_count: number;
+        };
+        /** LanguageRefResponse */
+        LanguageRefResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
         };
         /** LanguageResponse */
         LanguageResponse: {
@@ -1616,7 +1667,8 @@ export interface components {
         };
         /**
          * MeResponse
-         * @description The current user and their effective permissions, for the front to gate its UI.
+         * @description The current user, their scoped assignments and effective grants, and every permission
+         *     they hold in some scope, for the front to gate its UI.
          */
         MeResponse: {
             /**
@@ -1630,6 +1682,10 @@ export interface components {
             display_name: string;
             /** Permissions */
             permissions: string[];
+            /** Assignments */
+            assignments: components["schemas"]["AssignmentResponse"][];
+            /** Grants */
+            grants: components["schemas"]["GrantResponse"][];
         };
         /** NamedRefResponse */
         NamedRefResponse: {
@@ -1655,6 +1711,16 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+        };
+        /** ProjectRefResponse */
+        ProjectRefResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** ProjectResponse */
         ProjectResponse: {
@@ -2004,8 +2070,10 @@ export interface components {
             display_name: string;
             /** Is Active */
             is_active: boolean;
-            /** Roles */
-            roles: components["schemas"]["RoleSummaryResponse"][];
+            /** Assignments */
+            assignments: components["schemas"]["AssignmentResponse"][];
+            /** Grants */
+            grants: components["schemas"]["GrantResponse"][];
         };
         /** UsersResponse */
         UsersResponse: {
@@ -2265,7 +2333,7 @@ export interface operations {
             };
         };
     };
-    assign_role_users__user_id__roles_post: {
+    assign_role_users__user_id__assignments_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2300,13 +2368,13 @@ export interface operations {
             };
         };
     };
-    unassign_role_users__user_id__roles__role_id__delete: {
+    unassign_role_users__user_id__assignments__assignment_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 user_id: string;
-                role_id: string;
+                assignment_id: string;
             };
             cookie?: never;
         };

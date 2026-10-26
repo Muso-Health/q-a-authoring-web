@@ -105,6 +105,17 @@ describe('writeFailureOf, for the administration', () => {
       expect(writeFailureOf(engineError(404, code)).gone).toBe(true);
     }
   });
+
+  it('says which part of a scoped assignment vanished, and re-reads', () => {
+    for (const [code, key] of [
+      ['role_not_found', 'admin.errors.roleNotFound'],
+      ['project_not_found', 'admin.errors.projectNotFound'],
+      ['language_not_found', 'admin.errors.languageNotFound'],
+      ['assignment_not_found', 'admin.errors.assignmentNotFound'],
+    ]) {
+      expect(writeFailureOf(engineError(404, code))).toEqual({ key, gone: true });
+    }
+  });
 });
 
 describe('placeholderProblemsOf', () => {

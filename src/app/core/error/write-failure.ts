@@ -47,6 +47,14 @@ const BY_CODE: Readonly<Record<string, string>> = {
   completeness_engine_error: 'documentation.errors.completenessEngine',
 };
 
+/** Not-found codes worth naming: the view is stale all the same, but the reader is told what went. */
+const GONE_BY_CODE: Readonly<Record<string, string>> = {
+  role_not_found: 'admin.errors.roleNotFound',
+  project_not_found: 'admin.errors.projectNotFound',
+  language_not_found: 'admin.errors.languageNotFound',
+  assignment_not_found: 'admin.errors.assignmentNotFound',
+};
+
 const engineCode = (error: HttpErrorResponse): string | undefined => {
   const body: unknown = error.error;
   return typeof body === 'object' &&
@@ -64,6 +72,7 @@ export function writeFailureOf(error: unknown): WriteFailure {
 
   const code = engineCode(error);
   if (code !== undefined && code in BY_CODE) return failure(BY_CODE[code]);
+  if (code !== undefined && code in GONE_BY_CODE) return failure(GONE_BY_CODE[code], true);
   if (error.status === 404) return failure('authoring.errors.gone', true);
   if (error.status === 422) return failure('authoring.errors.invalidInput');
   if (error.status === 401 || error.status === 403) return failure('authoring.errors.forbidden');

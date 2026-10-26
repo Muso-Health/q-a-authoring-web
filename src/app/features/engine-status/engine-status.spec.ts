@@ -10,6 +10,8 @@ const ME: MeResponse = {
   email: 'author@example.org',
   display_name: 'Awa Traoré',
   permissions: ['author_qasets', 'manage_audio'],
+  assignments: [],
+  grants: [],
 };
 
 async function render(api: FakeApiPort) {

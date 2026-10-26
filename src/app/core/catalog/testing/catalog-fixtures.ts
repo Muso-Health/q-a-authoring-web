@@ -197,6 +197,19 @@ export const ME_AUTHOR: Schemas['MeResponse'] = {
   email: 'author@example.org',
   display_name: 'Awa Traoré',
   permissions: ['author_qasets', 'manage_audio'],
+  // Held everywhere: an unscoped assignment, so the global gating reads exactly as before.
+  assignments: [
+    {
+      id: '11111111-0000-0000-0000-0000000000a1',
+      role: { id: '11111111-0000-0000-0000-0000000000b1', name: 'Auteurs' },
+      project: null,
+      language: null,
+    },
+  ],
+  grants: [
+    { permission: 'author_qasets', project_id: null, language_id: null },
+    { permission: 'manage_audio', project_id: null, language_id: null },
+  ],
 };
 
 export const ME_READER: Schemas['MeResponse'] = {

@@ -380,13 +380,13 @@
       "invalidEmail": "Enter a valid email address.",
       "active": "Active",
       "inactive": "Deactivated",
-      "roles": "Roles",
+      "roles": "Assigned roles",
       "noRole": "No role: this account cannot do anything yet.",
       "assign": "Assign a role",
       "chooseRole": "Choose a role…",
       "assignSubmit": "Assign",
       "roleRequired": "Choose a role.",
-      "unassign": "Remove the role {{role}} from {{user}}",
+      "unassign": "Remove the {{ role }} role ({{ project }}, {{ language }}) from {{ user }}",
       "rename": "Rename",
       "renameName": "Rename {{user}}",
       "deactivate": "Deactivate",
@@ -394,7 +394,14 @@
       "deactivateWarning": "Deactivate {{user}}’s account? They will not be able to do anything until it is reactivated.",
       "reactivate": "Reactivate",
       "reactivateName": "Reactivate {{user}}’s account",
-      "empty": "No users yet."
+      "empty": "No users yet.",
+      "project": "Project",
+      "language": "Language",
+      "anyProject": "All projects",
+      "anyLanguage": "All languages",
+      "scopeProject": "Project: {{ name }}",
+      "scopeLanguage": "Language: {{ name }}",
+      "alreadyAssigned": "{{ user }} already holds this role in this scope."
     },
     "roles": {
       "title": "Roles",
@@ -517,7 +524,11 @@
       "languageCodeExists": "A language already has this code.",
       "languageInUse": "This language is still used by a project or content: it cannot be deleted.",
       "intentInUse": "This intent is still attached to questions: detach it before deleting it.",
-      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it."
+      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it.",
+      "roleNotFound": "This role no longer exists: the page has been refreshed.",
+      "projectNotFound": "This project no longer exists: the page has been refreshed.",
+      "languageNotFound": "This language no longer exists: the page has been refreshed.",
+      "assignmentNotFound": "This assignment had already been removed: the page has been refreshed."
     }
   }
 }
