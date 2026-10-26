@@ -24,6 +24,12 @@ export const ADMIN_PERMISSIONS: readonly string[] = [
   MANAGE_CATEGORIES,
 ];
 
+/** Who is signed in, as shown: the engine's display name and email — never an identifier. */
+export interface Profile {
+  readonly displayName: string;
+  readonly email: string;
+}
+
 /**
  * Who the engine says we are, read once per session. Gates what the UI offers only: the engine
  * still enforces every permission on every call.
@@ -38,6 +44,13 @@ export class CurrentUser {
   readonly #permissions = computed(() =>
     this.#read.hasValue() ? new Set(this.#read.value().permissions) : new Set<string>(),
   );
+
+  /** Null until `/me` answers, and when it fails: then nobody is known to be signed in. */
+  readonly profile = computed<Profile | null>(() => {
+    if (!this.#read.hasValue()) return null;
+    const { display_name, email } = this.#read.value();
+    return { displayName: display_name, email };
+  });
 
   can(permission: string): Signal<boolean> {
     return computed(() => this.#permissions().has(permission));

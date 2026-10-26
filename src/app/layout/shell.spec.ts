@@ -2,6 +2,8 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ApiPort } from '../core/api/api-port';
+import { AuthPort } from '../core/auth/auth-port';
+import { FakeAuthPort } from '../core/auth/testing/fake-auth-port';
 import { FakeApiPort } from '../core/api/testing/fake-api-port';
 import { ME_AUTHOR } from '../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../core/i18n/testing/provide-test-i18n';
@@ -15,6 +17,7 @@ async function render(permissions: string[] = []) {
       provideTestI18n(),
       provideRouter([]),
       { provide: ApiPort, useValue: new FakeApiPort({ '/me': { ...ME_AUTHOR, permissions } }) },
+      { provide: AuthPort, useValue: new FakeAuthPort() },
     ],
   });
   const fixture = TestBed.createComponent(Shell);
@@ -88,6 +91,10 @@ describe('Shell', () => {
   it('carries the language switcher in the header, and switching repaints the frame', async () => {
     const element = await render();
     expect(element.querySelector('header app-language-switcher')).not.toBeNull();
+    // The user menu sits after it, at the far end of the header.
+    expect(
+      element.querySelector('header app-language-switcher + app-user-menu .trigger'),
+    ).not.toBeNull();
 
     TestBed.inject(Translator).use('en');
     await TestBed.inject(ApplicationRef).whenStable();

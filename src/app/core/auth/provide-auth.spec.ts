@@ -11,10 +11,11 @@ const adapterFor = (config: AuthConfig) => {
 };
 
 describe('provideAuth', () => {
-  it('binds the dev adapter for the dev provider', () => {
-    expect(adapterFor({ provider: 'dev', email: 'author@example.org' })).toBeInstanceOf(
-      DevAuthAdapter,
-    );
+  it('binds the dev adapter for the dev provider — which has no photo, so initials show', () => {
+    const adapter = adapterFor({ provider: 'dev', email: 'author@example.org' });
+
+    expect(adapter).toBeInstanceOf(DevAuthAdapter);
+    expect(adapter.photo()).toBeNull();
   });
 
   it('binds the Entra adapter, with its configuration, for the entra provider', () => {

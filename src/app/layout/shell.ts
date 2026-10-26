@@ -10,6 +10,7 @@ import {
   VALIDATE_TRANSLATION,
 } from '../core/access/current-user';
 import { LanguageSwitcher } from './language-switcher';
+import { UserMenu } from './user-menu';
 
 /** The frame every feature renders into: skip link, banner, navigation, main. */
 @Component({
@@ -21,6 +22,7 @@ import { LanguageSwitcher } from './language-switcher';
     NgOptimizedImage,
     TranslocoPipe,
     LanguageSwitcher,
+    UserMenu,
   ],
   template: `
     <a class="skip-link" href="#main">{{ 'app.skipToContent' | transloco }}</a>
@@ -28,11 +30,12 @@ import { LanguageSwitcher } from './language-switcher';
       <img ngSrc="brand/logo-p3_3x.avif" alt="Muso" width="118" height="44" priority />
       <span class="product">{{ 'app.wordmark' | transloco }}</span>
       <!--
-        DEFERRED, though at once: the Material menu behind the switcher is its alone, so it loads
+        DEFERRED, though at once: the Material menu behind these two is theirs alone, so it loads
         in its own chunk rather than in the initial bundle every screen pays for.
       -->
       @defer (on immediate) {
         <app-language-switcher class="language" />
+        <app-user-menu />
       }
     </header>
     <div class="body">
@@ -113,6 +116,15 @@ import { LanguageSwitcher } from './language-switcher';
       font-weight: 700;
       font-size: var(--muso-wordmark-size);
       line-height: 1;
+    }
+    /* A phone-width header holds logo, wordmark and both controls only if it tightens. */
+    @media (max-width: 40rem) {
+      header {
+        gap: var(--muso-space-1);
+      }
+      .product {
+        font-size: var(--muso-wordmark-size-compact);
+      }
     }
     .body {
       display: flex;

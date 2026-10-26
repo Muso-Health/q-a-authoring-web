@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -76,6 +77,7 @@ describe('authInterceptor', () => {
 
 /** The port as the Entra adapter answers it, without MSAL: a bearer, and a re-auth to observe. */
 class BearerPort extends AuthPort {
+  readonly photo = signal<string | null>(null);
   readonly reauthentications: number[] = [];
   async authHeaders() {
     return { Authorization: 'Bearer engine-token' };
