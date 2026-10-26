@@ -1,0 +1,56 @@
+# Verify, on every push and every pull request, to any branch: lint, test, build. Mirrors
+# budgetisation-angular's CI. It ships nothing — releasing is `deploy.yml`'s job alone, and a push
+# to master or develop runs both workflows, which is accepted: the deploy gates on its own tests.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Least privilege: this workflow reads the repository and nothing else.
+permissions:
+  contents: read
+
+# A newer push to the same ref makes the older run pointless.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Read from .nvmrc (24.18.0), so CI and developers cannot drift apart. Angular 22
+          # requires ^22.22.3 || ^24.15.0 || >=26.
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      # The committed .npmrc carries legacy-peer-deps; npm reads it for `ci` too.
+      - name: Install
+        run: npm ci
+
+      # Prettier, checking only: a file it would rewrite fails the job.
+      - name: Lint
+        run: npm run lint
+
+      # Vitest once, headless (jsdom), and exit — no watch, no browser.
+      - name: Test
+        run: npm test -- --watch=false
+
+      # The production configuration: budgets, optimisation, strict template type-checking.
+      - name: Build
+        run: npm run build
+
+      # THE CONTRACT-SYNC GUARD: regenerate the API types from the committed contract copy and
+      # fail if they differ from what is committed — someone edited `openapi.json` and forgot
+      # `npm run gen:api`. It cannot catch the engine's contract moving while our copy stays
+      # behind; the engine's spec is not fetched here.
+      - name: Types match the contract
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/app/core/api/generated/schema.ts
