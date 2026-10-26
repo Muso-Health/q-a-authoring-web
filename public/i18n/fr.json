@@ -11,7 +11,9 @@
     "clinical": "Validation clinique",
     "translation": "Validation des traductions",
     "audio": "Validation audio",
-    "admin": "Administration"
+    "admin": "Administration",
+    "language": "Langue : {{ code }}",
+    "chooseLanguage": "Choisir une langue"
   },
   "status": {
     "title": "État du moteur",

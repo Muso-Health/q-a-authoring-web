@@ -1,4 +1,4 @@
-import { InjectionToken, type Signal } from '@angular/core';
+import { DOCUMENT, InjectionToken, inject, type Signal } from '@angular/core';
 
 /** French first: it is the default and the fallback. */
 export const UI_LANGUAGES = ['fr', 'en'] as const;
@@ -24,6 +24,31 @@ export const UI_LANGUAGE_CANDIDATES = new InjectionToken<readonly string[]>(
   'UI_LANGUAGE_CANDIDATES',
 );
 
+/** What a language is called in its own language — never translated, by definition. */
+export const LANGUAGE_ENDONYMS: Record<UiLanguage, string> = {
+  fr: 'Français',
+  en: 'English',
+};
+
+/** Where the chosen language is remembered between loads. */
+export const LANGUAGE_STORAGE_KEY = 'qa-authoring.language';
+
+/**
+ * The storage the choice is remembered in: `localStorage`, or nothing where the browser refuses
+ * it (a locked-down or private window) — the switch then lasts the session only. Tests pass their
+ * own, so no test reads or leaves a choice in the browser's.
+ */
+export const UI_LANGUAGE_STORAGE = new InjectionToken<Storage | null>('UI_LANGUAGE_STORAGE', {
+  providedIn: 'root',
+  factory: () => {
+    try {
+      return inject(DOCUMENT).defaultView?.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  },
+});
+
 /**
  * Translation, as TypeScript asks for it. Templates use Transloco's pipe/directive directly
  * (accepted platform coupling); code goes through here. `t()` reads `language`, so a computed
@@ -33,6 +58,7 @@ export abstract class Translator {
   abstract readonly language: Signal<UiLanguage>;
   /** Whether the bundle for `language` has arrived; until then `t()` can only echo keys. */
   abstract readonly ready: Signal<boolean>;
+  /** Switch, live, and remember the choice for the next load. */
   abstract use(language: UiLanguage): void;
   /** The words for a key; a missing key returns the key itself. */
   abstract t(key: string, params?: Record<string, unknown>): string;

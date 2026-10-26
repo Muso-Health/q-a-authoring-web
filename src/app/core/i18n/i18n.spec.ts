@@ -1,9 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
+import { MemoryStorage } from './testing/memory-storage';
 import { provideTestI18n } from './testing/provide-test-i18n';
 import { browserLanguages } from './transloco-translator';
-import { DEFAULT_LANGUAGE, Translator, UI_LANGUAGES, detectUiLanguage } from './translator';
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGE_STORAGE_KEY,
+  Translator,
+  UI_LANGUAGES,
+  detectUiLanguage,
+} from './translator';
 
 const ROOT = process.cwd();
 const read = (language: string): Record<string, unknown> =>
@@ -72,6 +80,64 @@ describe('language detection', () => {
     ]);
     expect(browserLanguages({ languages: [], language: 'en-US' })).toEqual(['en-US']);
     expect(browserLanguages({ languages: [], language: '' })).toBeUndefined();
+  });
+});
+
+describe('the remembered choice', () => {
+  const start = (storage: Storage | null, browser: 'fr' | 'en' = 'fr') => {
+    TestBed.configureTestingModule({ providers: [provideTestI18n(browser, storage)] });
+    return TestBed.inject(Translator);
+  };
+
+  it('is written down on a switch, and only then', () => {
+    const storage = new MemoryStorage();
+    const translator = start(storage);
+    expect(storage.getItem(LANGUAGE_STORAGE_KEY)).toBeNull();
+
+    translator.use('en');
+
+    expect(storage.getItem(LANGUAGE_STORAGE_KEY)).toBe('en');
+  });
+
+  it('is restored on the next load, over what the browser asks for', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+
+    const translator = start(storage, 'fr');
+
+    expect(translator.language()).toBe('en');
+    expect(TestBed.inject(TranslocoService).getActiveLang()).toBe('en');
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('is ignored when it names a language this application does not speak', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(LANGUAGE_STORAGE_KEY, 'es');
+
+    expect(start(storage, 'fr').language()).toBe('fr');
+  });
+
+  it('defaults to French when nothing is remembered and the browser offers nothing we speak', () => {
+    expect(start(new MemoryStorage(), 'fr').language()).toBe('fr');
+  });
+
+  it('still switches where the browser refuses storage', () => {
+    const refusing = new MemoryStorage();
+    refusing.getItem = () => {
+      throw new DOMException('denied', 'SecurityError');
+    };
+    refusing.setItem = refusing.getItem;
+    const translator = start(refusing);
+
+    expect(translator.language()).toBe('fr');
+    translator.use('en');
+    expect(translator.language()).toBe('en');
+  });
+
+  it('works with no storage at all', () => {
+    const translator = start(null);
+    translator.use('en');
+    expect(translator.language()).toBe('en');
   });
 });
 

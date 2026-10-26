@@ -18,9 +18,11 @@ import {
   Translator,
   UI_LANGUAGES,
   UI_LANGUAGE_CANDIDATES,
+  UI_LANGUAGE_STORAGE,
   type UiLanguage,
 } from '../translator';
 import { TranslocoTranslator } from '../transloco-translator';
+import { MemoryStorage } from './memory-storage';
 
 /** The real `public/i18n/*.json`, read synchronously, so tests assert what users read. */
 class DiskLoader implements TranslocoLoader {
@@ -30,12 +32,18 @@ class DiskLoader implements TranslocoLoader {
   }
 }
 
-/** Pinned to French by default — jsdom reports no languages, and French is the product default. */
+/**
+ * Pinned to French by default — jsdom reports no languages, and French is the product default.
+ * The remembered choice lives in a fresh in-memory storage per call unless one is passed, so a
+ * test that switches language never hands its choice to the next.
+ */
 export function provideTestI18n(
   language: UiLanguage = DEFAULT_LANGUAGE,
+  storage: Storage | null = new MemoryStorage(),
 ): (Provider | EnvironmentProviders)[] {
   return [
     { provide: UI_LANGUAGE_CANDIDATES, useValue: [language] },
+    { provide: UI_LANGUAGE_STORAGE, useValue: storage },
     ...provideTransloco({
       config: {
         availableLangs: [...UI_LANGUAGES],

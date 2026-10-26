@@ -9,16 +9,31 @@ import {
   VALIDATE_CLINICAL,
   VALIDATE_TRANSLATION,
 } from '../core/access/current-user';
+import { LanguageSwitcher } from './language-switcher';
 
 /** The frame every feature renders into: skip link, banner, navigation, main. */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, TranslocoPipe],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    NgOptimizedImage,
+    TranslocoPipe,
+    LanguageSwitcher,
+  ],
   template: `
     <a class="skip-link" href="#main">{{ 'app.skipToContent' | transloco }}</a>
     <header>
       <img ngSrc="brand/logo-p3_3x.avif" alt="Muso" width="118" height="44" priority />
       <span class="product">{{ 'app.wordmark' | transloco }}</span>
+      <!--
+        DEFERRED, though at once: the Material menu behind the switcher is its alone, so it loads
+        in its own chunk rather than in the initial bundle every screen pays for.
+      -->
+      @defer (on immediate) {
+        <app-language-switcher class="language" />
+      }
     </header>
     <div class="body">
       <nav [attr.aria-label]="'nav.label' | transloco">
@@ -85,6 +100,9 @@ import {
       color: var(--muso-chrome-fg);
       border-block-end: var(--muso-chrome-rule);
       --muso-focus: var(--muso-chrome-focus);
+    }
+    .language {
+      margin-inline-start: auto;
     }
     header img {
       block-size: 2rem;

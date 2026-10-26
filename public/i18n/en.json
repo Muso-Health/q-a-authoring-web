@@ -11,7 +11,9 @@
     "clinical": "Clinical validation",
     "translation": "Translation validation",
     "audio": "Audio validation",
-    "admin": "Administration"
+    "admin": "Administration",
+    "language": "Language: {{ code }}",
+    "chooseLanguage": "Choose a language"
   },
   "status": {
     "title": "Engine status",

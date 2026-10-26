@@ -124,7 +124,9 @@ a:hover {
 // prefix buys the specificity to say so.
 //
 // This is WCAG 2.4.7, and the brand spec's own words — so it is a defect, not a preference.
-html .mat-mdc-button-base:focus-visible {
+// Material's menu items drop the outline the same way, so they are named here too.
+html .mat-mdc-button-base:focus-visible,
+html .mat-mdc-menu-item:focus-visible {
   outline: 2px solid var(--muso-focus);
   outline-offset: 2px;
 }
@@ -157,8 +159,11 @@ html .mat-mdc-button-base:focus-visible {
 // plain `<button>` the older screens use, which the rule further down paints navy. They are the
 // same control to the person clicking it, so they are given the same depth here rather than one
 // of them looking pressed-in beside the other.
+//
+// A Material MENU ITEM is a `<button>` too, but not a `.mat-mdc-button-base`: without its own
+// exclusion each entry of a menu took this shadow and read as a stack of separate cards.
 [matButton='filled']:not([disabled]),
-button:not(.mat-mdc-button-base):not([disabled]) {
+button:not(.mat-mdc-button-base, .mat-mdc-menu-item):not([disabled]) {
   box-shadow:
     0 1px 1px var(--muso-shadow-lift),
     0 3px 6px -1px var(--muso-shadow-key),
@@ -169,7 +174,7 @@ button:not(.mat-mdc-button-base):not([disabled]) {
 }
 
 [matButton='filled']:not([disabled]):hover,
-button:not(.mat-mdc-button-base):not([disabled]):hover {
+button:not(.mat-mdc-button-base, .mat-mdc-menu-item):not([disabled]):hover {
   box-shadow:
     0 1px 1px var(--muso-shadow-lift),
     0 6px 10px -2px var(--muso-shadow-key),
@@ -178,18 +183,18 @@ button:not(.mat-mdc-button-base):not([disabled]):hover {
 }
 
 [matButton='filled']:not([disabled]):active,
-button:not(.mat-mdc-button-base):not([disabled]):active {
+button:not(.mat-mdc-button-base, .mat-mdc-menu-item):not([disabled]):active {
   box-shadow: 0 1px 1px var(--muso-shadow-lift);
   transform: translateY(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
   [matButton='filled'],
-  button:not(.mat-mdc-button-base) {
+  button:not(.mat-mdc-button-base, .mat-mdc-menu-item) {
     transition: none;
   }
   [matButton='filled']:not([disabled]):hover,
-  button:not(.mat-mdc-button-base):not([disabled]):hover {
+  button:not(.mat-mdc-button-base, .mat-mdc-menu-item):not([disabled]):hover {
     transform: none;
   }
 }
@@ -215,7 +220,7 @@ button {
 // an element selector with a `:not()`, which outweighs Material's class — was painting navy-80
 // behind it on hover. Measured by axe at 1.63:1: a control whose text all but vanishes under the
 // pointer, on every outlined button in the application.
-button:hover:not([disabled]):not(.mat-mdc-button-base) {
+button:hover:not([disabled]):not(.mat-mdc-button-base, .mat-mdc-menu-item) {
   background: var(--muso-navy-80);
   border-color: var(--muso-navy-80);
 }

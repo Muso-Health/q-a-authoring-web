@@ -1,8 +1,10 @@
 import { DOCUMENT, Service, effect, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import {
+  LANGUAGE_STORAGE_KEY,
   Translator,
   UI_LANGUAGE_CANDIDATES,
+  UI_LANGUAGE_STORAGE,
   detectUiLanguage,
   isUiLanguage,
   type UiLanguage,
@@ -20,14 +22,20 @@ export function browserLanguages(
 /**
  * Transloco behind `Translator`. The signal is the source of truth and is pushed one way into the
  * library and `<html lang>`; nothing else in TypeScript imports `@jsverse/transloco`.
+ *
+ * The first language is the one last chosen, if any; else the browser's, if we speak it; else
+ * French. A switch is written to storage, so it survives a reload. (budgetisation remembers
+ * nothing and detects on every load; here the choice is asked to stick.)
  */
 @Service()
 export class TranslocoTranslator extends Translator {
   readonly #transloco = inject(TranslocoService);
   readonly #document = inject(DOCUMENT);
+  readonly #storage = inject(UI_LANGUAGE_STORAGE);
 
   readonly #language = signal<UiLanguage>(
-    detectUiLanguage(inject(UI_LANGUAGE_CANDIDATES, { optional: true }) ?? browserLanguages()),
+    this.#remembered() ??
+      detectUiLanguage(inject(UI_LANGUAGE_CANDIDATES, { optional: true }) ?? browserLanguages()),
   );
   readonly language = this.#language.asReadonly();
 
@@ -46,7 +54,13 @@ export class TranslocoTranslator extends Translator {
   }
 
   use(language: UiLanguage): void {
-    if (isUiLanguage(language)) this.#language.set(language);
+    if (!isUiLanguage(language)) return;
+    this.#language.set(language);
+    try {
+      this.#storage?.setItem(LANGUAGE_STORAGE_KEY, language);
+    } catch {
+      // Refused storage: the switch still applies, for this session.
+    }
   }
 
   t(key: string, params?: Record<string, unknown>): string {
@@ -54,6 +68,15 @@ export class TranslocoTranslator extends Translator {
     const language = this.#language();
     this.#ready();
     return this.#transloco.translate(key, params, language) || key;
+  }
+
+  #remembered(): UiLanguage | null {
+    try {
+      const stored = this.#storage?.getItem(LANGUAGE_STORAGE_KEY) ?? null;
+      return stored !== null && isUiLanguage(stored) ? stored : null;
+    } catch {
+      return null;
+    }
   }
 
   #apply(language: UiLanguage): void {
