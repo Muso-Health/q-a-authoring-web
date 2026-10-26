@@ -36,19 +36,29 @@ describe('the environment', () => {
     expect(development).toContain("provider: 'dev'");
   });
 
-  it('signs the deployed builds in with Entra, from placeholders until the registration exists', () => {
-    for (const path of [
-      'src/app/core/config/environment.ts',
-      'src/app/core/config/environment.test.ts',
-    ]) {
-      const source = read(path);
-      expect(source).toContain("provider: 'entra'");
-      expect(source).toContain("tenantId: '<ENTRA_TENANT_ID>'");
-      expect(source).toContain("clientId: '<ENTRA_SPA_CLIENT_ID>'");
-      expect(source).toContain("engineScope: '<ENGINE_API_SCOPE>'");
-      expect(source).toContain('QA_AUTHORING_AUTH_ENTRA_AUDIENCE');
-      expect(source).not.toContain("provider: 'dev'");
-    }
+  it('signs production in with Entra, from placeholders until its values are supplied', () => {
+    const source = read('src/app/core/config/environment.ts');
+    expect(source).toContain("provider: 'entra'");
+    expect(source).toContain("tenantId: '<ENTRA_TENANT_ID>'");
+    expect(source).toContain("clientId: '<ENTRA_SPA_CLIENT_ID>'");
+    expect(source).toContain("engineScope: '<ENGINE_API_SCOPE>'");
+    expect(source).toContain('QA_AUTHORING_AUTH_ENTRA_AUDIENCE');
+    expect(source).not.toContain("provider: 'dev'");
+  });
+
+  it('signs the test site in with Entra, with the test registration’s real values', () => {
+    const source = read('src/app/core/config/environment.test.ts');
+    expect(source).toContain("provider: 'entra'");
+    expect(source).toContain("tenantId: '54f70170-aa34-45ae-8315-0fa0d17d916e'");
+    expect(source).toContain("clientId: '03dff017-5bbf-49b1-9f74-d22d217e36b8'");
+    expect(source).toContain(
+      "engineScope: 'api://9cc072fd-584f-4753-be07-539953fa21a0/access_as_user'",
+    );
+    expect(source).toContain('QA_AUTHORING_AUTH_ENTRA_AUDIENCE');
+    // Nothing left for the deploy guards to refuse.
+    expect(source).not.toContain('replace-me.invalid');
+    expect(source).not.toMatch(/'<[A-Z_]+>'/);
+    expect(source).not.toContain("provider: 'dev'");
   });
 
   it('points the test site at its own engine, built otherwise exactly as production', () => {
@@ -82,14 +92,14 @@ describe('the environment', () => {
     expect(demo).not.toContain("provider: 'entra'");
   });
 
-  it('leaves the test and production builds as they were', () => {
+  it('leaves production on its placeholder engine; the test site calls the test engine', () => {
     expect(swapOf('production')).toBeUndefined();
     expect(swapOf('test')).toBe('src/app/core/config/environment.test.ts');
     expect(read('src/app/core/config/environment.ts')).toContain(
       "apiBaseUrl: 'https://prod-engine-url.replace-me.invalid'",
     );
     expect(read('src/app/core/config/environment.test.ts')).toContain(
-      "apiBaseUrl: 'https://test-engine-url.replace-me.invalid'",
+      "apiBaseUrl: 'https://qa-authoring-engine-test-uh7dztocmq-uc.a.run.app'",
     );
   });
 });
