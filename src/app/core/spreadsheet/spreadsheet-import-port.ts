@@ -4,6 +4,32 @@ export interface ImportedPair {
   readonly answer: string;
 }
 
+/** What a file picker offers for an import: .xlsx and .csv. */
+export const SPREADSHEET_TYPES = [
+  '.xlsx',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.csv',
+  'text/csv',
+].join(',');
+
+/**
+ * A sheet as it was laid out: the first row's headers, folded (no case, accents or surrounding
+ * spaces), and each row after it by folded header, every cell trimmed — blank ones as ''.
+ * Columns without a header are left out, and so are rows blank in every cell.
+ */
+export interface ImportedTable {
+  readonly headers: readonly string[];
+  readonly rows: readonly Readonly<Record<string, string>>[];
+}
+
+/** A header as the table names it: trimmed, without case or accents. */
+export const foldHeader = (header: string): string =>
+  header
+    .trim()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+
 export type PairColumn = 'question' | 'answer';
 
 /** The headers each column answers to, compared without case, accents or surrounding spaces. */
@@ -41,14 +67,19 @@ export class UnreadableFileError extends Error {
 }
 
 /**
- * Question-answer pairs read from a spreadsheet the author chose, as the application needs them:
- * the first sheet, its first row naming the columns, each row after it a pair. Rows blank in both
- * cells are left out; a row with only one half is kept, for the form to flag.
+ * A spreadsheet the user chose, read in the browser: always its first sheet, the first row naming
+ * the columns.
  *
- * Fails with `MissingColumnError`, `EmptyFileError` or `UnreadableFileError` — never with the
- * library's own errors, whose shapes are the adapter's business. An abstract class, so it is both
+ * `parsePairs` reads question-answer pairs, as the application needs them: each row after the
+ * headers a pair. Rows blank in both cells are left out; a row with only one half is kept, for the
+ * form to flag. `parseTable` reads any columns, for the caller to make sense of.
+ *
+ * Both fail with `EmptyFileError` (no data row) or `UnreadableFileError`, `parsePairs` also with
+ * `MissingColumnError` — never with the library's own errors, whose shapes are the adapter's
+ * business. An abstract class, so it is both
  * the contract and the injection token.
  */
 export abstract class SpreadsheetImportPort {
   abstract parsePairs(file: File): Promise<ImportedPair[]>;
+  abstract parseTable(file: File): Promise<ImportedTable>;
 }

@@ -21,6 +21,7 @@ import { Translator } from '../../core/i18n/translator';
 import {
   EmptyFileError,
   MissingColumnError,
+  SPREADSHEET_TYPES,
   SpreadsheetImportPort,
   UnreadableFileError,
   type ImportedPair,
@@ -58,13 +59,6 @@ function importFailureOf(
   if (!(error instanceof UnreadableFileError)) console.error(error);
   return { kind: 'unreadable' };
 }
-
-const ACCEPTED = [
-  '.xlsx',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  '.csv',
-  'text/csv',
-].join(',');
 
 /** What was saved, with the skipped rows numbered as the author saw them (from 1). */
 interface Outcome extends Omit<AuthoredPairs, 'skippedRows'> {
@@ -332,7 +326,7 @@ export class QAPairsForm {
   /** Rows (by key) to complete or clear. */
   protected readonly flags = signal<ReadonlySet<number>>(new Set());
   readonly #outcome = signal<Outcome | null>(null);
-  protected readonly accepted = ACCEPTED;
+  protected readonly accepted = SPREADSHEET_TYPES;
   protected readonly importing = signal(false);
   readonly #imported = signal<ImportNote | null>(null);
 

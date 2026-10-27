@@ -58,6 +58,13 @@ const toTerm = (t: Schemas['GlossaryTermResponse']): GlossaryTerm => ({
   forms: t.forms.map(toForm),
 });
 
+const formBody = (form: GlossaryFormDraft): Schemas['GlossaryFormRequest'] => ({
+  preferred: form.preferred,
+  synonyms: [...form.synonyms],
+  avoid: [...form.avoid],
+  note: form.note,
+});
+
 const termPath = (termId: string) => `/glossary/terms/${encodeURIComponent(termId)}`;
 const formPath = (termId: string, languageId: string) =>
   `${termPath(termId)}/forms/${encodeURIComponent(languageId)}`;
@@ -79,9 +86,16 @@ export class GlossaryAdminApi {
     return { items: page.items.map(toTerm), total: page.total };
   }
 
-  async createTerm({ label, note }: GlossaryTermDraft): Promise<void> {
-    // Forms are set one language at a time, once the term exists.
-    const body: Schemas['CreateGlossaryTermRequest'] = { label, note, forms: [] };
+  /** Typed in, a term starts without forms: they are set one language at a time afterwards. */
+  async createTerm(
+    { label, note }: GlossaryTermDraft,
+    forms: readonly GlossaryForm[] = [],
+  ): Promise<void> {
+    const body: Schemas['CreateGlossaryTermRequest'] = {
+      label,
+      note,
+      forms: forms.map((form) => ({ language_id: form.languageId, ...formBody(form) })),
+    };
     await this.#api.post('/glossary/terms', body);
   }
 
@@ -101,13 +115,7 @@ export class GlossaryAdminApi {
 
   /** Creates the language's form, or replaces it whole. */
   async setForm(termId: string, languageId: string, form: GlossaryFormDraft): Promise<void> {
-    const body: Schemas['GlossaryFormRequest'] = {
-      preferred: form.preferred,
-      synonyms: [...form.synonyms],
-      avoid: [...form.avoid],
-      note: form.note,
-    };
-    await this.#api.put(formPath(termId, languageId), body);
+    await this.#api.put(formPath(termId, languageId), formBody(form));
   }
 
   async removeForm(termId: string, languageId: string): Promise<void> {

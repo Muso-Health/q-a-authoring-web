@@ -576,6 +576,41 @@
       "next": "Page suivante",
       "empty": "Le glossaire est vide pour l’instant.",
       "noMatch": "Aucun terme ne correspond.",
+      "import": {
+        "title": "Importer des termes",
+        "hint": "La première ligne nomme les colonnes : « label » (obligatoire), « note » (facultative), puis une colonne par langue, nommée par son code ({{ codes }}), qui donne la forme préférée. Les synonymes et les formes à éviter s’ajoutent ensuite ici. Rien n’est créé avant votre confirmation.",
+        "choose": "Importer un fichier Excel ou CSV",
+        "reading": "Lecture du fichier…",
+        "review": {
+          "one": "{{ count }} terme lu dans « {{ name }} », à relire avant de le créer.",
+          "other": "{{ count }} termes lus dans « {{ name }} », à relire avant de les créer."
+        },
+        "form": "{{ language }} : {{ preferred }}",
+        "noForms": "Sans forme",
+        "confirm": {
+          "one": "Créer le terme",
+          "other": "Créer les {{ count }} termes"
+        },
+        "creating": "Création des termes…",
+        "created": {
+          "one": "{{ count }} terme créé.",
+          "other": "{{ count }} termes créés."
+        },
+        "failed": {
+          "one": "{{ count }} terme non créé :",
+          "other": "{{ count }} termes non créés :"
+        },
+        "failure": "Ligne {{ row }} de la liste, « {{ label }} » : {{ reason }}",
+        "errors": {
+          "empty": "« {{ name }} » ne contient aucun terme : sous la ligne d’en-têtes, chaque ligne donne au moins un libellé. Rien n’a été chargé.",
+          "unreadable": "« {{ name }} » n’a pas pu être lu : choisissez un fichier .xlsx ou .csv valide. Rien n’a été chargé.",
+          "missingLabel": "« {{ name }} » n’a pas de colonne « label » : la première ligne doit la nommer. Rien n’a été chargé.",
+          "unknownColumns": {
+            "one": "Colonne inconnue dans « {{ name }} » : {{ columns }}. Hors « label » et « note », chaque colonne porte le code d’une langue : {{ codes }}. Rien n’a été chargé.",
+            "other": "Colonnes inconnues dans « {{ name }} » : {{ columns }}. Hors « label » et « note », chaque colonne porte le code d’une langue : {{ codes }}. Rien n’a été chargé."
+          }
+        }
+      },
       "forms": {
         "none": "Aucune forme pour l’instant.",
         "language": "Langue",

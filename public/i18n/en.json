@@ -576,6 +576,41 @@
       "next": "Next page",
       "empty": "The glossary is empty for now.",
       "noMatch": "No term matches.",
+      "import": {
+        "title": "Import terms",
+        "hint": "The first row names the columns: “label” (required), “note” (optional), then one column per language, headed by its code ({{ codes }}), giving the preferred form. Synonyms and forms to avoid are added here afterwards. Nothing is created until you confirm.",
+        "choose": "Import an Excel or CSV file",
+        "reading": "Reading the file…",
+        "review": {
+          "one": "{{ count }} term read from “{{ name }}”, to review before creating it.",
+          "other": "{{ count }} terms read from “{{ name }}”, to review before creating them."
+        },
+        "form": "{{ language }}: {{ preferred }}",
+        "noForms": "No form",
+        "confirm": {
+          "one": "Create the term",
+          "other": "Create the {{ count }} terms"
+        },
+        "creating": "Creating the terms…",
+        "created": {
+          "one": "{{ count }} term created.",
+          "other": "{{ count }} terms created."
+        },
+        "failed": {
+          "one": "{{ count }} term not created:",
+          "other": "{{ count }} terms not created:"
+        },
+        "failure": "Row {{ row }} of the list, “{{ label }}”: {{ reason }}",
+        "errors": {
+          "empty": "“{{ name }}” holds no term: below the header row, each row gives at least a label. Nothing was loaded.",
+          "unreadable": "“{{ name }}” could not be read: choose a valid .xlsx or .csv file. Nothing was loaded.",
+          "missingLabel": "“{{ name }}” has no “label” column: the first row must name it. Nothing was loaded.",
+          "unknownColumns": {
+            "one": "Unknown column in “{{ name }}”: {{ columns }}. Apart from “label” and “note”, each column bears a language code: {{ codes }}. Nothing was loaded.",
+            "other": "Unknown columns in “{{ name }}”: {{ columns }}. Apart from “label” and “note”, each column bears a language code: {{ codes }}. Nothing was loaded."
+          }
+        }
+      },
       "forms": {
         "none": "No form yet.",
         "language": "Language",

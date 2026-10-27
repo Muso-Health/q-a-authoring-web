@@ -6,6 +6,8 @@ import { ApiPort } from '../../core/api/api-port';
 import { FakeApiPort } from '../../core/api/testing/fake-api-port';
 import { ME_AUTHOR } from '../../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../../core/i18n/testing/provide-test-i18n';
+import { SpreadsheetImportPort } from '../../core/spreadsheet/spreadsheet-import-port';
+import { FakeSpreadsheetImportPort } from '../../core/spreadsheet/testing/fake-spreadsheet-import-port';
 import { ADMIN_ROUTES } from './admin.routes';
 import { permissionGuard } from '../../core/access/permission-guard';
 import { ADMIN_PERMISSIONS } from '../../core/access/current-user';
@@ -18,6 +20,7 @@ async function landing(url: string, permissions: string[]) {
   TestBed.configureTestingModule({
     providers: [
       provideTestI18n(),
+      { provide: SpreadsheetImportPort, useValue: new FakeSpreadsheetImportPort() },
       provideRouter(
         [
           {

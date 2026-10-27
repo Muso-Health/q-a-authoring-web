@@ -63,6 +63,28 @@ describe('GlossaryAdminApi', () => {
     ]);
   });
 
+  it('creates a term with its forms at once, each a preferred form only', async () => {
+    const { api, glossary } = setUp();
+
+    await glossary.createTerm({ label: 'Diarrhée', note: null }, [
+      { languageId: IDS.fr, preferred: 'diarrhée', synonyms: [], avoid: [], note: null },
+    ]);
+
+    expect(api.writes).toEqual([
+      {
+        method: 'POST',
+        path: '/glossary/terms',
+        body: {
+          label: 'Diarrhée',
+          note: null,
+          forms: [
+            { language_id: IDS.fr, preferred: 'diarrhée', synonyms: [], avoid: [], note: null },
+          ],
+        },
+      },
+    ]);
+  });
+
   it('creates and edits a term: label and note, an empty note cleared', async () => {
     const { api, glossary } = setUp();
 

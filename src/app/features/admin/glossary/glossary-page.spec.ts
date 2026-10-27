@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { engineError } from '../../../core/api/testing/fake-api-port';
 import {
   BEDNET_TERM,
@@ -7,6 +8,16 @@ import {
   YELLOW_FEVER_TERM,
 } from '../../../core/admin/testing/admin-fixtures';
 import { IDS, LANGUAGES, ME_AUTHOR } from '../../../core/catalog/testing/catalog-fixtures';
+import {
+  EmptyFileError,
+  SpreadsheetImportPort,
+  UnreadableFileError,
+  type ImportedTable,
+} from '../../../core/spreadsheet/spreadsheet-import-port';
+import {
+  FakeSpreadsheetImportPort,
+  namedFile,
+} from '../../../core/spreadsheet/testing/fake-spreadsheet-import-port';
 import { renderAdmin, text } from '../testing/render-admin';
 import { GlossaryPage } from './glossary-page';
 
@@ -19,8 +30,28 @@ const TERM = (id: string) => `/glossary/terms/${id}`;
 const MANAGER = { ...ME_AUTHOR, permissions: ['manage_glossary'] };
 const READER = { ...ME_AUTHOR, permissions: ['manage_catalog'] };
 
-const render = (answers: Record<string, unknown> = {}, me = MANAGER) =>
-  renderAdmin(GlossaryPage, { '/me': me, '/languages': LANGUAGES, [list()]: GLOSSARY, ...answers });
+async function render(answers: Record<string, unknown> = {}, me = MANAGER) {
+  const sheets = new FakeSpreadsheetImportPort();
+  TestBed.configureTestingModule({
+    providers: [{ provide: SpreadsheetImportPort, useValue: sheets }],
+  });
+  const rendered = await renderAdmin(GlossaryPage, {
+    '/me': me,
+    '/languages': LANGUAGES,
+    [list()]: GLOSSARY,
+    ...answers,
+  });
+  const { element, fixture } = rendered;
+  /** Chooses a file in the import picker, and waits for it to be read. */
+  const upload = async (file: File) => {
+    const picker = element.querySelector<HTMLInputElement>('.glossary-import input[type="file"]')!;
+    Object.defineProperty(picker, 'files', { value: [file], configurable: true });
+    picker.dispatchEvent(new Event('change'));
+    await vi.waitFor(() => expect(picker.disabled).toBe(false));
+    await fixture.whenStable();
+  };
+  return { ...rendered, sheets, upload };
+}
 
 const labels = (element: HTMLElement) =>
   [...element.querySelectorAll('li.glossary-term')].map((card) => text(card.querySelector('h3')));
@@ -498,5 +529,175 @@ describe('GlossaryPage — without manage_glossary', () => {
     expect(text(cardOf(element, 'Moustiquaire').querySelector('[role="alert"]'))).toBe(
       'Votre compte n’a pas la permission de modifier ce contenu.',
     );
+  });
+});
+
+/** Three rows to import: two terms, and a row without a label that is skipped. */
+const SHEET: ImportedTable = {
+  headers: ['label', 'note', 'fr', 'bm'],
+  rows: [
+    { label: 'Diarrhée', note: 'Chez l’enfant.', fr: 'diarrhée', bm: 'kɔnɔboli' },
+    { label: 'Fièvre', note: '', fr: 'fièvre', bm: '' },
+    { label: '', note: '', fr: 'orpheline', bm: '' },
+  ],
+};
+
+const form = (languageId: string, preferred: string) => ({
+  language_id: languageId,
+  preferred,
+  synonyms: [],
+  avoid: [],
+  note: null,
+});
+
+describe('GlossaryPage — importing', () => {
+  const panel = (element: HTMLElement) => element.querySelector<HTMLElement>('.glossary-import')!;
+  const reviewed = (element: HTMLElement) => [
+    ...panel(element).querySelectorAll<HTMLElement>('li.import-term'),
+  ];
+  const status = (element: HTMLElement) => text(panel(element).querySelector('[role="status"]'));
+  const alert = (element: HTMLElement) => text(panel(element).querySelector('[role="alert"]'));
+
+  it('tells which columns to give, the language codes included', async () => {
+    const { element } = await render();
+
+    expect(text(panel(element).querySelector('h3'))).toBe('Importer des termes');
+    expect(text(panel(element))).toContain(
+      'une colonne par langue, nommée par son code (bm, en, fr, ff)',
+    );
+  });
+
+  it('reads a spreadsheet into a list to review, creating nothing yet', async () => {
+    const { api, element, sheets, upload, buttonNamed } = await render();
+    sheets.tables['termes.xlsx'] = SHEET;
+
+    await upload(namedFile('termes.xlsx'));
+
+    expect(api.writes).toEqual([]);
+    expect(status(element)).toBe('2 termes lus dans « termes.xlsx », à relire avant de les créer.');
+    const [diarrhoea, fever] = reviewed(element);
+    expect(reviewed(element).map((item) => text(item.querySelector('.label')))).toEqual([
+      'Diarrhée',
+      'Fièvre',
+    ]);
+    expect(text(diarrhoea)).toContain('Chez l’enfant.');
+    expect([...diarrhoea.querySelectorAll('.forms li')].map((li) => text(li))).toEqual([
+      'Français (fr) : diarrhée',
+      'Bambara (bm) : kɔnɔboli',
+    ]);
+    expect([...fever.querySelectorAll('.forms li')].map((li) => text(li))).toEqual([
+      'Français (fr) : fièvre',
+    ]);
+    expect(buttonNamed('Créer les 2 termes', panel(element))).toBeDefined();
+  });
+
+  it('creates one term per row on confirmation, then says how many and re-reads', async () => {
+    const { api, element, sheets, upload, click } = await render();
+    sheets.tables['termes.xlsx'] = SHEET;
+    await upload(namedFile('termes.xlsx'));
+    const readsBefore = api.reads.filter((read) => read === list()).length;
+
+    await click('Créer les 2 termes', panel(element));
+
+    expect(api.writes).toEqual([
+      {
+        method: 'POST',
+        path: '/glossary/terms',
+        body: {
+          label: 'Diarrhée',
+          note: 'Chez l’enfant.',
+          forms: [form(IDS.fr, 'diarrhée'), form(IDS.bm, 'kɔnɔboli')],
+        },
+      },
+      {
+        method: 'POST',
+        path: '/glossary/terms',
+        body: { label: 'Fièvre', note: null, forms: [form(IDS.fr, 'fièvre')] },
+      },
+    ]);
+    expect(status(element)).toBe('2 termes créés.');
+    expect(panel(element).querySelector('[role="alert"]')).toBeNull();
+    expect(reviewed(element)).toEqual([]);
+    expect(api.reads.filter((read) => read === list()).length).toBe(readsBefore + 1);
+  });
+
+  it('names the terms the engine refused, by their place in the list, and creates the rest', async () => {
+    const { api, element, sheets, upload, click } = await render({
+      'POST /glossary/terms': (body: { label: string }) =>
+        body.label === 'Fièvre' ? engineError(422, 'invalid_glossary_field') : undefined,
+    });
+    sheets.tables['termes.csv'] = {
+      headers: ['label'],
+      rows: [{ label: 'Diarrhée' }, { label: 'Fièvre' }, { label: 'Toux' }],
+    };
+    await upload(namedFile('termes.csv'));
+
+    await click('Créer les 3 termes', panel(element));
+
+    expect(api.writes.map((write) => (write.body as { label: string }).label)).toEqual([
+      'Diarrhée',
+      'Fièvre',
+      'Toux',
+    ]);
+    expect(status(element)).toBe('2 termes créés.');
+    const refused = panel(element).querySelector('[role="alert"]')!;
+    expect(text(refused.querySelector('p'))).toBe('1 terme non créé :');
+    expect([...refused.querySelectorAll('li')].map((li) => text(li))).toEqual([
+      'Ligne 2 de la liste, « Fièvre » : Le libellé et la forme préférée ne peuvent pas être vides.',
+    ]);
+  });
+
+  it('drops the list on cancel, creating nothing', async () => {
+    const { api, element, sheets, upload, click } = await render();
+    sheets.tables['termes.xlsx'] = SHEET;
+    await upload(namedFile('termes.xlsx'));
+
+    await click('Annuler', panel(element));
+
+    expect(reviewed(element)).toEqual([]);
+    expect(api.writes).toEqual([]);
+  });
+
+  it('loads nothing from a file it cannot make terms of, and says why', async () => {
+    const { api, element, sheets, upload } = await render();
+    sheets.tables['termes.xlsx'] = SHEET;
+    sheets.tables['notes.xlsx'] = { headers: ['note', 'fr'], rows: [{ note: 'n', fr: 'f' }] };
+    sheets.tables['langues.xlsx'] = {
+      headers: ['label', 'xx', 'remarque'],
+      rows: [{ label: 'Fièvre', xx: '', remarque: '' }],
+    };
+    sheets.tables['vide.csv'] = new EmptyFileError();
+    sheets.tables['casse.xlsx'] = new UnreadableFileError();
+
+    await upload(namedFile('termes.xlsx'));
+    await upload(namedFile('notes.xlsx'));
+    expect(reviewed(element)).toEqual([]);
+    expect(alert(element)).toBe(
+      '« notes.xlsx » n’a pas de colonne « label » : la première ligne doit la nommer. Rien n’a été chargé.',
+    );
+
+    await upload(namedFile('langues.xlsx'));
+    expect(alert(element)).toBe(
+      'Colonnes inconnues dans « langues.xlsx » : xx et remarque. Hors « label » et « note », chaque colonne porte le code d’une langue : bm, en, fr, ff. Rien n’a été chargé.',
+    );
+
+    await upload(namedFile('vide.csv'));
+    expect(alert(element)).toBe(
+      '« vide.csv » ne contient aucun terme : sous la ligne d’en-têtes, chaque ligne donne au moins un libellé. Rien n’a été chargé.',
+    );
+
+    await upload(namedFile('casse.xlsx'));
+    expect(alert(element)).toBe(
+      '« casse.xlsx » n’a pas pu être lu : choisissez un fichier .xlsx ou .csv valide. Rien n’a été chargé.',
+    );
+    expect(reviewed(element)).toEqual([]);
+    expect(api.writes).toEqual([]);
+  });
+
+  it('is not offered without manage_glossary', async () => {
+    const { element } = await render({}, READER);
+
+    expect(element.querySelector('.glossary-import')).toBeNull();
+    expect(element.querySelector('input[type="file"]')).toBeNull();
   });
 });

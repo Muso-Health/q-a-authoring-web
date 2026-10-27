@@ -16,6 +16,7 @@ import { FocusReturn, FocusReturnTarget } from '../../../shared/ui/focus-return'
 import { LoadError, Loading } from '../../../shared/ui/load-state';
 import { AdminWrites, reread } from '../admin-writes';
 import { GlossaryFormEditor, type GlossaryFormSave } from './glossary-form-editor';
+import { GlossaryImport } from './glossary-import';
 import { TermForm } from './term-form';
 
 const PAGE_SIZE = 20;
@@ -45,8 +46,8 @@ const EMPTY: GlossaryTermDraft = { label: '', note: null };
 
 /**
  * The glossary: its terms a page at a time, filtered and searched, each with how it is said in
- * every language. Anyone in the area reads it; whoever manages it also adds, edits and archives
- * terms, and sets or removes their forms.
+ * every language. Anyone in the area reads it; whoever manages it also adds (typed in, or imported
+ * from a spreadsheet), edits and archives terms, and sets or removes their forms.
  */
 @Component({
   selector: 'app-glossary-page',
@@ -56,6 +57,7 @@ const EMPTY: GlossaryTermDraft = { label: '', note: null };
     LoadError,
     TermForm,
     GlossaryFormEditor,
+    GlossaryImport,
     ConfirmAction,
     FocusReturnTarget,
   ],
@@ -73,6 +75,7 @@ const EMPTY: GlossaryTermDraft = { label: '', note: null };
           (save)="create($event)"
         />
       </section>
+      <app-glossary-import (imported)="page.reload()" />
     }
 
     <div class="filters" role="search">
