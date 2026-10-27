@@ -1,28 +1,17 @@
-import { Component, PendingTasks, computed, inject, input, resource, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, computed, inject, input, resource } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AUTHOR_QASETS, CurrentUser } from '../../core/access/current-user';
 import { CatalogApi } from '../../core/catalog/catalog-api';
-import { QASetAuthoringApi } from '../../core/catalog/qaset-authoring-api';
 import { trailOf } from '../../core/catalog/trail';
-import { writeFailureOf } from '../../core/error/write-failure';
 import { Translator } from '../../core/i18n/translator';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
-import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
-import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
+import { QAPairsForm } from './qa-pairs-form';
 
 @Component({
   selector: 'app-theme-page',
-  imports: [
-    RouterLink,
-    TranslocoPipe,
-    Breadcrumb,
-    LanguageAnswerForm,
-    Loading,
-    LoadError,
-    FocusReturnTarget,
-  ],
+  imports: [RouterLink, TranslocoPipe, Breadcrumb, QAPairsForm, Loading, LoadError],
   template: `
     @if (page.hasValue()) {
       @let p = page.value();
@@ -40,21 +29,11 @@ import { LoadError, Loading } from '../../shared/ui/load-state';
         <h2 id="qasets-heading">{{ 'browse.theme.qasets' | transloco }}</h2>
         @if (canAuthor()) {
           <div class="create muso-card">
-            @if (creating()) {
-              <app-language-answer-form
-                [languages]="p.languages.all()"
-                [preselected]="p.project.baseLanguageId"
-                [submitLabel]="'authoring.createSet.submit' | transloco"
-                [busy]="busy()"
-                [error]="createError()"
-                (submitted)="create($event)"
-                (cancel)="closeCreate()"
-              />
-            } @else {
-              <button type="button" appFocusReturn="create-set" (click)="creating.set(true)">
-                {{ 'authoring.createSet.open' | transloco }}
-              </button>
-            }
+            <app-qa-pairs-form
+              [themeId]="p.theme.id"
+              [languageName]="p.languages.of(p.project.baseLanguageId).name"
+              (written)="page.reload()"
+            />
           </div>
         }
         @if (rows().length === 0) {
@@ -86,15 +65,8 @@ import { LoadError, Loading } from '../../shared/ui/load-state';
 export class ThemePage {
   readonly #catalog = inject(CatalogApi);
   readonly #translator = inject(Translator);
-  readonly #authoring = inject(QASetAuthoringApi);
-  readonly #router = inject(Router);
-  readonly #tasks = inject(PendingTasks);
-  readonly #focus = inject(FocusReturn);
 
   protected readonly canAuthor = inject(CurrentUser).can(AUTHOR_QASETS);
-  protected readonly creating = signal(false);
-  protected readonly busy = signal(false);
-  protected readonly createError = signal<string | null>(null);
 
   readonly themeId = input.required<string>();
 
@@ -123,28 +95,4 @@ export class ThemePage {
       })),
     }));
   });
-
-  /** Create, then open the new QASet; a theme that is gone re-reads the page. */
-  protected async create({ languageId, answerText }: LanguageAnswer): Promise<void> {
-    const done = this.#tasks.add();
-    this.busy.set(true);
-    this.createError.set(null);
-    try {
-      const id = await this.#authoring.createQASet(this.themeId(), languageId, answerText);
-      await this.#router.navigate(['/qasets', id]);
-    } catch (error) {
-      const failure = writeFailureOf(error);
-      this.createError.set(this.#translator.t(failure.key));
-      if (failure.gone) this.page.reload();
-    } finally {
-      this.busy.set(false);
-      done();
-    }
-  }
-
-  protected closeCreate(): void {
-    this.creating.set(false);
-    this.createError.set(null);
-    this.#focus.to('create-set');
-  }
 }

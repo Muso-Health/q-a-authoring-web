@@ -63,6 +63,10 @@ export class FakeApiPort extends ApiPort {
 }
 
 /** The engine's error shape, at a status. */
-export function engineError(status: number, code: string): HttpErrorResponse {
-  return new HttpErrorResponse({ status, error: { code, message: code, details: null } });
+export function engineError(
+  status: number,
+  code: string,
+  details: Record<string, unknown> | null = null,
+): HttpErrorResponse {
+  return new HttpErrorResponse({ status, error: { code, message: code, details } });
 }

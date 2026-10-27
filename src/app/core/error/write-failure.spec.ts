@@ -1,6 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { engineError } from '../api/testing/fake-api-port';
-import { placeholderProblemsOf, writeFailureOf } from './write-failure';
+import {
+  invalidPairRowsOf,
+  isInvalidRequest,
+  placeholderProblemsOf,
+  writeFailureOf,
+} from './write-failure';
 
 describe('writeFailureOf', () => {
   it('reacts to the engine’s code, not its message', () => {
@@ -105,6 +110,17 @@ describe('writeFailureOf, for the administration', () => {
       expect(writeFailureOf(engineError(404, code)).gone).toBe(true);
     }
   });
+
+  it('says which part of a scoped assignment vanished, and re-reads', () => {
+    for (const [code, key] of [
+      ['role_not_found', 'admin.errors.roleNotFound'],
+      ['project_not_found', 'admin.errors.projectNotFound'],
+      ['language_not_found', 'admin.errors.languageNotFound'],
+      ['assignment_not_found', 'admin.errors.assignmentNotFound'],
+    ]) {
+      expect(writeFailureOf(engineError(404, code))).toEqual({ key, gone: true });
+    }
+  });
 });
 
 describe('placeholderProblemsOf', () => {
@@ -124,5 +140,26 @@ describe('placeholderProblemsOf', () => {
   it('has nothing to say about any other refusal', () => {
     expect(placeholderProblemsOf(engineError(422, 'invalid_name'))).toBeNull();
     expect(placeholderProblemsOf(new Error('boom'))).toBeNull();
+  });
+});
+
+describe('invalidPairRowsOf', () => {
+  it('reads the rows the engine refused', () => {
+    expect(invalidPairRowsOf(engineError(422, 'invalid_qa_pairs', { rows: [0, 2] }))).toEqual([
+      0, 2,
+    ]);
+  });
+
+  it('has nothing to say about any other refusal', () => {
+    expect(invalidPairRowsOf(engineError(422, 'invalid_request'))).toBeNull();
+    expect(invalidPairRowsOf(new Error('boom'))).toBeNull();
+  });
+});
+
+describe('isInvalidRequest', () => {
+  it('recognises the engine’s refusal of a malformed request, by its code', () => {
+    expect(isInvalidRequest(engineError(422, 'invalid_request'))).toBe(true);
+    expect(isInvalidRequest(engineError(422, 'invalid_qa_pairs'))).toBe(false);
+    expect(isInvalidRequest(new Error('boom'))).toBe(false);
   });
 });

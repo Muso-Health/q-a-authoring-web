@@ -185,8 +185,9 @@ describe('CatalogPage — projects', () => {
     await click('Supprimer le projet Nutrition', nutrition);
     await click('Confirmer', nutrition);
 
+    // Named: the engine's `project_not_found` says what vanished.
     expect(text(element.querySelector('.page-notice'))).toBe(
-      'Cet élément n’existe plus : la page a été actualisée.',
+      'Ce projet n’existe plus : la page a été actualisée.',
     );
     expect(cardOf(element, 'Nutrition')).toBeUndefined();
   });

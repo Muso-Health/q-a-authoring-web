@@ -2,7 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ApiPort } from '../api/api-port';
 import { FakeApiPort } from '../api/testing/fake-api-port';
-import { ME_AUTHOR, ME_READER } from '../catalog/testing/catalog-fixtures';
+import { IDS, ME_AUTHOR, ME_READER, PROJECT } from '../catalog/testing/catalog-fixtures';
 import { AUTHOR_QASETS, CurrentUser } from './current-user';
 
 async function setUp(answers: Record<string, unknown>) {
@@ -53,5 +53,58 @@ describe('CurrentUser', () => {
     const { user } = await setUp({});
 
     expect(user.profile()).toBeNull();
+  });
+
+  it('reads the scoped assignments and grants /me now carries', async () => {
+    const { user } = await setUp({
+      '/me': {
+        ...ME_AUTHOR,
+        oid: 'entra-oid-must-not-surface',
+        assignments: [
+          {
+            id: 'a1',
+            role: { id: 'r1', name: 'Validateurs' },
+            project: { id: PROJECT.id, name: PROJECT.name },
+            language: { id: IDS.bm, code: 'bm', name: 'Bambara' },
+          },
+        ],
+        grants: [{ permission: 'validate_clinical', project_id: PROJECT.id, language_id: IDS.bm }],
+      },
+    });
+
+    expect(user.assignments()).toEqual([
+      {
+        id: 'a1',
+        role: { id: 'r1', name: 'Validateurs' },
+        project: { id: PROJECT.id, name: PROJECT.name },
+        language: { id: IDS.bm, code: 'bm', name: 'Bambara' },
+      },
+    ]);
+    expect(user.grants()).toEqual([
+      { permission: 'validate_clinical', projectId: PROJECT.id, languageId: IDS.bm },
+    ]);
+    expect(JSON.stringify([user.assignments(), user.grants(), user.profile()])).not.toContain(
+      'entra-oid',
+    );
+  });
+
+  it('still gates on the global permission list, whatever the scope of the grant', async () => {
+    const { user } = await setUp({
+      '/me': {
+        ...ME_AUTHOR,
+        permissions: ['validate_clinical'],
+        grants: [{ permission: 'validate_clinical', project_id: PROJECT.id, language_id: null }],
+      },
+    });
+
+    expect(user.can('validate_clinical')()).toBe(true);
+    expect(user.can('author_qasets')()).toBe(false);
+  });
+
+  it('holds no assignment or grant while /me has not answered', async () => {
+    const { user } = await setUp({});
+
+    expect(user.assignments()).toEqual([]);
+    expect(user.grants()).toEqual([]);
   });
 });

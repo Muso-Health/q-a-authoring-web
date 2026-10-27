@@ -1,6 +1,7 @@
 import { Service, computed, inject, resource, type Signal } from '@angular/core';
 import { ApiPort } from '../api/api-port';
 import type { MeResponse } from '../api/api-types';
+import { toAssignment, toGrant, type Assignment, type Grant } from './scoped-access';
 
 export const AUTHOR_QASETS = 'author_qasets';
 export const MANAGE_CATALOG = 'manage_catalog';
@@ -51,6 +52,17 @@ export class CurrentUser {
     const { display_name, email } = this.#read.value();
     return { displayName: display_name, email };
   });
+
+  /**
+   * The scoped view of the same answer — read now, not yet used to gate: `can()` still reads the
+   * global `permissions` (held anywhere). Gating actions by project and language is the next step.
+   */
+  readonly assignments = computed<readonly Assignment[]>(() =>
+    this.#read.hasValue() ? this.#read.value().assignments.map(toAssignment) : [],
+  );
+  readonly grants = computed<readonly Grant[]>(() =>
+    this.#read.hasValue() ? this.#read.value().grants.map(toGrant) : [],
+  );
 
   can(permission: string): Signal<boolean> {
     return computed(() => this.#permissions().has(permission));

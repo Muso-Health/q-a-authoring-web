@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { ApiPort } from '../api/api-port';
+import type { Schemas } from '../api/api-types';
 import { FakeApiPort } from '../api/testing/fake-api-port';
 import { QASetAuthoringApi } from './qaset-authoring-api';
-import { IDS, QASET } from './testing/catalog-fixtures';
+import { IDS } from './testing/catalog-fixtures';
 
 function setUp() {
-  const api = new FakeApiPort({ [`POST /themes/${IDS.theme}/qasets`]: QASET });
+  const api = new FakeApiPort({});
   TestBed.configureTestingModule({ providers: [{ provide: ApiPort, useValue: api }] });
   return { api, authoring: TestBed.inject(QASetAuthoringApi) };
 }
@@ -123,17 +124,30 @@ describe('QASetAuthoringApi', () => {
     ]);
   });
 
-  it('creates a QASet under a theme and answers with its id', async () => {
+  it('authors pairs under a theme: an array of question and answer, and no language', async () => {
     const { api, authoring } = setUp();
+    api.answers[`POST /themes/${IDS.theme}/qa-pairs`] = {
+      qasets_created: 1,
+      qasets_updated: 2,
+      variants_added: 3,
+      skipped_rows: [4],
+    } satisfies Schemas['AuthoredPairsResponse'];
 
-    const id = await authoring.createQASet(IDS.theme, IDS.fr, 'Première réponse');
+    const result = await authoring.authorPairs(IDS.theme, [
+      { question: 'Comment se protéger ?', answer: 'Dormez sous une moustiquaire.' },
+    ]);
 
-    expect(id).toBe(IDS.qaset);
+    expect(result).toEqual({
+      qasetsCreated: 1,
+      qasetsUpdated: 2,
+      variantsAdded: 3,
+      skippedRows: [4],
+    });
     expect(api.writes).toEqual([
       {
         method: 'POST',
-        path: `/themes/${IDS.theme}/qasets`,
-        body: { language_id: IDS.fr, answer_text: 'Première réponse' },
+        path: `/themes/${IDS.theme}/qa-pairs`,
+        body: [{ question: 'Comment se protéger ?', answer: 'Dormez sous une moustiquaire.' }],
       },
     ]);
   });

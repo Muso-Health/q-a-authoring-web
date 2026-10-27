@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ApiPort } from '../api/api-port';
 import { FakeApiPort } from '../api/testing/fake-api-port';
+import { IDS, PROJECT } from '../catalog/testing/catalog-fixtures';
 import { AccessApi } from './access-api';
 import {
   ADMIN_IDS,
@@ -29,7 +30,25 @@ describe('AccessApi', () => {
       email: 'awa@example.org',
       displayName: 'Awa Traoré',
       active: true,
-      roles: [{ id: ADMIN_IDS.authors, name: 'Auteurs' }],
+      assignments: [
+        {
+          id: ADMIN_IDS.awaAuthorsInProject,
+          role: { id: ADMIN_IDS.authors, name: 'Auteurs' },
+          project: { id: PROJECT.id, name: 'Santé communautaire Mali' },
+          language: null,
+        },
+        {
+          id: ADMIN_IDS.awaValidatorsInBambara,
+          role: { id: ADMIN_IDS.validators, name: 'Validateurs cliniques' },
+          project: null,
+          language: { id: IDS.bm, code: 'bm', name: 'Bambara' },
+        },
+      ],
+      grants: [
+        { permission: 'author_qasets', projectId: PROJECT.id, languageId: null },
+        { permission: 'manage_audio', projectId: PROJECT.id, languageId: null },
+        { permission: 'validate_clinical', projectId: null, languageId: IDS.bm },
+      ],
     });
     expect(JSON.stringify(users)).not.toContain(LEAKED_SUBJECT);
   });
@@ -52,19 +71,44 @@ describe('AccessApi', () => {
     ]);
   });
 
-  it('assigns and unassigns roles', async () => {
+  it('assigns a role within a scope, null meaning any project or any language', async () => {
     const { api, access } = setUp();
 
-    await access.assignRole(ADMIN_IDS.awa, ADMIN_IDS.validators);
-    await access.unassignRole(ADMIN_IDS.awa, ADMIN_IDS.authors);
+    await access.assign(ADMIN_IDS.awa, {
+      roleId: ADMIN_IDS.validators,
+      projectId: null,
+      languageId: null,
+    });
+    await access.assign(ADMIN_IDS.awa, {
+      roleId: ADMIN_IDS.authors,
+      projectId: PROJECT.id,
+      languageId: IDS.bm,
+    });
 
     expect(api.writes).toEqual([
       {
         method: 'POST',
-        path: `/users/${ADMIN_IDS.awa}/roles`,
-        body: { role_id: ADMIN_IDS.validators },
+        path: `/users/${ADMIN_IDS.awa}/assignments`,
+        body: { role_id: ADMIN_IDS.validators, project_id: null, language_id: null },
       },
-      { method: 'DELETE', path: `/users/${ADMIN_IDS.awa}/roles/${ADMIN_IDS.authors}` },
+      {
+        method: 'POST',
+        path: `/users/${ADMIN_IDS.awa}/assignments`,
+        body: { role_id: ADMIN_IDS.authors, project_id: PROJECT.id, language_id: IDS.bm },
+      },
+    ]);
+  });
+
+  it('removes an assignment by its own id, not by role', async () => {
+    const { api, access } = setUp();
+
+    await access.unassign(ADMIN_IDS.awa, ADMIN_IDS.awaAuthorsInProject);
+
+    expect(api.writes).toEqual([
+      {
+        method: 'DELETE',
+        path: `/users/${ADMIN_IDS.awa}/assignments/${ADMIN_IDS.awaAuthorsInProject}`,
+      },
     ]);
   });
 

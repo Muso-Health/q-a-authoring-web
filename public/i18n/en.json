@@ -209,9 +209,58 @@
       "label": "Delete the set",
       "warning": "The set, its answers and its variants in every language will be deleted. This cannot be undone."
     },
-    "createSet": {
-      "open": "Create a set",
-      "submit": "Create the set"
+    "pairs": {
+      "heading": "Add questions and answers",
+      "lead": "Project base language: {{ language }}. Each pair links a question to its answer; pairs that share an answer form one set.",
+      "pair": "Pair {{ number }}",
+      "question": "Question",
+      "answer": "Answer",
+      "add": "Add a pair",
+      "import": "Import an Excel or CSV file",
+      "importHint": "The first row names the columns: “question” (or “pregunta”) and “answer” (or “réponse”, “respuesta”). Loaded pairs are added to the form, to review before saving.",
+      "importing": "Reading the file…",
+      "imported": {
+        "one": "{{ count }} pair loaded from “{{ name }}”: review it, then save.",
+        "other": "{{ count }} pairs loaded from “{{ name }}”: review them, then save."
+      },
+      "columns": {
+        "question": "question",
+        "answer": "answer"
+      },
+      "remove": "Remove pair {{ number }}",
+      "submit": "Save the pairs",
+      "incompleteRow": "Both a question and an answer are needed.",
+      "incomplete": "Each pair needs a question and an answer: complete or clear the highlighted pairs.",
+      "empty": "Enter at least one pair.",
+      "summary": {
+        "saved": "Pairs saved: {{ created }}, {{ updated }}, {{ variants }}.",
+        "created": {
+          "one": "{{ count }} set created",
+          "other": "{{ count }} sets created"
+        },
+        "updated": {
+          "one": "{{ count }} set extended",
+          "other": "{{ count }} sets extended"
+        },
+        "variants": {
+          "one": "{{ count }} question added",
+          "other": "{{ count }} questions added"
+        },
+        "skipped": {
+          "one": "Already there, so skipped: pair {{ rows }}.",
+          "other": "Already there, so skipped: pairs {{ rows }}."
+        }
+      },
+      "errors": {
+        "invalidPairs": "The engine refused the highlighted pairs: each needs a question and an answer. Nothing was saved.",
+        "invalidRequest": "The batch was refused: at most 500 pairs, each with a question and an answer. Nothing was saved.",
+        "importEmpty": "“{{ name }}” holds no pairs: below the header row, each row gives a question and its answer. Nothing was loaded.",
+        "importUnreadable": "“{{ name }}” could not be read: choose a valid .xlsx or .csv file. Nothing was loaded.",
+        "importMissingColumns": {
+          "one": "Column not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column (or “pregunta”) and an “answer” column (or “réponse”, “respuesta”). Nothing was loaded.",
+          "other": "Columns not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column (or “pregunta”) and an “answer” column (or “réponse”, “respuesta”). Nothing was loaded."
+        }
+      }
     },
     "reset": {
       "message": "Your change put back to pending: {{ list }}.",
@@ -380,13 +429,13 @@
       "invalidEmail": "Enter a valid email address.",
       "active": "Active",
       "inactive": "Deactivated",
-      "roles": "Roles",
+      "roles": "Assigned roles",
       "noRole": "No role: this account cannot do anything yet.",
       "assign": "Assign a role",
       "chooseRole": "Choose a role…",
       "assignSubmit": "Assign",
       "roleRequired": "Choose a role.",
-      "unassign": "Remove the role {{role}} from {{user}}",
+      "unassign": "Remove the {{ role }} role ({{ project }}, {{ language }}) from {{ user }}",
       "rename": "Rename",
       "renameName": "Rename {{user}}",
       "deactivate": "Deactivate",
@@ -394,7 +443,14 @@
       "deactivateWarning": "Deactivate {{user}}’s account? They will not be able to do anything until it is reactivated.",
       "reactivate": "Reactivate",
       "reactivateName": "Reactivate {{user}}’s account",
-      "empty": "No users yet."
+      "empty": "No users yet.",
+      "project": "Project",
+      "language": "Language",
+      "anyProject": "All projects",
+      "anyLanguage": "All languages",
+      "scopeProject": "Project: {{ name }}",
+      "scopeLanguage": "Language: {{ name }}",
+      "alreadyAssigned": "{{ user }} already holds this role in this scope."
     },
     "roles": {
       "title": "Roles",
@@ -517,7 +573,11 @@
       "languageCodeExists": "A language already has this code.",
       "languageInUse": "This language is still used by a project or content: it cannot be deleted.",
       "intentInUse": "This intent is still attached to questions: detach it before deleting it.",
-      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it."
+      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it.",
+      "roleNotFound": "This role no longer exists: the page has been refreshed.",
+      "projectNotFound": "This project no longer exists: the page has been refreshed.",
+      "languageNotFound": "This language no longer exists: the page has been refreshed.",
+      "assignmentNotFound": "This assignment had already been removed: the page has been refreshed."
     }
   }
 }

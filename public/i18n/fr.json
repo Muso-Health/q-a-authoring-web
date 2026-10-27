@@ -209,9 +209,58 @@
       "label": "Supprimer l’ensemble",
       "warning": "L’ensemble, ses réponses et ses variantes dans toutes les langues seront supprimés. Cette action est irréversible."
     },
-    "createSet": {
-      "open": "Créer un ensemble",
-      "submit": "Créer l’ensemble"
+    "pairs": {
+      "heading": "Ajouter des questions-réponses",
+      "lead": "Langue de base du projet : {{ language }}. Chaque paire associe une question à sa réponse ; les paires qui partagent une réponse forment un même ensemble.",
+      "pair": "Paire {{ number }}",
+      "question": "Question",
+      "answer": "Réponse",
+      "add": "Ajouter une paire",
+      "import": "Importer un fichier Excel ou CSV",
+      "importHint": "La première ligne nomme les colonnes : « question » (ou « pregunta ») et « réponse » (ou « answer », « respuesta »). Les paires chargées s’ajoutent au formulaire, à relire avant d’enregistrer.",
+      "importing": "Lecture du fichier…",
+      "imported": {
+        "one": "{{ count }} paire chargée depuis « {{ name }} » : relisez-la, puis enregistrez.",
+        "other": "{{ count }} paires chargées depuis « {{ name }} » : relisez-les, puis enregistrez."
+      },
+      "columns": {
+        "question": "question",
+        "answer": "réponse"
+      },
+      "remove": "Retirer la paire {{ number }}",
+      "submit": "Enregistrer les paires",
+      "incompleteRow": "Une question et une réponse sont toutes deux nécessaires.",
+      "incomplete": "Chaque paire demande une question et une réponse : complétez ou videz les paires signalées.",
+      "empty": "Saisissez au moins une paire.",
+      "summary": {
+        "saved": "Paires enregistrées : {{ created }}, {{ updated }}, {{ variants }}.",
+        "created": {
+          "one": "{{ count }} ensemble créé",
+          "other": "{{ count }} ensembles créés"
+        },
+        "updated": {
+          "one": "{{ count }} ensemble complété",
+          "other": "{{ count }} ensembles complétés"
+        },
+        "variants": {
+          "one": "{{ count }} question ajoutée",
+          "other": "{{ count }} questions ajoutées"
+        },
+        "skipped": {
+          "one": "Déjà présente, donc ignorée : paire {{ rows }}.",
+          "other": "Déjà présentes, donc ignorées : paires {{ rows }}."
+        }
+      },
+      "errors": {
+        "invalidPairs": "Le moteur a refusé les paires signalées : chacune demande une question et une réponse. Rien n’a été enregistré.",
+        "invalidRequest": "L’envoi a été refusé : 500 paires au plus, chacune avec une question et une réponse. Rien n’a été enregistré.",
+        "importEmpty": "« {{ name }} » ne contient aucune paire : sous la ligne d’en-têtes, chaque ligne donne une question et sa réponse. Rien n’a été chargé.",
+        "importUnreadable": "« {{ name }} » n’a pas pu être lu : choisissez un fichier .xlsx ou .csv valide. Rien n’a été chargé.",
+        "importMissingColumns": {
+          "one": "Colonne introuvable dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé.",
+          "other": "Colonnes introuvables dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé."
+        }
+      }
     },
     "reset": {
       "message": "Votre modification a remis en attente : {{ list }}.",
@@ -380,13 +429,13 @@
       "invalidEmail": "Saisissez une adresse e-mail valide.",
       "active": "Actif",
       "inactive": "Désactivé",
-      "roles": "Rôles",
+      "roles": "Rôles attribués",
       "noRole": "Aucun rôle : ce compte ne peut rien faire pour l’instant.",
       "assign": "Attribuer un rôle",
       "chooseRole": "Choisir un rôle…",
       "assignSubmit": "Attribuer",
       "roleRequired": "Choisissez un rôle.",
-      "unassign": "Retirer le rôle {{role}} à {{user}}",
+      "unassign": "Retirer le rôle {{ role }} ({{ project }}, {{ language }}) à {{ user }}",
       "rename": "Modifier le nom",
       "renameName": "Modifier le nom de {{user}}",
       "deactivate": "Désactiver",
@@ -394,7 +443,14 @@
       "deactivateWarning": "Désactiver le compte de {{user}} ? Cette personne ne pourra plus rien faire tant qu’il n’est pas réactivé.",
       "reactivate": "Réactiver",
       "reactivateName": "Réactiver le compte de {{user}}",
-      "empty": "Aucun utilisateur pour l’instant."
+      "empty": "Aucun utilisateur pour l’instant.",
+      "project": "Projet",
+      "language": "Langue",
+      "anyProject": "Tous les projets",
+      "anyLanguage": "Toutes les langues",
+      "scopeProject": "Projet : {{ name }}",
+      "scopeLanguage": "Langue : {{ name }}",
+      "alreadyAssigned": "{{ user }} a déjà ce rôle dans ce périmètre."
     },
     "roles": {
       "title": "Rôles",
@@ -517,7 +573,11 @@
       "languageCodeExists": "Une langue porte déjà ce code.",
       "languageInUse": "Cette langue est encore utilisée par un projet ou des contenus : elle ne peut pas être supprimée.",
       "intentInUse": "Cette intention est encore attachée à des questions : détachez-la avant de la supprimer.",
-      "categoryInUse": "Cette catégorie est encore attachée à des ensembles : retirez-la avant de la supprimer."
+      "categoryInUse": "Cette catégorie est encore attachée à des ensembles : retirez-la avant de la supprimer.",
+      "roleNotFound": "Ce rôle n’existe plus : la page a été actualisée.",
+      "projectNotFound": "Ce projet n’existe plus : la page a été actualisée.",
+      "languageNotFound": "Cette langue n’existe plus : la page a été actualisée.",
+      "assignmentNotFound": "Cette attribution avait déjà été retirée : la page a été actualisée."
     }
   }
 }

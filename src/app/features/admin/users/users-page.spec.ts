@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { engineError } from '../../../core/api/testing/fake-api-port';
 import {
   ADMIN_IDS,
@@ -7,11 +8,29 @@ import {
   ROLES,
   USERS,
 } from '../../../core/admin/testing/admin-fixtures';
+import { IDS, LANGUAGES, PROJECT } from '../../../core/catalog/testing/catalog-fixtures';
 import { renderAdmin, text } from '../testing/render-admin';
 import { UsersPage } from './users-page';
 
 const render = (answers: Record<string, unknown> = {}) =>
-  renderAdmin(UsersPage, { '/users': USERS, '/roles': ROLES, ...answers });
+  renderAdmin(UsersPage, {
+    '/users': USERS,
+    '/roles': ROLES,
+    '/projects': { items: [PROJECT] },
+    '/languages': LANGUAGES,
+    ...answers,
+  });
+
+/** Each assignment row as [role, project, language], as the reader sees them. */
+const assignmentsOf = (card: HTMLElement) =>
+  [...card.querySelectorAll<HTMLElement>('li.assignment')].map((row) => [
+    text(row.querySelector('.role-name')),
+    text(row.querySelector('.scope-project')),
+    text(row.querySelector('.scope-language')),
+  ]);
+
+const AWA_AUTHORS_REMOVE =
+  'Retirer le rôle Auteurs (Santé communautaire Mali, Toutes les langues) à Awa Traoré';
 
 const cardOf = (element: HTMLElement, name: string) =>
   [...element.querySelectorAll<HTMLElement>('li.user')].find((card) =>
@@ -19,14 +38,29 @@ const cardOf = (element: HTMLElement, name: string) =>
   )!;
 
 describe('UsersPage', () => {
-  it('shows each user’s name, email, state and roles', async () => {
+  it('shows each user’s name, email, state and scoped assignments, "any" spelt out', async () => {
     const { element } = await render();
 
     const awa = cardOf(element, 'Awa Traoré');
     expect(text(awa)).toContain('awa@example.org');
     expect(text(awa.querySelector('.state'))).toBe('Actif');
-    expect([...awa.querySelectorAll('.roles .role-name')].map(text)).toEqual(['Auteurs']);
-    expect(text(cardOf(element, 'Moussa Keita').querySelector('.state'))).toBe('Désactivé');
+    expect(assignmentsOf(awa)).toEqual([
+      ['Auteurs', 'Projet : Santé communautaire Mali', 'Langue : Toutes les langues'],
+      ['Validateurs cliniques', 'Projet : Tous les projets', 'Langue : Bambara'],
+    ]);
+    const moussa = cardOf(element, 'Moussa Keita');
+    expect(text(moussa.querySelector('.state'))).toBe('Désactivé');
+    expect(assignmentsOf(moussa)).toEqual([]);
+    expect(text(moussa)).toContain('Aucun rôle');
+  });
+
+  it('shows no identifier of a project, language or assignment', async () => {
+    const { element } = await render();
+
+    const awa = text(cardOf(element, 'Awa Traoré'))!;
+    for (const id of [PROJECT.id, IDS.bm, ADMIN_IDS.awaAuthorsInProject]) {
+      expect(awa).not.toContain(id);
+    }
   });
 
   it('never renders the identity-provider subject', async () => {
@@ -109,47 +143,180 @@ describe('UsersPage', () => {
     expect(element.querySelector('button.danger, [aria-label*="Supprimer"]')).toBeNull();
   });
 
-  it('assigns a role the user does not hold yet', async () => {
-    const { api, element, choose, submit } = await render();
-    const awa = cardOf(element, 'Awa Traoré');
-    const form = awa.querySelector('form.assign');
-    const options = [...form!.querySelectorAll('option')].map((o) => o.value).filter(Boolean);
-    expect(options).toEqual([ADMIN_IDS.validators]);
+  it('offers every role, then any or a chosen project and language', async () => {
+    const { element } = await render();
+    const form = cardOf(element, 'Awa Traoré').querySelector('form.assign')!;
+    const optionsOf = (label: string) => {
+      const select = [...form.querySelectorAll('label')].find((l) => text(l) === label)!;
+      return [...form.querySelectorAll<HTMLOptionElement>(`#${select.htmlFor} option`)].map(
+        (option) => [option.value, text(option)],
+      );
+    };
 
-    await choose('Attribuer un rôle', ADMIN_IDS.validators, form);
+    // The same role may be held in several scopes, so none is hidden for being held already.
+    expect(optionsOf('Attribuer un rôle').map(([value]) => value)).toEqual([
+      '',
+      ADMIN_IDS.authors,
+      ADMIN_IDS.validators,
+    ]);
+    expect(optionsOf('Projet')).toEqual([
+      ['', 'Tous les projets'],
+      [PROJECT.id, 'Santé communautaire Mali'],
+    ]);
+    expect(optionsOf('Langue')).toEqual([
+      ['', 'Toutes les langues'],
+      [IDS.bm, 'Bambara'],
+      [IDS.en, 'English'],
+      [IDS.fr, 'Français'],
+      [IDS.ff, 'Peul'],
+    ]);
+  });
+
+  it('assigns in any project and any language by default: both sent as null', async () => {
+    const { api, element, choose, submit } = await render();
+    const form = cardOf(element, 'Moussa Keita').querySelector('form.assign');
+
+    await choose('Attribuer un rôle', ADMIN_IDS.authors, form);
     await submit(form);
 
     expect(api.writes).toEqual([
       {
         method: 'POST',
-        path: `/users/${ADMIN_IDS.awa}/roles`,
-        body: { role_id: ADMIN_IDS.validators },
+        path: `/users/${ADMIN_IDS.moussa}/assignments`,
+        body: { role_id: ADMIN_IDS.authors, project_id: null, language_id: null },
       },
     ]);
     expect(api.reads.filter((path) => path === '/users')).toHaveLength(2);
   });
 
-  it('unassigns a role, then re-reads the list', async () => {
-    const { api, element, click } = await render();
+  it('assigns within the project and language chosen, then resets the form', async () => {
+    const { api, element, choose, submit } = await render();
+    const form = cardOf(element, 'Awa Traoré').querySelector<HTMLFormElement>('form.assign')!;
 
-    await click('Retirer le rôle Auteurs à Awa Traoré', cardOf(element, 'Awa Traoré'));
+    await choose('Attribuer un rôle', ADMIN_IDS.validators, form);
+    await choose('Projet', PROJECT.id, form);
+    await choose('Langue', IDS.fr, form);
+    await submit(form);
 
     expect(api.writes).toEqual([
-      { method: 'DELETE', path: `/users/${ADMIN_IDS.awa}/roles/${ADMIN_IDS.authors}` },
+      {
+        method: 'POST',
+        path: `/users/${ADMIN_IDS.awa}/assignments`,
+        body: { role_id: ADMIN_IDS.validators, project_id: PROJECT.id, language_id: IDS.fr },
+      },
+    ]);
+    const fresh = cardOf(element, 'Awa Traoré').querySelector('form.assign')!;
+    expect([...fresh.querySelectorAll('select')].map((select) => select.value)).toEqual([
+      '',
+      '',
+      '',
+    ]);
+  });
+
+  it('does not ask again for a role the user already holds in that very scope', async () => {
+    const { api, element, choose, submit } = await render();
+    const awa = cardOf(element, 'Awa Traoré');
+    const form = awa.querySelector('form.assign');
+
+    await choose('Attribuer un rôle', ADMIN_IDS.authors, form);
+    await choose('Projet', PROJECT.id, form);
+    await submit(form);
+
+    expect(api.writes).toEqual([]);
+    expect(text(awa.querySelector('.field-error'))).toBe(
+      'Awa Traoré a déjà ce rôle dans ce périmètre.',
+    );
+  });
+
+  it('treats the engine’s “already assigned” (200) as done', async () => {
+    const { api, element, choose, submit } = await render({
+      [`POST /users/${ADMIN_IDS.moussa}/assignments`]: MOUSSA,
+    });
+    const moussa = cardOf(element, 'Moussa Keita');
+
+    await choose('Attribuer un rôle', ADMIN_IDS.authors, moussa.querySelector('form.assign'));
+    await submit(moussa.querySelector('form.assign'));
+
+    expect(api.writes).toHaveLength(1);
+    expect(moussa.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('asks for a role before assigning', async () => {
+    const { api, element, submit } = await render();
+    const awa = cardOf(element, 'Awa Traoré');
+
+    await submit(awa.querySelector('form.assign'));
+
+    expect(api.writes).toEqual([]);
+    expect(text(awa.querySelector('.field-error'))).toBe('Choisissez un rôle.');
+  });
+
+  it('removes one assignment by its id, then re-reads the list', async () => {
+    const { api, element, click } = await render();
+
+    await click(AWA_AUTHORS_REMOVE, cardOf(element, 'Awa Traoré'));
+
+    expect(api.writes).toEqual([
+      {
+        method: 'DELETE',
+        path: `/users/${ADMIN_IDS.awa}/assignments/${ADMIN_IDS.awaAuthorsInProject}`,
+      },
     ]);
     expect(api.reads.filter((path) => path === '/users')).toHaveLength(2);
   });
 
+  it('says an assignment was already removed, and re-reads', async () => {
+    const { api, element, click } = await render({
+      [`DELETE /users/${ADMIN_IDS.awa}/assignments/${ADMIN_IDS.awaAuthorsInProject}`]: engineError(
+        404,
+        'assignment_not_found',
+      ),
+    });
+    api.answers['/users'] = { items: [{ ...AWA, assignments: [] }, MOUSSA] };
+
+    await click(AWA_AUTHORS_REMOVE, cardOf(element, 'Awa Traoré'));
+
+    expect(text(element.querySelector('.page-notice'))).toBe(
+      'Cette attribution avait déjà été retirée : la page a été actualisée.',
+    );
+    expect(assignmentsOf(cardOf(element, 'Awa Traoré'))).toEqual([]);
+  });
+
+  it('says which choice vanished — role, project or language — and re-reads the choices', async () => {
+    for (const [code, message] of [
+      ['role_not_found', 'Ce rôle n’existe plus : la page a été actualisée.'],
+      ['project_not_found', 'Ce projet n’existe plus : la page a été actualisée.'],
+      ['language_not_found', 'Cette langue n’existe plus : la page a été actualisée.'],
+    ]) {
+      TestBed.resetTestingModule();
+      const { api, element, choose, submit } = await render({
+        [`POST /users/${ADMIN_IDS.moussa}/assignments`]: engineError(404, code),
+      });
+      const form = cardOf(element, 'Moussa Keita').querySelector('form.assign');
+
+      await choose('Attribuer un rôle', ADMIN_IDS.authors, form);
+      await submit(form);
+
+      expect(text(element.querySelector('.page-notice'))).toBe(message);
+      for (const path of ['/users', '/roles', '/projects', '/languages']) {
+        expect(
+          api.reads.filter((read) => read === path),
+          path,
+        ).toHaveLength(2);
+      }
+    }
+  });
+
   it('re-reads and says so when the user no longer exists', async () => {
     const { api, element, click } = await render({
-      [`DELETE /users/${ADMIN_IDS.awa}/roles/${ADMIN_IDS.authors}`]: engineError(
+      [`DELETE /users/${ADMIN_IDS.awa}/assignments/${ADMIN_IDS.awaAuthorsInProject}`]: engineError(
         404,
         'user_not_found',
       ),
     });
     api.answers['/users'] = { items: [MOUSSA] };
 
-    await click('Retirer le rôle Auteurs à Awa Traoré', cardOf(element, 'Awa Traoré'));
+    await click(AWA_AUTHORS_REMOVE, cardOf(element, 'Awa Traoré'));
 
     expect(text(element.querySelector('.page-notice'))).toBe(
       'Cet élément n’existe plus : la page a été actualisée.',
