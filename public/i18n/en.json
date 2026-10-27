@@ -404,7 +404,8 @@
       "catalog": "Catalogue",
       "languages": "Languages",
       "intents": "Intents",
-      "categories": "Categories"
+      "categories": "Categories",
+      "glossary": "Glossary"
     },
     "prompts": {
       "title": "Prompt templates",
@@ -543,6 +544,55 @@
         "noMatch": "No category matches."
       }
     },
+    "glossary": {
+      "title": "Glossary",
+      "create": "Add a term",
+      "createSubmit": "Add",
+      "label": "Label",
+      "note": "Note",
+      "search": "Search a term or a form",
+      "status": {
+        "label": "Status",
+        "active": "Active",
+        "archived": "Archived",
+        "all": "All"
+      },
+      "archivedMark": "Archived",
+      "editName": "Edit the term {{label}}",
+      "archive": "Archive",
+      "archiveName": "Archive the term {{label}}",
+      "unarchive": "Unarchive",
+      "unarchiveName": "Unarchive the term {{label}}",
+      "count": {
+        "one": "{{count}} term",
+        "other": "{{count}} terms"
+      },
+      "countPaged": {
+        "one": "{{count}} term, page {{page}} of {{pages}}",
+        "other": "{{count}} terms, page {{page}} of {{pages}}"
+      },
+      "pager": "Glossary pages",
+      "previous": "Previous page",
+      "next": "Next page",
+      "empty": "The glossary is empty for now.",
+      "noMatch": "No term matches.",
+      "forms": {
+        "none": "No form yet.",
+        "language": "Language",
+        "languageRequired": "Choose a language.",
+        "preferred": "Preferred form",
+        "synonyms": "Synonyms",
+        "synonymsHint": "One synonym per line.",
+        "avoid": "Avoid",
+        "avoidHint": "One form to avoid per line (optional).",
+        "add": "Add a form",
+        "addName": "Add a form to the term {{label}}",
+        "editName": "Edit the {{language}} form of the term {{label}}",
+        "remove": "Remove",
+        "removeName": "Remove the {{language}} form of the term {{label}}",
+        "removeWarning": "Remove the {{language}} form of the term “{{label}}”?"
+      }
+    },
     "permissions": {
       "manage_languages": "Manage languages",
       "manage_catalog": "Manage projects, protocols and themes",
@@ -555,7 +605,8 @@
       "validate_audio": "Validate audio recordings",
       "manage_access": "Manage access",
       "manage_prompts": "Manage prompt templates",
-      "export_corpus": "Export the corpus"
+      "export_corpus": "Export the corpus",
+      "manage_glossary": "Manage the glossary"
     },
     "errors": {
       "emailExists": "An account already exists with this email address.",
@@ -577,7 +628,10 @@
       "roleNotFound": "This role no longer exists: the page has been refreshed.",
       "projectNotFound": "This project no longer exists: the page has been refreshed.",
       "languageNotFound": "This language no longer exists: the page has been refreshed.",
-      "assignmentNotFound": "This assignment had already been removed: the page has been refreshed."
+      "assignmentNotFound": "This assignment had already been removed: the page has been refreshed.",
+      "invalidGlossaryField": "The label and the preferred form cannot be blank.",
+      "glossaryTermNotFound": "This term no longer exists: the page was refreshed.",
+      "glossaryFormNotFound": "This form had already been removed: the page was refreshed."
     }
   }
 }

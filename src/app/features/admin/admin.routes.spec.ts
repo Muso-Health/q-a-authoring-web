@@ -86,6 +86,13 @@ describe('ADMIN_ROUTES', () => {
     }
   });
 
+  it('opens the glossary to whoever manages it, and to anyone else in the area to read', async () => {
+    expect(await landing('/admin', ['manage_glossary'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['manage_glossary'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['manage_catalog'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['author_qasets'])).toBe('/projects');
+  });
+
   it('keeps the whole area from everyone else', async () => {
     expect(await landing('/admin', ['author_qasets'])).toBe('/projects');
   });

@@ -764,6 +764,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/glossary/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Glossary Terms
+         * @description Terms ordered by label (case-insensitive) with their forms, and the count of every match.
+         *     ``q`` matches inside the label or any preferred form, synonym or form to avoid, ignoring case
+         *     and accents.
+         */
+        get: operations["list_glossary_terms_glossary_terms_get"];
+        put?: never;
+        /**
+         * Create Glossary Term
+         * @description A term with its optional first forms (one per language; a repeated language keeps its
+         *     last form). 404 ``language_not_found``; 422 ``invalid_glossary_field`` naming the field.
+         */
+        post: operations["create_glossary_term_glossary_terms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Glossary Term */
+        get: operations["get_glossary_term_glossary_terms__term_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Glossary Term
+         * @description Change the label and/or the note (``note: null`` clears it).
+         */
+        patch: operations["update_glossary_term_glossary_terms__term_id__patch"];
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Glossary Term
+         * @description Hide the term from the default (active) listing. Idempotent.
+         */
+        post: operations["archive_glossary_term_glossary_terms__term_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unarchive Glossary Term
+         * @description Idempotent.
+         */
+        post: operations["unarchive_glossary_term_glossary_terms__term_id__unarchive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/forms/{language_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Upsert Glossary Form
+         * @description Set the term's form in the language: 201 when it had none, 200 when it replaced it (the
+         *     form keeps its id). Synonyms and forms to avoid are trimmed, blanks and repeats dropped.
+         *     Returns the term.
+         */
+        put: operations["upsert_glossary_form_glossary_terms__term_id__forms__language_id__put"];
+        post?: never;
+        /**
+         * Remove Glossary Form
+         * @description 404 ``glossary_form_not_found`` if the term has no form in the language.
+         */
+        delete: operations["remove_glossary_form_glossary_terms__term_id__forms__language_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/qasets/{qaset_id}/answers/{answer_id}/audio": {
         parameters: {
             query?: never;
@@ -1464,6 +1578,18 @@ export interface components {
             /** Uncovered Notions */
             uncovered_notions: string[];
         };
+        /** CreateGlossaryTermRequest */
+        CreateGlossaryTermRequest: {
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Forms
+             * @default []
+             */
+            forms: components["schemas"]["InitialGlossaryFormRequest"][];
+        };
         /** CreateNamedRequest */
         CreateNamedRequest: {
             /** Name */
@@ -1582,6 +1708,77 @@ export interface components {
             /** Candidates */
             candidates: string[];
         };
+        /** GlossaryFormRequest */
+        GlossaryFormRequest: {
+            /** Preferred */
+            preferred: string;
+            /**
+             * Synonyms
+             * @default []
+             */
+            synonyms: string[];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /** Note */
+            note?: string | null;
+        };
+        /** GlossaryFormResponse */
+        GlossaryFormResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+            /** Preferred */
+            preferred: string;
+            /** Synonyms */
+            synonyms: string[];
+            /** Avoid */
+            avoid: string[];
+            /** Note */
+            note: string | null;
+        };
+        /** GlossaryTermResponse */
+        GlossaryTermResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Forms */
+            forms: components["schemas"]["GlossaryFormResponse"][];
+        };
+        /** GlossaryTermsResponse */
+        GlossaryTermsResponse: {
+            /** Items */
+            items: components["schemas"]["GlossaryTermResponse"][];
+            /** Total */
+            total: number;
+        };
         /**
          * GrantResponse
          * @description An effective permission within its scope (null means any), normalized to the
@@ -1608,6 +1805,28 @@ export interface components {
              * @constant
              */
             status: "ok";
+        };
+        /** InitialGlossaryFormRequest */
+        InitialGlossaryFormRequest: {
+            /** Preferred */
+            preferred: string;
+            /**
+             * Synonyms
+             * @default []
+             */
+            synonyms: string[];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /** Note */
+            note?: string | null;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
         };
         /** IntentResponse */
         IntentResponse: {
@@ -2060,6 +2279,16 @@ export interface components {
              * Format: uuid
              */
             other_language_id: string;
+        };
+        /**
+         * UpdateGlossaryTermRequest
+         * @description PATCH: an absent field is unchanged; ``note: null`` clears the note.
+         */
+        UpdateGlossaryTermRequest: {
+            /** Label */
+            label?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /**
          * UpdateLanguageRequest
@@ -4062,6 +4291,267 @@ export interface operations {
             header?: never;
             path: {
                 category_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_glossary_terms_glossary_terms_get: {
+        parameters: {
+            query?: {
+                status?: "active" | "archived" | "all";
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_glossary_term_glossary_terms_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGlossaryTermRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_glossary_term_glossary_terms__term_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_glossary_term_glossary_terms__term_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGlossaryTermRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_glossary_term_glossary_terms__term_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unarchive_glossary_term_glossary_terms__term_id__unarchive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_glossary_form_glossary_terms__term_id__forms__language_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+                language_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GlossaryFormRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_glossary_form_glossary_terms__term_id__forms__language_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+                language_id: string;
             };
             cookie?: never;
         };

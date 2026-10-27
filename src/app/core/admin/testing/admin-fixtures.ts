@@ -115,3 +115,72 @@ export const CATEGORIES: Schemas['CategoriesResponse'] = {
     { id: TAXONOMY_IDS.malaria, name: 'Paludisme' },
   ],
 };
+
+export const GLOSSARY_IDS = {
+  bednet: 'c3000000-0000-0000-0000-000000000001',
+  malaria: 'c3000000-0000-0000-0000-000000000002',
+  yellowFever: 'c3000000-0000-0000-0000-000000000003',
+  bednetFr: 'c4000000-0000-0000-0000-000000000001',
+  bednetBm: 'c4000000-0000-0000-0000-000000000002',
+  malariaFr: 'c4000000-0000-0000-0000-000000000003',
+} as const;
+
+const STAMP = { created_at: '2026-10-01T09:00:00Z', updated_at: '2026-10-02T10:00:00Z' };
+
+export const BEDNET_TERM: Schemas['GlossaryTermResponse'] = {
+  id: GLOSSARY_IDS.bednet,
+  label: 'Moustiquaire',
+  note: null,
+  status: 'active',
+  ...STAMP,
+  forms: [
+    {
+      id: GLOSSARY_IDS.bednetFr,
+      language_id: IDS.fr,
+      preferred: 'moustiquaire imprégnée',
+      synonyms: ['MII', 'moustiquaire traitée'],
+      avoid: ['filet'],
+      note: 'Toujours préciser « imprégnée ».',
+    },
+    {
+      id: GLOSSARY_IDS.bednetBm,
+      language_id: IDS.bm,
+      preferred: 'sanfɛsɛ',
+      synonyms: [],
+      avoid: [],
+      note: null,
+    },
+  ],
+};
+
+export const MALARIA_TERM: Schemas['GlossaryTermResponse'] = {
+  id: GLOSSARY_IDS.malaria,
+  label: 'Paludisme',
+  note: 'Maladie transmise par les moustiques.',
+  status: 'active',
+  ...STAMP,
+  forms: [
+    {
+      id: GLOSSARY_IDS.malariaFr,
+      language_id: IDS.fr,
+      preferred: 'paludisme',
+      synonyms: ['malaria'],
+      avoid: ['palu'],
+      note: null,
+    },
+  ],
+};
+
+export const YELLOW_FEVER_TERM: Schemas['GlossaryTermResponse'] = {
+  id: GLOSSARY_IDS.yellowFever,
+  label: 'Fièvre jaune',
+  note: null,
+  status: 'archived',
+  ...STAMP,
+  forms: [],
+};
+
+export const GLOSSARY: Schemas['GlossaryTermsResponse'] = {
+  items: [BEDNET_TERM, MALARIA_TERM],
+  total: 2,
+};

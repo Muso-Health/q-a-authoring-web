@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CurrentUser } from '../../core/access/current-user';
@@ -59,6 +59,6 @@ export class AdminArea {
 
   protected readonly sections = ADMIN_SECTIONS.map((section) => ({
     ...section,
-    allowed: this.#user.can(section.permission),
+    allowed: section.permission === null ? signal(true) : this.#user.can(section.permission),
   }));
 }

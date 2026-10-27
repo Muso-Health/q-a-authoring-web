@@ -121,6 +121,19 @@ describe('writeFailureOf, for the administration', () => {
       expect(writeFailureOf(engineError(404, code))).toEqual({ key, gone: true });
     }
   });
+
+  it('maps the glossary refusals: a blank field, a vanished term or form', () => {
+    expect(writeFailureOf(engineError(422, 'invalid_glossary_field', { field: 'label' }))).toEqual({
+      key: 'admin.errors.invalidGlossaryField',
+      gone: false,
+    });
+    for (const [code, key] of [
+      ['glossary_term_not_found', 'admin.errors.glossaryTermNotFound'],
+      ['glossary_form_not_found', 'admin.errors.glossaryFormNotFound'],
+    ]) {
+      expect(writeFailureOf(engineError(404, code))).toEqual({ key, gone: true });
+    }
+  });
 });
 
 describe('placeholderProblemsOf', () => {

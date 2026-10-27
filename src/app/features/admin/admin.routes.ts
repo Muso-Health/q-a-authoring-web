@@ -63,6 +63,11 @@ export const ADMIN_ROUTES: Routes = [
         data: { kind },
         loadComponent: () => import('./terms/terms-page').then((m) => m.TermsPage),
       })),
+      // Read by anyone in the area; the page offers its writes to whoever manages the glossary.
+      {
+        path: 'glossary',
+        loadComponent: () => import('./glossary/glossary-page').then((m) => m.GlossaryPage),
+      },
     ],
   },
 ];

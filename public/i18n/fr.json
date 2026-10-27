@@ -404,7 +404,8 @@
       "catalog": "Catalogue",
       "languages": "Langues",
       "intents": "Intentions",
-      "categories": "Catégories"
+      "categories": "Catégories",
+      "glossary": "Glossaire"
     },
     "prompts": {
       "title": "Modèles de prompt",
@@ -543,6 +544,55 @@
         "noMatch": "Aucune catégorie ne correspond."
       }
     },
+    "glossary": {
+      "title": "Glossaire",
+      "create": "Ajouter un terme",
+      "createSubmit": "Ajouter",
+      "label": "Libellé",
+      "note": "Note",
+      "search": "Rechercher un terme ou une forme",
+      "status": {
+        "label": "Statut",
+        "active": "Actifs",
+        "archived": "Archivés",
+        "all": "Tous"
+      },
+      "archivedMark": "Archivé",
+      "editName": "Modifier le terme {{label}}",
+      "archive": "Archiver",
+      "archiveName": "Archiver le terme {{label}}",
+      "unarchive": "Désarchiver",
+      "unarchiveName": "Désarchiver le terme {{label}}",
+      "count": {
+        "one": "{{count}} terme",
+        "other": "{{count}} termes"
+      },
+      "countPaged": {
+        "one": "{{count}} terme, page {{page}} sur {{pages}}",
+        "other": "{{count}} termes, page {{page}} sur {{pages}}"
+      },
+      "pager": "Pages du glossaire",
+      "previous": "Page précédente",
+      "next": "Page suivante",
+      "empty": "Le glossaire est vide pour l’instant.",
+      "noMatch": "Aucun terme ne correspond.",
+      "forms": {
+        "none": "Aucune forme pour l’instant.",
+        "language": "Langue",
+        "languageRequired": "Choisissez une langue.",
+        "preferred": "Forme préférée",
+        "synonyms": "Synonymes",
+        "synonymsHint": "Un synonyme par ligne.",
+        "avoid": "À éviter",
+        "avoidHint": "Une forme à éviter par ligne (facultatif).",
+        "add": "Ajouter une forme",
+        "addName": "Ajouter une forme au terme {{label}}",
+        "editName": "Modifier la forme en {{language}} du terme {{label}}",
+        "remove": "Retirer",
+        "removeName": "Retirer la forme en {{language}} du terme {{label}}",
+        "removeWarning": "Retirer la forme en {{language}} du terme « {{label}} » ?"
+      }
+    },
     "permissions": {
       "manage_languages": "Gérer les langues",
       "manage_catalog": "Gérer les projets, protocoles et thèmes",
@@ -555,7 +605,8 @@
       "validate_audio": "Valider les enregistrements audio",
       "manage_access": "Gérer les accès",
       "manage_prompts": "Gérer les modèles de prompt",
-      "export_corpus": "Exporter le corpus"
+      "export_corpus": "Exporter le corpus",
+      "manage_glossary": "Gérer le glossaire"
     },
     "errors": {
       "emailExists": "Un compte existe déjà avec cette adresse e-mail.",
@@ -577,7 +628,10 @@
       "roleNotFound": "Ce rôle n’existe plus : la page a été actualisée.",
       "projectNotFound": "Ce projet n’existe plus : la page a été actualisée.",
       "languageNotFound": "Cette langue n’existe plus : la page a été actualisée.",
-      "assignmentNotFound": "Cette attribution avait déjà été retirée : la page a été actualisée."
+      "assignmentNotFound": "Cette attribution avait déjà été retirée : la page a été actualisée.",
+      "invalidGlossaryField": "Le libellé et la forme préférée ne peuvent pas être vides.",
+      "glossaryTermNotFound": "Ce terme n’existe plus : la page a été actualisée.",
+      "glossaryFormNotFound": "Cette forme avait déjà été retirée : la page a été actualisée."
     }
   }
 }

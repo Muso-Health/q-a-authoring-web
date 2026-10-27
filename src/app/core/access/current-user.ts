@@ -14,6 +14,7 @@ export const VALIDATE_TRANSLATION = 'validate_translation';
 export const VALIDATE_AUDIO = 'validate_audio';
 export const MANAGE_PROMPTS = 'manage_prompts';
 export const MANAGE_ACCESS = 'manage_access';
+export const MANAGE_GLOSSARY = 'manage_glossary';
 
 /** Each opens a section of the administration; holding any of them opens the area. */
 export const ADMIN_PERMISSIONS: readonly string[] = [
@@ -23,6 +24,7 @@ export const ADMIN_PERMISSIONS: readonly string[] = [
   MANAGE_LANGUAGES,
   MANAGE_INTENTS,
   MANAGE_CATEGORIES,
+  MANAGE_GLOSSARY,
 ];
 
 /** Who is signed in, as shown: the engine's display name and email — never an identifier. */

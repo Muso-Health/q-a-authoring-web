@@ -41,6 +41,7 @@ const BY_CODE: Readonly<Record<string, string>> = {
   language_in_use: 'admin.errors.languageInUse',
   intent_in_use: 'admin.errors.intentInUse',
   category_in_use: 'admin.errors.categoryInUse',
+  invalid_glossary_field: 'admin.errors.invalidGlossaryField',
   unsupported_document_type: 'documentation.errors.unsupportedType',
   document_too_large: 'documentation.errors.tooLarge',
   no_documentation: 'documentation.errors.noDocumentation',
@@ -53,6 +54,8 @@ const GONE_BY_CODE: Readonly<Record<string, string>> = {
   project_not_found: 'admin.errors.projectNotFound',
   language_not_found: 'admin.errors.languageNotFound',
   assignment_not_found: 'admin.errors.assignmentNotFound',
+  glossary_term_not_found: 'admin.errors.glossaryTermNotFound',
+  glossary_form_not_found: 'admin.errors.glossaryFormNotFound',
 };
 
 const engineCode = (error: HttpErrorResponse): string | undefined => {
