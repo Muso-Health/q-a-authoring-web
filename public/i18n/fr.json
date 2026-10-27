@@ -217,7 +217,7 @@
       "answer": "Réponse",
       "add": "Ajouter une paire",
       "import": "Importer un fichier Excel ou CSV",
-      "importHint": "La première ligne nomme les colonnes : « question » (ou « pregunta ») et « réponse » (ou « answer », « respuesta »). Les paires chargées s’ajoutent au formulaire, à relire avant d’enregistrer.",
+      "importHint": "La première ligne nomme les colonnes : « question » et « réponse » (ou « answer »). Les paires chargées s’ajoutent au formulaire, à relire avant d’enregistrer.",
       "importing": "Lecture du fichier…",
       "imported": {
         "one": "{{ count }} paire chargée depuis « {{ name }} » : relisez-la, puis enregistrez.",
@@ -257,8 +257,8 @@
         "importEmpty": "« {{ name }} » ne contient aucune paire : sous la ligne d’en-têtes, chaque ligne donne une question et sa réponse. Rien n’a été chargé.",
         "importUnreadable": "« {{ name }} » n’a pas pu être lu : choisissez un fichier .xlsx ou .csv valide. Rien n’a été chargé.",
         "importMissingColumns": {
-          "one": "Colonne introuvable dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé.",
-          "other": "Colonnes introuvables dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé."
+          "one": "Colonne introuvable dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » et une colonne « réponse » (ou « answer »). Rien n’a été chargé.",
+          "other": "Colonnes introuvables dans « {{ name }} » : {{ columns }}. La première ligne doit nommer une colonne « question » et une colonne « réponse » (ou « answer »). Rien n’a été chargé."
         }
       }
     },

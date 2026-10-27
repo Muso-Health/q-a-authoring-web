@@ -442,7 +442,7 @@ describe('ThemePage authoring', () => {
 
       expect(values()).toEqual([['Q1', 'R1']]);
       expect(text(element.querySelector('.import [role="alert"]'))).toBe(
-        'Colonne introuvable dans « liste.xlsx » : réponse. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé.',
+        'Colonne introuvable dans « liste.xlsx » : réponse. La première ligne doit nommer une colonne « question » et une colonne « réponse » (ou « answer »). Rien n’a été chargé.',
       );
       expect(element.querySelector('.import [role="status"]')?.textContent?.trim()).toBeFalsy();
     });

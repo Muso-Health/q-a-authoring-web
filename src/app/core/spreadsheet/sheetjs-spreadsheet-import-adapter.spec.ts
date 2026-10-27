@@ -20,16 +20,16 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
   });
 
   describe('headers', () => {
-    it('finds pregunta and respuesta, whatever their case and spacing', async () => {
+    it('finds question and réponse, whatever their case and spacing', async () => {
       const pairs = await setUp().parsePairs(
         xlsxFile([
-          ['  PREGUNTA ', 'Respuesta'],
-          ['¿Cómo protegerse?', 'Duerma bajo un mosquitero.'],
+          ['  QUESTION ', 'Réponse'],
+          ['Comment se protéger ?', 'Dormez sous une moustiquaire.'],
         ]),
       );
 
       expect(pairs).toEqual([
-        { question: '¿Cómo protegerse?', answer: 'Duerma bajo un mosquitero.' },
+        { question: 'Comment se protéger ?', answer: 'Dormez sous une moustiquaire.' },
       ]);
     });
 
@@ -45,6 +45,20 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
           ),
         ).toEqual([{ question: 'Q', answer: 'R' }]);
       }
+    });
+
+    it('takes no Spanish header for a column', async () => {
+      const error = await setUp()
+        .parsePairs(
+          xlsxFile([
+            ['Pregunta', 'Respuesta'],
+            ['Q', 'R'],
+          ]),
+        )
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(MissingColumnError);
+      expect((error as MissingColumnError).columns).toEqual(['question', 'answer']);
     });
 
     it('reads the columns wherever they are, and ignores the others', async () => {
@@ -72,9 +86,7 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
 
       expect(error).toBeInstanceOf(MissingColumnError);
       expect((error as MissingColumnError).columns).toEqual(['answer']);
-      expect((error as MissingColumnError).accepted).toEqual({
-        answer: ['respuesta', 'answer', 'réponse'],
-      });
+      expect((error as MissingColumnError).accepted).toEqual({ answer: ['réponse', 'answer'] });
     });
 
     it('names both columns when neither is there', async () => {
@@ -118,7 +130,7 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
       const pairs = await setUp().parsePairs(
         xlsxFile(
           [
-            ['Pregunta', 'Respuesta'],
+            ['Question', 'Réponse'],
             ['Comment se protéger ?', 'Dormez sous une moustiquaire.'],
             ['Qui est concerné ?', 'Les enfants de moins de cinq ans.'],
           ],

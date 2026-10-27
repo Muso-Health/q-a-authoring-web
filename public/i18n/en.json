@@ -217,7 +217,7 @@
       "answer": "Answer",
       "add": "Add a pair",
       "import": "Import an Excel or CSV file",
-      "importHint": "The first row names the columns: “question” (or “pregunta”) and “answer” (or “réponse”, “respuesta”). Loaded pairs are added to the form, to review before saving.",
+      "importHint": "The first row names the columns: “question” and “answer” (or “réponse”). Loaded pairs are added to the form, to review before saving.",
       "importing": "Reading the file…",
       "imported": {
         "one": "{{ count }} pair loaded from “{{ name }}”: review it, then save.",
@@ -257,8 +257,8 @@
         "importEmpty": "“{{ name }}” holds no pairs: below the header row, each row gives a question and its answer. Nothing was loaded.",
         "importUnreadable": "“{{ name }}” could not be read: choose a valid .xlsx or .csv file. Nothing was loaded.",
         "importMissingColumns": {
-          "one": "Column not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column (or “pregunta”) and an “answer” column (or “réponse”, “respuesta”). Nothing was loaded.",
-          "other": "Columns not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column (or “pregunta”) and an “answer” column (or “réponse”, “respuesta”). Nothing was loaded."
+          "one": "Column not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column and an “answer” column (or “réponse”). Nothing was loaded.",
+          "other": "Columns not found in “{{ name }}”: {{ columns }}. The first row must name a “question” column and an “answer” column (or “réponse”). Nothing was loaded."
         }
       }
     },

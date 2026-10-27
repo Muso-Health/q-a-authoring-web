@@ -8,8 +8,8 @@ export type PairColumn = 'question' | 'answer';
 
 /** The headers each column answers to, compared without case, accents or surrounding spaces. */
 export const ACCEPTED_HEADERS: Readonly<Record<PairColumn, readonly string[]>> = {
-  question: ['pregunta', 'question'],
-  answer: ['respuesta', 'answer', 'réponse'],
+  question: ['question'],
+  answer: ['réponse', 'answer'],
 };
 
 /** The header row names no question column, no answer column, or neither. */

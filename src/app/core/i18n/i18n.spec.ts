@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { MemoryStorage } from './testing/memory-storage';
+import { SPANISH } from './testing/spanish';
 import { provideTestI18n } from './testing/provide-test-i18n';
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, Translator, UI_LANGUAGES } from './translator';
 
@@ -143,5 +144,9 @@ describe('the translation files', () => {
       ([key, value]) => placeholdersIn(value) !== placeholdersIn(english.get(key) ?? ''),
     );
     expect(mismatched).toEqual([]);
+  });
+
+  it('speak French and English only, never Spanish', () => {
+    expect([...fr, ...en].filter(([, value]) => SPANISH.test(value))).toEqual([]);
   });
 });
