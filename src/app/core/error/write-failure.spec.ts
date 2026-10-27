@@ -1,6 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { engineError } from '../api/testing/fake-api-port';
-import { placeholderProblemsOf, writeFailureOf } from './write-failure';
+import {
+  invalidPairRowsOf,
+  isInvalidRequest,
+  placeholderProblemsOf,
+  writeFailureOf,
+} from './write-failure';
 
 describe('writeFailureOf', () => {
   it('reacts to the engine’s code, not its message', () => {
@@ -135,5 +140,26 @@ describe('placeholderProblemsOf', () => {
   it('has nothing to say about any other refusal', () => {
     expect(placeholderProblemsOf(engineError(422, 'invalid_name'))).toBeNull();
     expect(placeholderProblemsOf(new Error('boom'))).toBeNull();
+  });
+});
+
+describe('invalidPairRowsOf', () => {
+  it('reads the rows the engine refused', () => {
+    expect(invalidPairRowsOf(engineError(422, 'invalid_qa_pairs', { rows: [0, 2] }))).toEqual([
+      0, 2,
+    ]);
+  });
+
+  it('has nothing to say about any other refusal', () => {
+    expect(invalidPairRowsOf(engineError(422, 'invalid_request'))).toBeNull();
+    expect(invalidPairRowsOf(new Error('boom'))).toBeNull();
+  });
+});
+
+describe('isInvalidRequest', () => {
+  it('recognises the engine’s refusal of a malformed request, by its code', () => {
+    expect(isInvalidRequest(engineError(422, 'invalid_request'))).toBe(true);
+    expect(isInvalidRequest(engineError(422, 'invalid_qa_pairs'))).toBe(false);
+    expect(isInvalidRequest(new Error('boom'))).toBe(false);
   });
 });

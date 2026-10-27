@@ -1352,7 +1352,7 @@
           "qasets"
         ],
         "summary": "Create Qaset",
-        "description": "Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language.",
+        "description": "Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language;\n409 ``answer_already_exists`` (with its ``qaset_id``) if the theme already has this\nbase-language answer.",
         "operationId": "create_qaset_themes__theme_id__qasets_post",
         "parameters": [
           {
@@ -1424,6 +1424,65 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QASetsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/themes/{theme_id}/qa-pairs": {
+      "post": {
+        "tags": [
+          "qasets"
+        ],
+        "summary": "Author Qa Pairs",
+        "description": "Author question-answer pairs in the project's base language. Pairs sharing an answer\n(trimmed) form one QA set, and an answer the theme already has gains the new questions;\nrepeated questions are skipped. At most ``MAX_QA_PAIRS`` (500) pairs per request. 422\n``invalid_qa_pairs`` with the offending row indices if a question or answer is empty (nothing\nis written).",
+        "operationId": "author_qa_pairs_themes__theme_id__qa_pairs_post",
+        "parameters": [
+          {
+            "name": "theme_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Theme Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/QAPairRequest"
+                },
+                "maxItems": 500,
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoredPairsResponse"
                 }
               }
             }
@@ -4622,6 +4681,37 @@
         "title": "AudioSummaryResponse",
         "description": "An item's recording as listed in a QA set; play it via its playback-url."
       },
+      "AuthoredPairsResponse": {
+        "properties": {
+          "qasets_created": {
+            "type": "integer",
+            "title": "Qasets Created"
+          },
+          "qasets_updated": {
+            "type": "integer",
+            "title": "Qasets Updated"
+          },
+          "variants_added": {
+            "type": "integer",
+            "title": "Variants Added"
+          },
+          "skipped_rows": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Skipped Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "qasets_created",
+          "qasets_updated",
+          "variants_added",
+          "skipped_rows"
+        ],
+        "title": "AuthoredPairsResponse"
+      },
       "Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post": {
         "properties": {
           "file": {
@@ -5620,6 +5710,26 @@
           "items"
         ],
         "title": "ProtocolsResponse"
+      },
+      "QAPairRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "answer"
+        ],
+        "title": "QAPairRequest",
+        "description": "No language: pairs are always authored in the project's base language."
       },
       "QASetResponse": {
         "properties": {

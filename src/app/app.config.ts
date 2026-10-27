@@ -7,6 +7,7 @@ import { authInterceptor } from './core/auth/auth-interceptor';
 import { provideAuth } from './core/auth/provide-auth';
 import { ENVIRONMENT } from './core/config/environment';
 import { provideI18n } from './core/i18n/provide-i18n';
+import { provideSpreadsheetImport } from './core/spreadsheet/provide-spreadsheet-import';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,5 +22,6 @@ export const appConfig: ApplicationConfig = {
     provideI18n(),
     provideApi(ENVIRONMENT.apiBaseUrl),
     provideAuth(ENVIRONMENT.auth),
+    provideSpreadsheetImport(),
   ],
 };

@@ -98,3 +98,17 @@ export function placeholderProblemsOf(error: unknown): PlaceholderProblems | nul
   const body = error.error as { details?: { missing?: unknown; unknown?: unknown } | null };
   return { missing: strings(body.details?.missing), unknown: strings(body.details?.unknown) };
 }
+
+/** The rows (indices in the batch as sent) the engine refused as an incomplete pair. */
+export function invalidPairRowsOf(error: unknown): number[] | null {
+  if (!(error instanceof HttpErrorResponse) || engineCode(error) !== 'invalid_qa_pairs') {
+    return null;
+  }
+  const rows = (error.error as { details?: { rows?: unknown } | null }).details?.rows;
+  return Array.isArray(rows) ? rows.filter((row): row is number => Number.isInteger(row)) : [];
+}
+
+/** The engine's own refusal of a malformed request (a schema violation, e.g. too large a batch). */
+export function isInvalidRequest(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && engineCode(error) === 'invalid_request';
+}

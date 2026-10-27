@@ -9,6 +9,20 @@ const answerIn = (languageId: string, answerText: string): Schemas['AnswerInLang
   answer_text: answerText,
 });
 
+/** A question and its answer, written in the project's base language: the API takes no language. */
+export interface QAPair {
+  readonly question: string;
+  readonly answer: string;
+}
+
+/** What a batch of pairs did. `skippedRows` index the batch as sent: questions already there. */
+export interface AuthoredPairs {
+  readonly qasetsCreated: number;
+  readonly qasetsUpdated: number;
+  readonly variantsAdded: number;
+  readonly skippedRows: readonly number[];
+}
+
 export const TRANSLATION_ENGINES = ['llm', 'google'] as const;
 export type TranslationEngine = (typeof TRANSLATION_ENGINES)[number];
 
@@ -22,10 +36,22 @@ const translate = (
 export class QASetAuthoringApi {
   readonly #api = inject(ApiPort);
 
-  async createQASet(themeId: string, languageId: string, answerText: string): Promise<string> {
-    const path = `/themes/${id(themeId)}/qasets`;
-    return (await this.#api.post<Schemas['QASetResponse']>(path, answerIn(languageId, answerText)))
-      .id;
+  /** Pairs sharing an answer become one QASet; an answer the theme already has gains questions. */
+  async authorPairs(themeId: string, pairs: readonly QAPair[]): Promise<AuthoredPairs> {
+    const body: Schemas['QAPairRequest'][] = pairs.map(({ question, answer }) => ({
+      question,
+      answer,
+    }));
+    const result = await this.#api.post<Schemas['AuthoredPairsResponse']>(
+      `/themes/${id(themeId)}/qa-pairs`,
+      body,
+    );
+    return {
+      qasetsCreated: result.qasets_created,
+      qasetsUpdated: result.qasets_updated,
+      variantsAdded: result.variants_added,
+      skippedRows: result.skipped_rows,
+    };
   }
 
   deleteQASet(qasetId: string): Promise<void> {

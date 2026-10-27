@@ -375,9 +375,35 @@ export interface paths {
         put?: never;
         /**
          * Create Qaset
-         * @description Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language.
+         * @description Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language;
+         *     409 ``answer_already_exists`` (with its ``qaset_id``) if the theme already has this
+         *     base-language answer.
          */
         post: operations["create_qaset_themes__theme_id__qasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/themes/{theme_id}/qa-pairs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Author Qa Pairs
+         * @description Author question-answer pairs in the project's base language. Pairs sharing an answer
+         *     (trimmed) form one QA set, and an answer the theme already has gains the new questions;
+         *     repeated questions are skipped. At most ``MAX_QA_PAIRS`` (500) pairs per request. 422
+         *     ``invalid_qa_pairs`` with the offending row indices if a question or answer is empty (nothing
+         *     is written).
+         */
+        post: operations["author_qa_pairs_themes__theme_id__qa_pairs_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1361,6 +1387,17 @@ export interface components {
             checksum_sha256: string;
             audio_validation: components["schemas"]["ValidationStateResponse"] | null;
         };
+        /** AuthoredPairsResponse */
+        AuthoredPairsResponse: {
+            /** Qasets Created */
+            qasets_created: number;
+            /** Qasets Updated */
+            qasets_updated: number;
+            /** Variants Added */
+            variants_added: number;
+            /** Skipped Rows */
+            skipped_rows: number[];
+        };
         /** Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post */
         Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post: {
             /** File */
@@ -1789,6 +1826,16 @@ export interface components {
         ProtocolsResponse: {
             /** Items */
             items: components["schemas"]["ProtocolResponse"][];
+        };
+        /**
+         * QAPairRequest
+         * @description No language: pairs are always authored in the project's base language.
+         */
+        QAPairRequest: {
+            /** Question */
+            question: string;
+            /** Answer */
+            answer: string;
         };
         /** QASetResponse */
         QASetResponse: {
@@ -3217,6 +3264,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QASetResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    author_qa_pairs_themes__theme_id__qa_pairs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QAPairRequest"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthoredPairsResponse"];
                 };
             };
             /** @description Validation Error */
