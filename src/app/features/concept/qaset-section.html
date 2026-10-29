@@ -81,9 +81,7 @@
       }
     }
     @if (generating()) {
-      <div class="generate">
-        <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
-      </div>
+      <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
     }
     <app-item-audios
       role="answer"

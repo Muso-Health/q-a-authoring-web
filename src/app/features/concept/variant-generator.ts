@@ -1,160 +1,303 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { FormField, applyEach, form, requiredError, validate } from '@angular/forms/signals';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChildren,
+} from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Language } from '../../core/catalog/catalog.model';
-import { TextEditor } from '../../shared/ui/text-editor';
+import { ModalDialog } from '../../shared/ui/modal-dialog';
 import { ConceptEditor } from './concept-editor';
 
 let nextId = 0;
 
-interface Candidate {
-  text: string;
-  keep: boolean;
+interface Proposal {
+  readonly text: string;
+  readonly keep: boolean;
 }
 
+/** Ask (with an optional context), then review what came back, or say why nothing did. */
+type Phase = 'ask' | 'review' | 'failed' | 'empty';
+
 /**
- * Asks the engine for question variants of a QASet, in its language, then lets the author edit and pick before
- * anything is saved. Candidates live only here: discarded ones are simply dropped.
+ * A wizard, in a modal, that asks the engine for question variants of a QASet in its language.
+ * Generation only proposes: the author unticks the proposals to leave out, and nothing is added
+ * to the QASet until they accept. Leaving the dialog any other way adds nothing.
  */
 @Component({
   selector: 'app-variant-generator',
-  imports: [FormField, TranslocoPipe, TextEditor],
+  imports: [TranslocoPipe, ModalDialog],
   template: `
-    @if (proposed()) {
-      <form class="candidates" novalidate (submit)="addKept($event)">
-        <h4>{{ 'authoring.generate.candidates' | transloco }}</h4>
-        @if (field.candidates.length === 0) {
-          <p class="muso-meta">{{ 'authoring.generate.none' | transloco }}</p>
+    <app-dialog
+      [title]="'authoring.generate.title' | transloco"
+      [locked]="editor.busy()"
+      (dismissed)="close()"
+    >
+      <p class="muso-meta lead">
+        {{ 'authoring.generate.lead' | transloco: { language: language().name } }}
+      </p>
+      @switch (phase()) {
+        @case ('ask') {
+          <form novalidate [attr.aria-busy]="generating()" (submit)="generate($event)">
+            <label [for]="id">
+              {{ 'authoring.generate.context' | transloco }}
+              <span class="optional">{{ 'authoring.generate.optional' | transloco }}</span>
+            </label>
+            <p class="muso-meta" [id]="id + '-hint'">
+              {{ 'authoring.generate.contextHint' | transloco }}
+            </p>
+            <textarea
+              cdkFocusInitial
+              rows="3"
+              [id]="id"
+              [attr.aria-describedby]="id + '-hint'"
+              [value]="context()"
+              [disabled]="editor.busy()"
+              (input)="context.set($any($event.target).value)"
+            ></textarea>
+            @if (generating()) {
+              <p class="generating" role="status">
+                <span class="spinner" aria-hidden="true"></span>
+                {{ 'authoring.generate.generating' | transloco }}
+              </p>
+            }
+            <div class="actions">
+              <button type="submit" [disabled]="editor.busy()">
+                {{ 'authoring.generate.submit' | transloco }}
+              </button>
+              <button type="button" class="secondary" [disabled]="editor.busy()" (click)="close()">
+                {{ 'authoring.cancel' | transloco }}
+              </button>
+            </div>
+          </form>
         }
-        <ol>
-          @for (candidate of field.candidates; track $index; let n = $index) {
-            <li [class.discarded]="!candidate.keep().value()">
-              <label class="keep">
-                <input type="checkbox" [formField]="candidate.keep" />
-                {{ 'authoring.generate.keep' | transloco: { number: n + 1 } }}
-              </label>
-              <label class="visually-hidden" [for]="id + '-' + n">
-                {{ 'authoring.generate.candidate' | transloco: { number: n + 1 } }}
-              </label>
-              <textarea
-                [id]="id + '-' + n"
-                rows="2"
-                [attr.lang]="language().code"
-                [formField]="candidate.text"
-                [attr.aria-invalid]="tried() && candidate().invalid() ? 'true' : null"
-              ></textarea>
-              @if (tried() && candidate().invalid()) {
-                <p class="field-error">{{ 'authoring.blank' | transloco }}</p>
-              }
-            </li>
-          }
-        </ol>
-        @if (editor.errorFor(target()); as message) {
-          <p class="field-error" role="alert">{{ message }}</p>
+        @case ('review') {
+          <form novalidate (submit)="accept($event)">
+            <fieldset>
+              <legend>{{ 'authoring.generate.candidates' | transloco }}</legend>
+              <p class="muso-meta">{{ 'authoring.generate.review' | transloco }}</p>
+              <ul class="proposals" [attr.lang]="language().code">
+                @for (proposal of proposals(); track $index; let n = $index) {
+                  <li [class.discarded]="!proposal.keep">
+                    <label>
+                      <input
+                        #focusTarget
+                        type="checkbox"
+                        [checked]="proposal.keep"
+                        [disabled]="editor.busy()"
+                        (change)="toggle(n)"
+                      />
+                      <span>{{ proposal.text }}</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            </fieldset>
+            @if (failure(); as message) {
+              <p class="field-error" role="alert">{{ message }}</p>
+            }
+            <div class="actions">
+              <button type="submit" [disabled]="editor.busy() || keptCount() === 0">
+                {{ 'authoring.generate.accept' | transloco: { count: keptCount() } }}
+              </button>
+              <button type="button" class="secondary" [disabled]="editor.busy()" (click)="close()">
+                {{ 'authoring.generate.discard' | transloco }}
+              </button>
+            </div>
+          </form>
         }
-        <div class="actions">
-          <button type="submit" [disabled]="editor.busy() || keptCount() === 0">
-            {{ 'authoring.generate.addKept' | transloco: { count: keptCount() } }}
-          </button>
-          <button type="button" class="secondary" (click)="close()">
-            {{ 'authoring.generate.discard' | transloco }}
-          </button>
-        </div>
-      </form>
-    } @else {
-      <app-text-editor
-        [label]="'authoring.generate.context' | transloco"
-        [required]="false"
-        [saveLabel]="'authoring.generate.submit' | transloco"
-        [busy]="editor.busy()"
-        [error]="editor.errorFor(target())"
-        (save)="generate($event)"
-        (cancel)="close()"
-      />
-    }
+        @default {
+          <p class="muso-notice danger" role="alert">
+            {{ phase() === 'empty' ? ('authoring.generate.none' | transloco) : failure() }}
+          </p>
+          <div class="actions">
+            <button
+              #focusTarget
+              type="button"
+              class="retry"
+              [disabled]="editor.busy()"
+              (click)="retry()"
+            >
+              {{ 'authoring.generate.retry' | transloco }}
+            </button>
+            <button type="button" class="secondary" [disabled]="editor.busy()" (click)="close()">
+              {{ 'authoring.cancel' | transloco }}
+            </button>
+          </div>
+        }
+      }
+    </app-dialog>
   `,
   styles: `
-    h4 {
-      margin: 0;
+    .lead {
+      margin-block-start: 0;
     }
-    ol {
+    form,
+    fieldset {
       display: grid;
       gap: var(--muso-space-2);
-      margin: 0;
-      padding-inline-start: var(--muso-space-4);
     }
-    li {
+    fieldset {
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    legend {
+      padding: 0;
+      font-weight: 600;
+    }
+    fieldset > p,
+    label + p {
+      margin: 0;
+    }
+    .optional {
+      font-weight: 400;
+      color: var(--muso-text-muted);
+    }
+    textarea {
+      box-sizing: border-box;
+      inline-size: 100%;
+    }
+    .generating {
+      display: flex;
+      align-items: center;
+      gap: var(--muso-space-2);
+      margin: 0;
+      font-weight: 600;
+    }
+    .spinner {
+      flex: none;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      border: 3px solid var(--muso-teal-12);
+      border-block-start-color: var(--muso-teal);
+      border-radius: 50%;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .spinner {
+        animation: spin 0.8s linear infinite;
+      }
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .proposals {
       display: grid;
       gap: var(--muso-space-1);
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
-    .keep {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--muso-space-1);
+    .proposals label {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--muso-space-2);
+      padding: var(--muso-space-2);
+      border: 1px solid var(--muso-border);
+      border-radius: var(--muso-radius);
       font-weight: 400;
+      cursor: pointer;
     }
-    .discarded textarea {
-      opacity: 0.6;
+    .proposals input {
+      flex: none;
+      margin-block-start: 0.2em;
+    }
+    .discarded span {
+      color: var(--muso-text-muted);
+      text-decoration: line-through;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--muso-space-2);
+    }
+    .muso-notice {
+      margin-block: 0 var(--muso-space-2);
     }
   `,
 })
 export class VariantGenerator {
   protected readonly editor = inject(ConceptEditor);
+  readonly #injector = inject(Injector);
   protected readonly id = `generator-${nextId++}`;
 
   readonly qasetId = input.required<string>();
   readonly language = input.required<Language>();
   readonly closed = output();
 
-  protected readonly target = computed(() => `generate:${this.qasetId()}`);
-  protected readonly proposed = signal(false);
-  protected readonly tried = signal(false);
+  protected readonly phase = signal<Phase>('ask');
+  protected readonly context = signal('');
+  protected readonly proposals = signal<readonly Proposal[]>([]);
+  protected readonly keptCount = computed(() => this.proposals().filter((p) => p.keep).length);
 
-  readonly #model = signal<{ candidates: Candidate[] }>({ candidates: [] });
-  protected readonly field = form(this.#model, (path) => {
-    applyEach(path.candidates, (candidate) => {
-      validate(candidate, ({ value }) =>
-        value().keep && value().text.trim() === '' ? requiredError() : undefined,
-      );
-    });
-  });
-  protected readonly keptCount = computed(
-    () => this.#model().candidates.filter((c) => c.keep).length,
+  readonly #target = computed(() => `generate:${this.qasetId()}`);
+  protected readonly generating = computed(() => this.editor.busy() && this.phase() === 'ask');
+  /** A refusal of the QASet itself (gone) is a page alert; inside the modal it is shown here. */
+  protected readonly failure = computed(
+    () => this.editor.errorFor(this.#target()) ?? this.editor.pageAlert(),
   );
+  /** Where focus goes when the phase changes — the first of them — so it never leaves the dialog. */
+  private readonly focusTargets = viewChildren<ElementRef<HTMLElement>>('focusTarget');
 
-  protected async generate(context: string): Promise<void> {
-    const candidates = await this.editor.generateVariants(this.qasetId(), context);
-    if (candidates === null) return;
-    this.#model.set({ candidates: candidates.map((text) => ({ text, keep: true })) });
-    this.proposed.set(true);
+  protected async generate(event?: Event): Promise<void> {
+    event?.preventDefault();
+    this.phase.set('ask');
+    const candidates = await this.editor.generateVariants(this.qasetId(), this.context().trim());
+    if (candidates === null) this.#enter('failed');
+    else if (candidates.length === 0) this.#enter('empty');
+    else {
+      this.proposals.set(candidates.map((text) => ({ text, keep: true })));
+      this.#enter('review');
+    }
   }
 
-  protected async addKept(event: Event): Promise<void> {
-    event.preventDefault();
-    this.tried.set(true);
-    if (this.field().invalid()) return;
+  protected retry(): Promise<void> {
+    return this.generate();
+  }
 
-    const kept = this.#model()
-      .candidates.map((candidate, index) => ({ ...candidate, index }))
-      .filter((candidate) => candidate.keep);
+  protected toggle(index: number): void {
+    this.proposals.update((all) =>
+      all.map((proposal, i) => (i === index ? { ...proposal, keep: !proposal.keep } : proposal)),
+    );
+  }
+
+  protected async accept(event: Event): Promise<void> {
+    event.preventDefault();
+    const kept = this.proposals()
+      .map((proposal, index) => ({ ...proposal, index }))
+      .filter((proposal) => proposal.keep);
     const added = new Set<number>();
     const ok = await this.editor.addVariants(
       this.qasetId(),
-      kept.map((candidate) => candidate.text.trim()),
+      kept.map((proposal) => proposal.text),
       (i) => added.add(kept[i].index),
     );
     if (ok) {
       this.close();
       return;
     }
-    // What was added is now a variant on the page; only the rest stays to retry.
-    this.#model.update(({ candidates }) => ({
-      candidates: candidates.filter((_, index) => !added.has(index)),
-    }));
+    // What was added is now a variant on the page; only the rest stays to accept again.
+    this.proposals.update((all) => all.filter((_, index) => !added.has(index)));
   }
 
   protected close(): void {
-    this.editor.clearError(this.target());
+    this.editor.clearError(this.#target());
     this.closed.emit();
+  }
+
+  #enter(phase: Phase): void {
+    this.phase.set(phase);
+    afterNextRender(() => this.focusTargets()[0]?.nativeElement.focus(), {
+      injector: this.#injector,
+    });
   }
 }

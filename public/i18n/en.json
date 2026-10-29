@@ -320,14 +320,19 @@
     },
     "generate": {
       "open": "Generate variants",
-      "context": "Context (optional)",
+      "title": "Generate variants",
+      "lead": "The engine proposes questions in {{ language }}. Nothing is added until you accept.",
+      "context": "Context",
+      "optional": "(optional)",
+      "contextHint": "For example the audience or the situation, to steer the proposals.",
       "submit": "Generate",
+      "generating": "Generating…",
       "candidates": "Proposals",
+      "review": "Untick the ones to leave out.",
       "none": "The engine proposed no variants.",
-      "keep": "Keep proposal {{ number }}",
-      "candidate": "Text of proposal {{ number }}",
-      "addKept": "Add the kept ones ({{ count }})",
-      "discard": "Discard the proposals"
+      "retry": "Retry",
+      "accept": "Accept selected ({{ count }})",
+      "discard": "Discard"
     }
   },
   "typeahead": {
@@ -709,5 +714,8 @@
       "languageInUseInProject": "The project's content still uses this language: it cannot be removed.",
       "projectLanguageNotFound": "This language had already been removed from the project: the page has been refreshed."
     }
+  },
+  "dialog": {
+    "close": "Close"
   }
 }
