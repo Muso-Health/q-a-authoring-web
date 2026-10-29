@@ -91,7 +91,10 @@
       "caption": "Coverage by language",
       "language": "Language",
       "answerAudio": "Answer audio"
-    }
+    },
+    "mainQuestion": "Main question",
+    "otherVariants": "Other variants",
+    "noOtherVariants": "No other variants."
   },
   "validation": {
     "titles": {
@@ -179,7 +182,6 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "add": "Add",
-    "edit": "Edit",
     "delete": "Delete",
     "blank": "Text is required.",
     "language": "Language",
@@ -194,7 +196,8 @@
     "editVariantName": "Edit variant {{ number }}",
     "deleteVariant": {
       "name": "Delete variant {{ number }}",
-      "warning": "Variant {{ number }} will be deleted. This cannot be undone."
+      "warning": "Variant {{ number }} will be deleted. This cannot be undone.",
+      "title": "Delete variant {{ number }}?"
     },
     "removeLanguage": {
       "label": "Remove the language",
@@ -209,7 +212,8 @@
     },
     "deleteConcept": {
       "label": "Delete the concept",
-      "warning": "The concept, its answers and its variants in every language will be deleted. This cannot be undone."
+      "warning": "The concept, its answers and its variants in every language will be deleted. This cannot be undone.",
+      "title": "Delete the concept?"
     },
     "newConcept": {
       "open": "New concept",
@@ -308,7 +312,6 @@
       "notBaseLanguage": "This content is not in the project’s base language."
     },
     "translate": {
-      "open": "Translate",
       "variantName": "Translate variant {{ number }}",
       "target": "Target language",
       "engine": "Translation engine",
@@ -333,15 +336,17 @@
       "retry": "Retry",
       "accept": "Accept selected ({{ count }})",
       "discard": "Discard"
-    }
+    },
+    "remove": "Remove",
+    "editAnswerTitle": "Edit the answer ({{ language }})",
+    "editVariantTitle": "Edit variant {{ number }} ({{ language }})"
   },
   "typeahead": {
     "create": "Create “{{ text }}”",
     "searching": "Searching…",
     "alreadyAttached": "“{{ label }}” is already attached.",
     "noResult": "No results.",
-    "searchFailed": "The search failed. Try again.",
-    "close": "Close"
+    "searchFailed": "The search failed. Try again."
   },
   "classification": {
     "intent": "Intent",
@@ -374,7 +379,10 @@
     "file": "Audio file",
     "sendFile": "Upload",
     "denied": "Microphone access was refused. You can upload a file instead.",
-    "unsupported": "Microphone recording is not available in this browser. You can upload a file instead."
+    "unsupported": "Microphone recording is not available in this browser. You can upload a file instead.",
+    "dialogTitle": "Audio of {{ label }} ({{ language }})",
+    "replace": "Replace",
+    "replaceName": "Replace the audio of {{ label }}, voice {{ voice }}"
   },
   "upload": {
     "selected": "Chosen file: {{ name }}"
@@ -717,5 +725,14 @@
   },
   "dialog": {
     "close": "Close"
+  },
+  "tools": {
+    "concept": "Concept tools",
+    "answer": "Answer tools",
+    "variant": "Tools for variant {{ number }}",
+    "removeCategory": "Remove a category",
+    "removeIntent": "Remove an intent",
+    "answerAudio": "Manage the answer’s audio",
+    "variantAudio": "Manage the audio of variant {{ number }}"
   }
 }

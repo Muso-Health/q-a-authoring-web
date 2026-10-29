@@ -1,9 +1,11 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
+import { ModalDialog } from '../../shared/ui/modal-dialog';
 import { Typeahead } from '../../shared/ui/typeahead';
 import { ConceptEditor } from './concept-editor';
 import type { Tag } from './concept-view';
+
+export type TagKind = 'intents' | 'categories';
 
 const LABELS = {
   intents: {
@@ -11,6 +13,7 @@ const LABELS = {
     none: 'concept.noIntents',
     field: 'classification.intent',
     add: 'classification.addIntent',
+    removeTool: 'tools.removeIntent',
     remove: 'classification.removeIntent',
   },
   categories: {
@@ -18,17 +21,22 @@ const LABELS = {
     none: 'concept.noCategories',
     field: 'classification.category',
     add: 'classification.addCategory',
+    removeTool: 'tools.removeCategory',
     remove: 'classification.removeCategory',
   },
 } as const;
 
+function tagsOf(editor: ConceptEditor, kind: () => TagKind) {
+  return computed<readonly Tag[]>(() => editor.view()?.[kind()] ?? []);
+}
+
 /**
- * The concept's intents or its categories: they hold for every language. With `author_qasets`,
- * attach one from the catalogue — or create it there first, with its own permission.
+ * The concept's intents or its categories, as chips: they hold for every language. Adding and
+ * removing them is the notion toolbar's job.
  */
 @Component({
   selector: 'app-concept-tags',
-  imports: [TranslocoPipe, Typeahead, FocusReturnTarget],
+  imports: [TranslocoPipe],
   template: `
     @let l = labels();
     <div class="tags" [attr.data-kind]="kind()">
@@ -38,49 +46,13 @@ const LABELS = {
           @for (tag of tags(); track tag.id) {
             <li>
               <span class="chip-label">{{ tag.label }}</span>
-              @if (editor.canAuthor()) {
-                <button
-                  type="button"
-                  class="chip-remove"
-                  [disabled]="editor.busy()"
-                  [attr.aria-label]="l.remove | transloco: { label: tag.label }"
-                  (click)="remove(tag.id)"
-                >
-                  <span aria-hidden="true">×</span>
-                </button>
-              }
             </li>
           }
         </ul>
       } @else {
         <span class="muso-meta">{{ l.none | transloco }}</span>
       }
-      @if (editor.canAuthor() && !adding()) {
-        <button
-          type="button"
-          class="secondary small"
-          [appFocusReturn]="'add-' + kind()"
-          [disabled]="editor.busy()"
-          (click)="adding.set(true)"
-        >
-          {{ l.add | transloco }}
-        </button>
-      }
     </div>
-    @if (adding()) {
-      <app-typeahead
-        [label]="l.field | transloco"
-        [search]="search()"
-        [exclude]="ids()"
-        [canCreate]="canCreate()"
-        [error]="editor.errorFor(kind())"
-        (picked)="attach($event.id)"
-        (created)="create($event)"
-        (cancel)="close()"
-      />
-    } @else if (editor.errorFor(kind()); as message) {
-      <p class="field-error" role="alert">{{ message }}</p>
-    }
   `,
   styles: `
     .tags {
@@ -96,14 +68,92 @@ const LABELS = {
   `,
 })
 export class ConceptTags {
-  protected readonly editor = inject(ConceptEditor);
-  readonly #focus = inject(FocusReturn);
+  readonly kind = input.required<TagKind>();
+  protected readonly labels = computed(() => LABELS[this.kind()]);
+  protected readonly tags = tagsOf(inject(ConceptEditor), this.kind);
+}
 
-  readonly kind = input.required<'intents' | 'categories'>();
+/**
+ * A modal that attaches an intent or a category to the concept — picked from the catalogue, or
+ * created there first with its own permission — or detaches those it has.
+ */
+@Component({
+  selector: 'app-concept-tag-dialog',
+  imports: [TranslocoPipe, ModalDialog, Typeahead],
+  template: `
+    @let l = labels();
+    <app-dialog
+      [title]="(mode() === 'add' ? l.add : l.removeTool) | transloco"
+      [locked]="editor.busy()"
+      (dismissed)="close()"
+    >
+      @if (mode() === 'add') {
+        <app-typeahead
+          [label]="l.field | transloco"
+          [search]="search()"
+          [exclude]="ids()"
+          [canCreate]="canCreate()"
+          [listAll]="true"
+          [error]="editor.errorFor(kind())"
+          (picked)="attach($event.id)"
+          (created)="create($event)"
+          (cancel)="close()"
+        />
+      } @else {
+        @if (tags().length === 0) {
+          <p class="muso-meta">{{ l.none | transloco }}</p>
+        } @else {
+          <ul class="removable">
+            @for (tag of tags(); track tag.id) {
+              <li>
+                <span>{{ tag.label }}</span>
+                <button
+                  type="button"
+                  class="secondary small"
+                  [disabled]="editor.busy()"
+                  [attr.aria-label]="l.remove | transloco: { label: tag.label }"
+                  (click)="detach(tag.id)"
+                >
+                  {{ 'authoring.remove' | transloco }}
+                </button>
+              </li>
+            }
+          </ul>
+        }
+        @if (editor.errorFor(kind()); as message) {
+          <p class="field-error" role="alert">{{ message }}</p>
+        }
+      }
+    </app-dialog>
+  `,
+  styles: `
+    .removable {
+      display: grid;
+      gap: var(--muso-space-1);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .removable li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--muso-space-2);
+      padding-block: var(--muso-space-1);
+      border-block-end: 1px solid var(--muso-border);
+    }
+  `,
+})
+export class ConceptTagDialog {
+  protected readonly editor = inject(ConceptEditor);
+
+  readonly kind = input.required<TagKind>();
+  readonly mode = input.required<'add' | 'remove'>();
+  readonly closed = output();
 
   protected readonly labels = computed(() => LABELS[this.kind()]);
-  protected readonly adding = signal(false);
-  protected readonly tags = computed<readonly Tag[]>(() => this.editor.view()?.[this.kind()] ?? []);
+  protected readonly tags = tagsOf(this.editor, this.kind);
   protected readonly ids = computed(() => this.tags().map((tag) => tag.id));
   protected readonly search = computed(() =>
     this.kind() === 'intents' ? this.editor.searchIntents : this.editor.searchCategories,
@@ -112,7 +162,8 @@ export class ConceptTags {
     this.kind() === 'intents' ? this.editor.canCreateIntents() : this.editor.canCreateCategories(),
   );
 
-  protected remove(id: string): void {
+  /** Detaching keeps the modal open, so several can go in a row. */
+  protected detach(id: string): void {
     void (this.kind() === 'intents'
       ? this.editor.detachIntent(id)
       : this.editor.removeCategory(id));
@@ -135,8 +186,7 @@ export class ConceptTags {
   }
 
   protected close(): void {
-    this.adding.set(false);
     this.editor.clearError(this.kind());
-    this.#focus.to(`add-${this.kind()}`);
+    this.closed.emit();
   }
 }

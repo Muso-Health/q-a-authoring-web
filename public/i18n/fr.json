@@ -91,7 +91,10 @@
       "caption": "Couverture par langue",
       "language": "Langue",
       "answerAudio": "Audio de la réponse"
-    }
+    },
+    "mainQuestion": "Question principale",
+    "otherVariants": "Autres variantes",
+    "noOtherVariants": "Aucune autre variante."
   },
   "validation": {
     "titles": {
@@ -179,7 +182,6 @@
     "cancel": "Annuler",
     "confirm": "Confirmer",
     "add": "Ajouter",
-    "edit": "Modifier",
     "delete": "Supprimer",
     "blank": "Le texte est obligatoire.",
     "language": "Langue",
@@ -194,7 +196,8 @@
     "editVariantName": "Modifier la variante {{ number }}",
     "deleteVariant": {
       "name": "Supprimer la variante {{ number }}",
-      "warning": "La variante {{ number }} sera supprimée. Cette action est irréversible."
+      "warning": "La variante {{ number }} sera supprimée. Cette action est irréversible.",
+      "title": "Supprimer la variante {{ number }} ?"
     },
     "removeLanguage": {
       "label": "Retirer la langue",
@@ -209,7 +212,8 @@
     },
     "deleteConcept": {
       "label": "Supprimer la notion",
-      "warning": "La notion, ses réponses et ses variantes dans toutes les langues seront supprimées. Cette action est irréversible."
+      "warning": "La notion, ses réponses et ses variantes dans toutes les langues seront supprimées. Cette action est irréversible.",
+      "title": "Supprimer la notion ?"
     },
     "newConcept": {
       "open": "Nouvelle notion",
@@ -308,7 +312,6 @@
       "notBaseLanguage": "Ce contenu n’est pas dans la langue de base du projet."
     },
     "translate": {
-      "open": "Traduire",
       "variantName": "Traduire la variante {{ number }}",
       "target": "Langue cible",
       "engine": "Moteur de traduction",
@@ -333,15 +336,17 @@
       "retry": "Réessayer",
       "accept": "Accepter la sélection ({{ count }})",
       "discard": "Abandonner"
-    }
+    },
+    "remove": "Retirer",
+    "editAnswerTitle": "Modifier la réponse ({{ language }})",
+    "editVariantTitle": "Modifier la variante {{ number }} ({{ language }})"
   },
   "typeahead": {
     "create": "Créer « {{ text }} »",
     "searching": "Recherche…",
     "alreadyAttached": "« {{ label }} » est déjà attaché.",
     "noResult": "Aucun résultat.",
-    "searchFailed": "La recherche a échoué. Réessayez.",
-    "close": "Fermer"
+    "searchFailed": "La recherche a échoué. Réessayez."
   },
   "classification": {
     "intent": "Intention",
@@ -374,7 +379,10 @@
     "file": "Fichier audio",
     "sendFile": "Téléverser",
     "denied": "L’accès au micro a été refusé. Vous pouvez téléverser un fichier à la place.",
-    "unsupported": "L’enregistrement au micro n’est pas disponible sur ce navigateur. Vous pouvez téléverser un fichier à la place."
+    "unsupported": "L’enregistrement au micro n’est pas disponible sur ce navigateur. Vous pouvez téléverser un fichier à la place.",
+    "dialogTitle": "Audio de {{ label }} ({{ language }})",
+    "replace": "Remplacer",
+    "replaceName": "Remplacer l’audio de {{ label }}, voix {{ voice }}"
   },
   "upload": {
     "selected": "Fichier choisi : {{ name }}"
@@ -717,5 +725,14 @@
   },
   "dialog": {
     "close": "Fermer"
+  },
+  "tools": {
+    "concept": "Outils de la notion",
+    "answer": "Outils de la réponse",
+    "variant": "Outils de la variante {{ number }}",
+    "removeCategory": "Retirer une catégorie",
+    "removeIntent": "Retirer une intention",
+    "answerAudio": "Gérer l’audio de la réponse",
+    "variantAudio": "Gérer l’audio de la variante {{ number }}"
   }
 }

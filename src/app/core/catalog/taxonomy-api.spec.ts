@@ -23,6 +23,17 @@ describe('TaxonomyApi', () => {
     expect(api.reads).toEqual(['/intents?q=mous', '/categories?q=enf']);
   });
 
+  it('lists a whole catalogue when there is no prefix', async () => {
+    const { api, taxonomy } = setUp({
+      '/intents': { items: [{ id: 'i2', text: 'moustiquaire' }] },
+      '/categories': { items: [{ id: 'c1', name: 'Prévention' }] },
+    });
+
+    expect(await taxonomy.searchIntents('')).toEqual([{ id: 'i2', label: 'moustiquaire' }]);
+    expect(await taxonomy.searchCategories('')).toEqual([{ id: 'c1', label: 'Prévention' }]);
+    expect(api.reads).toEqual(['/intents', '/categories']);
+  });
+
   it('registers by get-or-create and answers with the id', async () => {
     const { api, taxonomy } = setUp({
       'POST /intents': { id: 'i9', text: 'paludisme grave' },

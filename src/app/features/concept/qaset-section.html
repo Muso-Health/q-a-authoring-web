@@ -32,6 +32,64 @@
     <p class="field-error" role="alert">{{ message }}</p>
   }
 
+  <!-- The pair first: the main question, then the answer it gets. -->
+  <div class="lead">
+    @if (main(); as variant) {
+      <div class="variant main" [id]="'item-' + variant.id" tabindex="-1">
+        <p class="label">{{ 'concept.mainQuestion' | transloco }}</p>
+        <ng-container *ngTemplateOutlet="variantBody; context: { $implicit: variant, n: 0 }" />
+      </div>
+    } @else {
+      <p class="muso-empty">{{ 'concept.noVariants' | transloco }}</p>
+    }
+
+    <article class="answer" [id]="'item-' + s.answer.id" tabindex="-1">
+      <h3 class="label">{{ 'concept.answer' | transloco }}</h3>
+      <p class="text" [attr.lang]="lang.code">{{ s.answer.text }}</p>
+      <app-item-audios
+        role="answer"
+        [qasetId]="s.id"
+        [item]="s.answer"
+        [label]="'concept.answerAudio' | transloco"
+      />
+      @if (answerTools().length > 0) {
+        <app-toolbar [label]="'tools.answer' | transloco" [actions]="answerTools()" />
+      }
+    </article>
+  </div>
+
+  @if (editingAnswer()) {
+    <app-dialog
+      [title]="'authoring.editAnswerTitle' | transloco: { language: lang.name }"
+      [locked]="editor.busy()"
+      (dismissed)="closeAnswer()"
+    >
+      <app-text-editor
+        [label]="'authoring.answerLabel' | transloco: { language: lang.name }"
+        [initial]="s.answer.text"
+        [lang]="lang.code"
+        [rows]="5"
+        [busy]="editor.busy()"
+        [error]="editor.errorFor('answer:' + s.id)"
+        (save)="saveAnswer($event)"
+        (cancel)="closeAnswer()"
+      />
+    </app-dialog>
+  }
+  @if (generating()) {
+    <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
+  }
+  @if (answerAudio()) {
+    <app-audio-dialog
+      role="answer"
+      [qasetId]="s.id"
+      [item]="s.answer"
+      [language]="lang"
+      [label]="'concept.answerAudio' | transloco"
+      (closed)="closeAnswerAudio()"
+    />
+  }
+
   <dl class="counts">
     <div class="text-coverage">
       <dt>{{ 'concept.counts.variants' | transloco }}</dt>
@@ -43,132 +101,21 @@
     </div>
   </dl>
 
-  <article class="answer" [id]="'item-' + s.answer.id" tabindex="-1">
-    <h3>{{ 'concept.answer' | transloco }}</h3>
-    @if (editingAnswer()) {
-      <app-text-editor
-        [label]="'authoring.answerLabel' | transloco: { language: lang.name }"
-        [initial]="s.answer.text"
-        [lang]="lang.code"
-        [busy]="editor.busy()"
-        [error]="editor.errorFor('answer:' + s.id)"
-        (save)="saveAnswer($event)"
-        (cancel)="close('answer:' + s.id, cancelAnswer, 'edit-answer:' + s.id)"
-      />
+  @if (main()) {
+    <h3 class="others-heading">{{ 'concept.otherVariants' | transloco }}</h3>
+    @if (others().length === 0) {
+      <p class="muso-empty">{{ 'concept.noOtherVariants' | transloco }}</p>
     } @else {
-      <p class="text" [attr.lang]="lang.code">{{ s.answer.text }}</p>
-      @if (editor.canAuthor()) {
-        <div class="item-actions">
-          <button
-            type="button"
-            class="secondary"
-            [appFocusReturn]="'edit-answer:' + s.id"
-            [disabled]="editor.busy()"
-            (click)="editingAnswer.set(true)"
-          >
-            {{ 'authoring.editAnswer' | transloco }}
-          </button>
-          <button
-            type="button"
-            class="secondary"
-            [appFocusReturn]="'generate:' + s.id"
-            [disabled]="editor.busy()"
-            (click)="generating.set(true)"
-          >
-            {{ 'authoring.generate.open' | transloco }}
-          </button>
-        </div>
-      }
-    }
-    @if (generating()) {
-      <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
-    }
-    <app-item-audios
-      role="answer"
-      [qasetId]="s.id"
-      [item]="s.answer"
-      [label]="'concept.answerAudio' | transloco"
-    />
-  </article>
-
-  <h3>{{ 'concept.variants' | transloco }}</h3>
-  @if (s.variants.length === 0) {
-    <p class="muso-empty">{{ 'concept.noVariants' | transloco }}</p>
-  } @else {
-    <ol class="variants">
-      @for (variant of s.variants; track variant.id; let n = $index) {
-        <li class="variant" [id]="'item-' + variant.id" tabindex="-1">
-          @if (editingVariant() === variant.id) {
-            <app-text-editor
-              [label]="'authoring.variantLabel' | transloco: { number: n + 1, language: lang.name }"
-              [initial]="variant.text"
-              [lang]="lang.code"
-              [busy]="editor.busy()"
-              [error]="editor.errorFor('variant:' + variant.id)"
-              (save)="saveVariant(variant.id, $event)"
-              (cancel)="close('variant:' + variant.id, cancelVariant, 'edit-variant:' + variant.id)"
+      <ol class="variants" start="2">
+        @for (variant of others(); track variant.id; let i = $index) {
+          <li class="variant" [id]="'item-' + variant.id" tabindex="-1">
+            <ng-container
+              *ngTemplateOutlet="variantBody; context: { $implicit: variant, n: i + 1 }"
             />
-          } @else {
-            <p class="text" [attr.lang]="lang.code">{{ variant.text }}</p>
-          }
-          <app-item-audios
-            role="variant"
-            [qasetId]="s.id"
-            [item]="variant"
-            [label]="'concept.variantAudio' | transloco: { number: n + 1 }"
-          />
-          @if (editor.canAuthor() && editingVariant() !== variant.id) {
-            <div class="item-actions">
-              <button
-                type="button"
-                class="secondary"
-                [disabled]="editor.busy()"
-                [appFocusReturn]="'edit-variant:' + variant.id"
-                [attr.aria-label]="'authoring.editVariantName' | transloco: { number: n + 1 }"
-                (click)="editingVariant.set(variant.id)"
-              >
-                {{ 'authoring.edit' | transloco }}
-              </button>
-              @if (editor.variantTargets(lang.id).length > 0) {
-                <button
-                  type="button"
-                  class="secondary"
-                  [appFocusReturn]="'translate:' + variant.id"
-                  [disabled]="editor.busy()"
-                  [attr.aria-label]="
-                    'authoring.translate.variantName' | transloco: { number: n + 1 }
-                  "
-                  (click)="translating.set(variant.id)"
-                >
-                  {{ 'authoring.translate.open' | transloco }}
-                </button>
-              }
-              <app-confirm-action
-                [label]="'authoring.delete' | transloco"
-                [accessibleName]="'authoring.deleteVariant.name' | transloco: { number: n + 1 }"
-                [warning]="'authoring.deleteVariant.warning' | transloco: { number: n + 1 }"
-                [busy]="editor.busy()"
-                (confirmed)="editor.deleteVariant(s.id, variant.id)"
-              />
-            </div>
-            @if (editor.errorFor('variant:' + variant.id); as message) {
-              <p class="field-error" role="alert">{{ message }}</p>
-            }
-          }
-          @if (translating() === variant.id) {
-            <div class="translate">
-              <app-translate-form
-                [languages]="editor.variantTargets(lang.id)"
-                [busy]="editor.busy()"
-                [error]="editor.errorFor('translate:' + variant.id)"
-                (submitted)="translateVariant(variant.id, $event)"
-                (cancel)="close('translate:' + variant.id, cancelTranslation)"
-              />
-            </div>
-          }
-        </li>
-      }
-    </ol>
+          </li>
+        }
+      </ol>
+    }
   }
 
   @if (editor.canAuthor()) {
@@ -181,7 +128,7 @@
           [busy]="editor.busy()"
           [error]="editor.errorFor('add-variant:' + s.id)"
           (save)="addVariant($event)"
-          (cancel)="close('add-variant:' + s.id, cancelAddVariant)"
+          (cancel)="closeAddVariant()"
         />
       } @else {
         <button
@@ -197,3 +144,75 @@
     </div>
   }
 </section>
+
+<!-- A variant, wherever it shows: its text, its audios, its tools, and what they open. -->
+<ng-template #variantBody let-variant let-n="n">
+  @let lang = section().language;
+  @let number = n + 1;
+  @let tools = variantTools().get(variant.id) ?? [];
+  <p class="text" [attr.lang]="lang.code">{{ variant.text }}</p>
+  <app-item-audios
+    role="variant"
+    [qasetId]="section().id"
+    [item]="variant"
+    [label]="'concept.variantAudio' | transloco: { number }"
+  />
+  @if (tools.length > 0) {
+    <app-toolbar [label]="'tools.variant' | transloco: { number }" [actions]="tools" />
+  }
+  @if (editor.errorFor('variant:' + variant.id); as message) {
+    @if (!isOpen(variant.id, 'edit') && !isOpen(variant.id, 'delete')) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  }
+
+  @if (isOpen(variant.id, 'edit')) {
+    <app-dialog
+      [title]="'authoring.editVariantTitle' | transloco: { number, language: lang.name }"
+      [locked]="editor.busy()"
+      (dismissed)="closeVariant(variant.id, 'edit-variant')"
+    >
+      <app-text-editor
+        [label]="'authoring.variantLabel' | transloco: { number, language: lang.name }"
+        [initial]="variant.text"
+        [lang]="lang.code"
+        [busy]="editor.busy()"
+        [error]="editor.errorFor('variant:' + variant.id)"
+        (save)="saveVariant(variant.id, $event)"
+        (cancel)="closeVariant(variant.id, 'edit-variant')"
+      />
+    </app-dialog>
+  }
+  @if (isOpen(variant.id, 'audio')) {
+    <app-audio-dialog
+      role="variant"
+      [qasetId]="section().id"
+      [item]="variant"
+      [language]="lang"
+      [label]="'concept.variantAudio' | transloco: { number }"
+      (closed)="closeVariant(variant.id, 'variant-audio', 'audio:' + variant.id)"
+    />
+  }
+  @if (isOpen(variant.id, 'delete')) {
+    <app-confirm-dialog
+      [title]="'authoring.deleteVariant.title' | transloco: { number }"
+      [warning]="'authoring.deleteVariant.warning' | transloco: { number }"
+      [confirmLabel]="'authoring.delete' | transloco"
+      [busy]="editor.busy()"
+      [error]="editor.errorFor('variant:' + variant.id)"
+      (confirmed)="deleteVariant(variant.id)"
+      (cancel)="closeVariant(variant.id, 'delete-variant')"
+    />
+  }
+  @if (isOpen(variant.id, 'translate')) {
+    <div class="translate">
+      <app-translate-form
+        [languages]="editor.variantTargets(lang.id)"
+        [busy]="editor.busy()"
+        [error]="editor.errorFor('translate:' + variant.id)"
+        (submitted)="translateVariant(variant.id, $event)"
+        (cancel)="closeVariant(variant.id, 'translate', 'translate:' + variant.id)"
+      />
+    </div>
+  }
+</ng-template>

@@ -7,6 +7,7 @@ import { RecorderPort } from '../../../core/audio/recorder-port';
 import { FakeRecorder } from '../../../core/audio/testing/fake-recorder';
 import { CONCEPT, IDS, ME_AUTHOR, world } from '../../../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../../../core/i18n/testing/provide-test-i18n';
+import { fakeLayout } from '../../../shared/ui/testing/fake-layout';
 import { ConceptPage } from '../concept-page';
 
 export const C = `/concepts/${IDS.concept}`;
@@ -22,6 +23,15 @@ export function edited(
   change(detail);
   return detail;
 }
+
+/** The open modal: the CDK renders it in its overlay, at the end of <body>, outside the page. */
+export const dialog = () => document.querySelector<HTMLElement>('[role="dialog"]');
+
+/** Escape, from wherever focus is. */
+export const escape = () =>
+  (document.activeElement ?? document.body).dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }),
+  );
 
 export const qasetIn = (detail: Schemas['ConceptResponse'], languageId: string) =>
   detail.qasets.find((q) => q.language_id === languageId)!;
@@ -41,6 +51,8 @@ export async function renderConcept({
   answers = {},
   prepare = () => undefined,
 }: RenderOptions = {}) {
+  // Modals trap focus, and the CDK only counts laid-out elements as focusable.
+  fakeLayout();
   const api = new FakeApiPort({ ...world(), '/me': me, ...answers });
   const recorder = new FakeRecorder();
   prepare(recorder);
@@ -78,6 +90,15 @@ export async function renderConcept({
     button(name, scope).click();
     await settle();
   };
+  /** Presses a button of the open modal. */
+  const press = (name: string) => {
+    const open = dialog();
+    if (!open) throw new Error(`no dialog open to press "${name}" in`);
+    return click(name, open);
+  };
+  /** The open modal's element matching `selector`. */
+  const inDialog = <T extends Element = HTMLElement>(selector: string) =>
+    dialog()?.querySelector<T>(selector) ?? null;
   const type = (
     field: HTMLTextAreaElement | HTMLSelectElement | HTMLInputElement,
     value: string,
@@ -108,6 +129,8 @@ export async function renderConcept({
     buttonNamed,
     button,
     click,
+    press,
+    inDialog,
     type,
     toggle,
     submit,

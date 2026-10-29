@@ -1,105 +1,147 @@
 import type { Schemas } from '../../core/api/api-types';
 import { engineError } from '../../core/api/testing/fake-api-port';
-import { ME_AUTHOR, ME_READER } from '../../core/catalog/testing/catalog-fixtures';
-import { C, renderConcept, text } from './testing/render-concept';
+import { CONCEPT, ME_AUTHOR, ME_READER } from '../../core/catalog/testing/catalog-fixtures';
+import { C, dialog, escape, renderConcept, text } from './testing/render-concept';
 
 const ME_CURATOR: Schemas['MeResponse'] = {
   ...ME_AUTHOR,
   permissions: ['author_qasets', 'manage_intents', 'manage_categories'],
 };
 
-async function render(me: Schemas['MeResponse'] = ME_CURATOR) {
+const INTENTS = {
+  items: [
+    { id: 'i1', text: 'prévention_paludisme' },
+    { id: 'i2', text: 'moustiquaire' },
+    { id: 'i5', text: 'moustique' },
+    { id: 'i6', text: 'vaccination' },
+  ],
+};
+const CATEGORIES = {
+  items: [
+    { id: 'c1', name: 'Prévention' },
+    { id: 'c2', name: 'Enfants de moins de 5 ans' },
+    { id: 'c7', name: 'Urgences' },
+  ],
+};
+
+async function render(
+  me: Schemas['MeResponse'] = ME_CURATOR,
+  answers: Record<string, unknown> = {},
+) {
   const page = await renderConcept({
     me,
     answers: {
-      '/intents?q=mous': {
-        items: [
-          { id: 'i2', text: 'moustiquaire' },
-          { id: 'i5', text: 'moustique' },
-        ],
-      },
+      '/intents': INTENTS,
+      '/categories': CATEGORIES,
+      '/intents?q=mous': { items: [INTENTS.items[1], INTENTS.items[2]] },
       '/intents?q=fi%C3%A8vre': { items: [] },
-      '/categories?q=enf': { items: [{ id: 'c2', name: 'Enfants de moins de 5 ans' }] },
-      '/categories?q=urg': { items: [{ id: 'c7', name: 'Urgences' }] },
       '/categories?q=nutrition': { items: [] },
       'POST /intents': { id: 'i9', text: 'fièvre' },
       'POST /categories': { id: 'c9', name: 'nutrition' },
+      ...answers,
     },
   });
   const { element, settle } = page;
   const tags = (kind: 'intents' | 'categories') =>
-    element.querySelector<HTMLElement>(`app-concept-tags[kind="${kind}"]`)!;
-  const search = async (scope: ParentNode, value: string) => {
-    const input = scope.querySelector<HTMLInputElement>('input[role="combobox"]')!;
+    element.querySelector<HTMLElement>(`[data-kind="${kind}"]`)!;
+  const search = async (value: string) => {
+    const input = dialog()!.querySelector<HTMLInputElement>('input[role="combobox"]')!;
     input.value = value;
     input.dispatchEvent(new Event('input'));
     await settle();
   };
-  const choose = async (scope: ParentNode, label: string) => {
-    const option = [...scope.querySelectorAll<HTMLElement>('[role="option"]')].find(
+  const options = () => [...dialog()!.querySelectorAll('[role="option"]')].map((o) => text(o));
+  const choose = async (label: string) => {
+    const option = [...dialog()!.querySelectorAll<HTMLElement>('[role="option"]')].find(
       (o) => text(o) === label,
     );
     if (!option) throw new Error(`no option "${label}"`);
     option.click();
     await settle();
   };
-  const options = (scope: ParentNode) =>
-    [...scope.querySelectorAll('[role="option"]')].map((o) => text(o));
   const chips = (scope: ParentNode) =>
     [...scope.querySelectorAll('.muso-chips .chip-label')].map((c) => text(c));
-  return { ...page, tags, search, choose, options, chips };
+  const title = () => text(document.getElementById(dialog()!.getAttribute('aria-labelledby')!));
+  return { ...page, tags, search, options, choose, chips, title };
 }
 
 describe('ConceptPage classification', () => {
-  it('offers no classification without author_qasets', async () => {
+  it('offers no notion toolbar without author_qasets', async () => {
     const { element, buttonNamed } = await render(ME_READER);
 
-    for (const name of [
-      'Ajouter une intention',
-      'Ajouter une catégorie',
-      'Retirer l’intention « moustiquaire »',
-      'Retirer la catégorie « Prévention »',
-    ]) {
+    expect(element.querySelector('[role="toolbar"][aria-label="Outils de la notion"]')).toBeNull();
+    for (const name of ['Ajouter une intention', 'Ajouter une catégorie', 'Supprimer la notion']) {
       expect(buttonNamed(name, element)).toBeUndefined();
     }
   });
 
-  it('classifies the concept, not its variants or QASets', async () => {
-    const { element, tags, chips } = await render();
+  it('puts classification and deletion in the notion toolbar, in the header, and nowhere per language', async () => {
+    const { element, header } = await render();
 
-    expect(chips(tags('intents'))).toEqual(['prévention_paludisme', 'moustiquaire']);
-    expect(chips(tags('categories'))).toEqual(['Prévention', 'Enfants de moins de 5 ans']);
+    const bar = header().querySelector('[role="toolbar"][aria-label="Outils de la notion"]')!;
+    expect([...bar.querySelectorAll('button')].map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Ajouter une catégorie',
+      'Retirer une catégorie',
+      'Ajouter une intention',
+      'Retirer une intention',
+      'Supprimer la notion',
+    ]);
     for (const section of element.querySelectorAll('section.language')) {
-      expect(section.querySelector('app-typeahead, .muso-chips')).toBeNull();
-      expect(text(section)).not.toContain('Ajouter une intention');
+      expect(text(section)).not.toContain('intention');
+      expect(section.querySelector('[aria-label*="catégorie"]')).toBeNull();
     }
   });
 
+  it('shows the concept’s intents and categories as chips', async () => {
+    const { tags, chips } = await render();
+
+    expect(chips(tags('intents'))).toEqual(['prévention_paludisme', 'moustiquaire']);
+    expect(chips(tags('categories'))).toEqual(['Prévention', 'Enfants de moins de 5 ans']);
+  });
+
+  it('cannot remove what the concept does not have', async () => {
+    const bare = { ...structuredClone(CONCEPT), intents: [], categories: [] };
+    const { button } = await render(ME_CURATOR, { [C]: bare });
+
+    expect(button('Retirer une intention').getAttribute('aria-disabled')).toBe('true');
+    expect(button('Retirer une catégorie').getAttribute('aria-disabled')).toBe('true');
+  });
+
   describe('intents', () => {
-    it('searches by prefix and attaches an existing intent, leaving out those already attached', async () => {
-      const { api, tags, click, search, options, choose, afterFirstWrite } = await render();
+    it('lists the intent catalogue in a modal, leaving out those already attached', async () => {
+      const { api, click, title, options } = await render();
 
-      await click('Ajouter une intention', tags('intents'));
-      await search(tags('intents'), 'mous');
+      await click('Ajouter une intention');
 
-      expect(api.reads).toContain('/intents?q=mous');
+      expect(title()).toBe('Ajouter une intention');
+      expect(api.reads).toContain('/intents');
+      expect(options()).toEqual(['moustique', 'vaccination']);
+      expect(document.activeElement).toBe(dialog()!.querySelector('input[role="combobox"]'));
+    });
+
+    it('narrows by prefix and attaches the chosen intent, then closes and re-fetches', async () => {
+      const { api, click, search, options, choose, afterFirstWrite } = await render();
+
+      await click('Ajouter une intention');
+      await search('mous');
       // The concept already carries « moustiquaire ».
-      expect(options(tags('intents'))).toEqual(['moustique', 'Créer « mous »']);
-      await choose(tags('intents'), 'moustique');
+      expect(options()).toEqual(['moustique', 'Créer « mous »']);
+      await choose('moustique');
 
       expect(api.writes).toEqual([
         { method: 'POST', path: `${C}/intents`, body: { intent_id: 'i5' } },
       ]);
       expect(afterFirstWrite()).toEqual([`POST ${C}/intents`, `GET ${C}`]);
-      expect(tags('intents').querySelector('input[role="combobox"]')).toBeNull();
+      expect(dialog()).toBeNull();
+      expect(document.activeElement?.getAttribute('aria-label')).toBe('Ajouter une intention');
     });
 
-    it('creates a missing intent, then attaches it to the concept, then re-fetches', async () => {
-      const { api, tags, click, search, choose, afterFirstWrite } = await render();
+    it('creates a missing intent, then attaches it', async () => {
+      const { api, click, search, choose, afterFirstWrite } = await render();
 
-      await click('Ajouter une intention', tags('intents'));
-      await search(tags('intents'), 'fièvre');
-      await choose(tags('intents'), 'Créer « fièvre »');
+      await click('Ajouter une intention');
+      await search('fièvre');
+      await choose('Créer « fièvre »');
 
       expect(api.writes).toEqual([
         { method: 'POST', path: '/intents', body: { text: 'fièvre' } },
@@ -109,29 +151,44 @@ describe('ConceptPage classification', () => {
     });
 
     it('offers to create only with manage_intents', async () => {
-      const { tags, click, search, options } = await render(ME_AUTHOR);
+      const { click, search, options } = await render(ME_AUTHOR);
 
-      await click('Ajouter une intention', tags('intents'));
-      await search(tags('intents'), 'fièvre');
+      await click('Ajouter une intention');
+      await search('fièvre');
 
-      expect(options(tags('intents'))).toEqual([]);
+      expect(options()).toEqual([]);
     });
 
-    it('detaches an intent from its chip, then re-fetches', async () => {
-      const { tags, click, afterFirstWrite } = await render();
+    it('attaches nothing when the modal is escaped', async () => {
+      const { api, click, settle } = await render();
 
-      await click('Retirer l’intention « moustiquaire »', tags('intents'));
+      await click('Ajouter une intention');
+      escape();
+      await settle();
+
+      expect(dialog()).toBeNull();
+      expect(api.writes).toEqual([]);
+      expect(document.activeElement?.getAttribute('aria-label')).toBe('Ajouter une intention');
+    });
+
+    it('detaches an intent from the removal modal, then re-fetches', async () => {
+      const { click, press, title, afterFirstWrite } = await render();
+
+      await click('Retirer une intention');
+      expect(title()).toBe('Retirer une intention');
+      await press('Retirer l’intention « moustiquaire »');
 
       expect(afterFirstWrite()).toEqual([`DELETE ${C}/intents/i2`, `GET ${C}`]);
     });
 
-    it('shows a refusal under the intents', async () => {
-      const { api, tags, click, afterFirstWrite } = await render();
+    it('shows a refusal in the removal modal', async () => {
+      const { api, click, press, afterFirstWrite } = await render();
       api.answers[`DELETE ${C}/intents/i2`] = engineError(403, 'permission_denied');
 
-      await click('Retirer l’intention « moustiquaire »', tags('intents'));
+      await click('Retirer une intention');
+      await press('Retirer l’intention « moustiquaire »');
 
-      expect(text(tags('intents').querySelector('[role="alert"]'))).toBe(
+      expect(text(dialog()!.querySelector('[role="alert"]'))).toBe(
         'Votre compte n’a pas la permission de modifier ce contenu.',
       );
       expect(afterFirstWrite()).toEqual([`DELETE ${C}/intents/i2`]);
@@ -139,17 +196,14 @@ describe('ConceptPage classification', () => {
   });
 
   describe('categories', () => {
-    it('attaches an existing category to the concept, leaving out those already attached', async () => {
-      const { api, tags, click, search, options, choose, afterFirstWrite } = await render();
-      const categories = tags('categories');
+    it('lists the category catalogue and attaches the chosen one', async () => {
+      const { api, click, title, options, choose, afterFirstWrite } = await render();
 
-      await click('Ajouter une catégorie', categories);
-      await search(categories, 'enf');
-      // « Enfants de moins de 5 ans » is already on the concept; only a new « enf » could be made.
-      expect(options(categories)).toEqual(['Créer « enf »']);
-      await search(categories, 'urg');
-      expect(options(categories)).toEqual(['Urgences', 'Créer « urg »']);
-      await choose(categories, 'Urgences');
+      await click('Ajouter une catégorie');
+      expect(title()).toBe('Ajouter une catégorie');
+      // « Prévention » and « Enfants de moins de 5 ans » are already on the concept.
+      expect(options()).toEqual(['Urgences']);
+      await choose('Urgences');
 
       expect(api.writes).toEqual([
         { method: 'POST', path: `${C}/categories`, body: { category_id: 'c7' } },
@@ -158,11 +212,11 @@ describe('ConceptPage classification', () => {
     });
 
     it('creates a missing category, then attaches it', async () => {
-      const { api, tags, click, search, choose } = await render();
+      const { api, click, search, choose } = await render();
 
-      await click('Ajouter une catégorie', tags('categories'));
-      await search(tags('categories'), 'nutrition');
-      await choose(tags('categories'), 'Créer « nutrition »');
+      await click('Ajouter une catégorie');
+      await search('nutrition');
+      await choose('Créer « nutrition »');
 
       expect(api.writes).toEqual([
         { method: 'POST', path: '/categories', body: { name: 'nutrition' } },
@@ -170,10 +224,11 @@ describe('ConceptPage classification', () => {
       ]);
     });
 
-    it('removes a category from its chip, then re-fetches', async () => {
-      const { tags, click, afterFirstWrite } = await render();
+    it('removes a category from the removal modal, then re-fetches', async () => {
+      const { click, press, afterFirstWrite } = await render();
 
-      await click('Retirer la catégorie « Prévention »', tags('categories'));
+      await click('Retirer une catégorie');
+      await press('Retirer la catégorie « Prévention »');
 
       expect(afterFirstWrite()).toEqual([`DELETE ${C}/categories/c1`, `GET ${C}`]);
     });

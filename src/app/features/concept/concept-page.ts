@@ -1,30 +1,34 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
 import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
-import { ConfirmAction } from '../../shared/ui/confirm-action';
+import { Translator } from '../../core/i18n/translator';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
 import { ConceptEditor } from './concept-editor';
-import { ConceptTags } from './concept-tags';
+import { Toolbar, type ToolbarAction } from '../../shared/ui/toolbar';
+import { ConceptTagDialog, ConceptTags, type TagKind } from './concept-tags';
 import { QASetSection } from './qaset-section';
 import { TranslateForm, type TranslationRequest } from './translate-form';
 
 /**
- * A concept (« notion »): what holds across its languages — its intents and categories — then one
- * section per language, each a QASet with its answer, its question variants and their audios.
+ * A concept (« notion »): what holds across its languages — its categories and intents, with the
+ * notion toolbar that changes them or deletes the concept — then one section per language, each a QASet with its answer, its question variants and their audios.
  */
 @Component({
   selector: 'app-concept-page',
   imports: [
     TranslocoPipe,
     Breadcrumb,
-    ConfirmAction,
+    ConfirmDialog,
     LanguageAnswerForm,
     Loading,
     LoadError,
     ConceptTags,
+    ConceptTagDialog,
     QASetSection,
+    Toolbar,
     TranslateForm,
     FocusReturnTarget,
   ],
@@ -34,27 +38,32 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
       @let title = view.title ?? ('concept.untitled' | transloco);
       <app-breadcrumb [trail]="editor.trail()" [current]="title" />
       <header>
-        <div class="title-row">
-          <div>
-            <p class="muso-eyebrow">{{ 'concept.eyebrow' | transloco }}</p>
-            <h1>{{ title }}</h1>
-          </div>
-          @if (editor.canAuthor()) {
-            <app-confirm-action
-              class="delete-concept"
-              [label]="'authoring.deleteConcept.label' | transloco"
-              [warning]="'authoring.deleteConcept.warning' | transloco"
-              [busy]="editor.busy()"
-              (confirmed)="editor.deleteConcept()"
-            />
-          }
-        </div>
-        <app-concept-tags kind="intents" />
+        <p class="muso-eyebrow">{{ 'concept.eyebrow' | transloco }}</p>
+        <h1>{{ title }}</h1>
         <app-concept-tags kind="categories" />
-        @if (editor.errorFor('concept'); as message) {
-          <p class="field-error" role="alert">{{ message }}</p>
+        <app-concept-tags kind="intents" />
+        @if (editor.canAuthor()) {
+          <app-toolbar [label]="'tools.concept' | transloco" [actions]="conceptTools()" />
         }
       </header>
+      @if (tagDialog(); as open) {
+        <app-concept-tag-dialog
+          [kind]="open.kind"
+          [mode]="open.mode"
+          (closed)="closeTagDialog(open.kind, open.mode)"
+        />
+      }
+      @if (deletingConcept()) {
+        <app-confirm-dialog
+          [title]="'authoring.deleteConcept.title' | transloco"
+          [warning]="'authoring.deleteConcept.warning' | transloco"
+          [confirmLabel]="'authoring.delete' | transloco"
+          [busy]="editor.busy()"
+          [error]="editor.errorFor('concept')"
+          (confirmed)="editor.deleteConcept()"
+          (cancel)="closeDeleteConcept()"
+        />
+      }
 
       @if (editor.pageAlert(); as message) {
         <div class="muso-notice danger page-alert" role="alert">
@@ -162,14 +171,9 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     header {
       margin-block-end: var(--muso-space-3);
     }
-    .title-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      gap: var(--muso-space-2);
-    }
-    .delete-concept {
-      margin-inline-start: auto;
+    header app-toolbar {
+      display: block;
+      margin-block-start: var(--muso-space-2);
     }
     .muso-notice {
       margin-block-end: var(--muso-space-3);
@@ -197,7 +201,42 @@ export class ConceptPage {
 
   readonly conceptId = input.required<string>();
 
+  readonly #t = inject(Translator);
+
   protected readonly addingLanguage = signal(false);
+  protected readonly tagDialog = signal<{ kind: TagKind; mode: 'add' | 'remove' } | null>(null);
+  protected readonly deletingConcept = signal(false);
+
+  /** What holds for every language: classification, and the concept itself. */
+  protected readonly conceptTools = computed<readonly ToolbarAction[]>(() => {
+    const busy = this.editor.busy();
+    const view = this.editor.view();
+    const tag = (
+      kind: TagKind,
+      mode: 'add' | 'remove',
+      icon: ToolbarAction['icon'],
+      label: string,
+    ) => ({
+      id: `${mode}-${kind}`,
+      icon,
+      label: this.#t.t(label),
+      disabled: busy || (mode === 'remove' && (view?.[kind].length ?? 0) === 0),
+      handler: () => this.tagDialog.set({ kind, mode }),
+    });
+    return [
+      tag('categories', 'add', 'category-add', 'classification.addCategory'),
+      tag('categories', 'remove', 'category-remove', 'tools.removeCategory'),
+      tag('intents', 'add', 'intent-add', 'classification.addIntent'),
+      tag('intents', 'remove', 'intent-remove', 'tools.removeIntent'),
+      {
+        id: 'delete-concept',
+        icon: 'delete',
+        label: this.#t.t('authoring.deleteConcept.label'),
+        disabled: busy,
+        handler: () => this.deletingConcept.set(true),
+      },
+    ];
+  });
   protected readonly translating = signal(false);
 
   constructor() {
@@ -213,6 +252,17 @@ export class ConceptPage {
     engine,
   }: TranslationRequest): Promise<void> {
     if (await this.editor.translateConcept(targetLanguageId, engine)) this.closeTranslate();
+  }
+
+  protected closeTagDialog(kind: TagKind, mode: 'add' | 'remove'): void {
+    this.tagDialog.set(null);
+    this.#focus.to(`${mode}-${kind}`);
+  }
+
+  protected closeDeleteConcept(): void {
+    this.deletingConcept.set(false);
+    this.editor.clearError('concept');
+    this.#focus.to('delete-concept');
   }
 
   protected closeAddLanguage(): void {

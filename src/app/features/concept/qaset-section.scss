@@ -48,15 +48,48 @@ dd {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.answer {
-  padding: var(--muso-space-2);
+// The pair the section is about, first and prominent: main question, then its answer.
+.lead {
+  display: grid;
+  gap: var(--muso-space-2);
+  margin-block: var(--muso-space-3);
+  padding: var(--muso-space-3);
+  border-inline-start: 4px solid var(--muso-teal);
   border-radius: var(--muso-radius);
   background: var(--info-bg);
-  margin-block-end: var(--muso-space-3);
+}
+.lead .variant {
+  padding: 0;
+  border: 0;
+}
+.lead .text {
+  font-size: var(--muso-h3-size);
+}
+.main .text {
+  font-family: var(--muso-font-heading);
+  font-weight: 600;
+}
+.label {
+  margin: 0 0 var(--muso-space-1);
+  font-family: var(--muso-font-body);
+  font-size: var(--muso-caption-size);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+.answer {
+  padding-block-start: var(--muso-space-2);
+  border-block-start: 1px solid var(--card-border);
 }
 .text {
   margin: 0;
   font-size: var(--muso-body-lg-size);
+  overflow-wrap: anywhere;
+}
+app-toolbar {
+  display: block;
+  margin-block-start: var(--muso-space-1);
 }
 .variants {
   display: grid;
@@ -76,13 +109,6 @@ dd {
 }
 .heading app-confirm-action {
   margin-inline-start: auto;
-}
-.item-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--muso-space-1);
-  margin-block-start: var(--muso-space-1);
 }
 .add-variant {
   margin-block-start: var(--muso-space-2);
