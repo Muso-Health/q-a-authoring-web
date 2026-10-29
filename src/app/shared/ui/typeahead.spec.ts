@@ -8,7 +8,7 @@ const CATALOGUE: TypeaheadOption[] = [
   { id: 'i3', label: 'paludisme' },
 ];
 
-async function render({ exclude = [] as string[], canCreate = true } = {}) {
+async function render({ exclude = [] as string[], canCreate = true, listAll = false } = {}) {
   const queries: string[] = [];
   TestBed.configureTestingModule({ imports: [Typeahead], providers: [provideTestI18n()] });
   const fixture = TestBed.createComponent(Typeahead);
@@ -20,6 +20,7 @@ async function render({ exclude = [] as string[], canCreate = true } = {}) {
   });
   fixture.componentRef.setInput('exclude', exclude);
   fixture.componentRef.setInput('canCreate', canCreate);
+  fixture.componentRef.setInput('listAll', listAll);
   const picked: TypeaheadOption[] = [];
   const created: string[] = [];
   fixture.componentInstance.picked.subscribe((o) => picked.push(o));
@@ -52,6 +53,22 @@ describe('Typeahead', () => {
     expect(queries).toEqual(['mous']);
     expect(options()).toEqual(['moustiquaire', 'moustique', 'Créer « mous »']);
     expect(input.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('searches nothing until something is typed, by default', async () => {
+    const { queries, options } = await render();
+
+    expect(queries).toEqual([]);
+    expect(options()).toEqual([]);
+  });
+
+  it('lists the whole catalogue before anything is typed when asked to, minus what is attached', async () => {
+    const { queries, options, type } = await render({ listAll: true, exclude: ['i3'] });
+
+    expect(queries).toEqual(['']);
+    expect(options()).toEqual(['moustiquaire', 'moustique']);
+    await type('moustique');
+    expect(options()).toEqual(['moustique']);
   });
 
   it('reuses an exact match, ignoring case and spaces, instead of offering to create', async () => {

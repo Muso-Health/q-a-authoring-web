@@ -1,6 +1,5 @@
 import { engineError } from '../../core/api/testing/fake-api-port';
 import { IDS } from '../../core/catalog/testing/catalog-fixtures';
-import { fakeLayout } from '../../shared/ui/testing/fake-layout';
 import { C, edited, qasetIn, renderConcept as render, text } from './testing/render-concept';
 
 const FR = `/qasets/${IDS.qasetFr}`;
@@ -27,8 +26,6 @@ function held<T>() {
 }
 
 describe('ConceptPage variant generation wizard', () => {
-  beforeEach(fakeLayout);
-
   async function open(
     answers: Record<string, unknown> = { [GENERATE]: { candidates: PROPOSALS } },
   ) {

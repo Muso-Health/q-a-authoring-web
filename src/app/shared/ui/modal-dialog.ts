@@ -20,7 +20,7 @@ let nextId = 0;
 /**
  * The modal every modal is built on: render it inside an `@if` and it opens over the page; leave
  * the `@if` and it closes. The CDK traps focus inside it (`cdkFocusInitial` marks where focus
- * starts, else the first control), labels it by its title, and gives focus back to what opened it.
+ * starts, else the content's first control), labels it by its title, and gives focus back to what opened it.
  * Escape, a click on the overlay and the close button are a dismissal: `dismissed` asks the owner
  * to leave the `@if`. While `locked` — a call in flight — none of them does anything.
  */
@@ -32,19 +32,18 @@ let nextId = 0;
   template: `
     <ng-template #panel>
       <div class="muso-dialog">
-        <div class="muso-dialog-head">
-          <h2 class="muso-dialog-title" [id]="titleId">{{ title() }}</h2>
-          <button
-            type="button"
-            class="muso-dialog-close secondary"
-            [attr.aria-label]="'dialog.close' | transloco"
-            [disabled]="locked()"
-            (click)="dismiss()"
-          >
-            <span aria-hidden="true">×</span>
-          </button>
-        </div>
+        <h2 class="muso-dialog-title" [id]="titleId">{{ title() }}</h2>
         <ng-content />
+        <!-- Last in the DOM, so focus starts in the content; shown top-right, by the title. -->
+        <button
+          type="button"
+          class="muso-dialog-close secondary"
+          [attr.aria-label]="'dialog.close' | transloco"
+          [disabled]="locked()"
+          (click)="dismiss()"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
     </ng-template>
   `,
@@ -53,6 +52,7 @@ let nextId = 0;
       background: color-mix(in srgb, var(--muso-navy) 55%, transparent);
     }
     .muso-dialog {
+      position: relative;
       box-sizing: border-box;
       max-block-size: calc(100dvh - 2 * var(--muso-page-gutter, 16px));
       overflow-y: auto;
@@ -64,18 +64,14 @@ let nextId = 0;
       border-block-start: 4px solid var(--muso-teal);
       box-shadow: var(--mat-sys-level3);
     }
-    .muso-dialog-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: var(--muso-space-2);
-      margin-block-end: var(--muso-space-3);
-    }
     .muso-dialog-title {
-      margin: 0;
+      margin: 0 0 var(--muso-space-3);
+      padding-inline-end: 3.25rem;
     }
     .muso-dialog-close {
-      flex: none;
+      position: absolute;
+      inset-block-start: var(--muso-card-gutter);
+      inset-inline-end: var(--muso-card-gutter);
       min-inline-size: 2.75rem;
       min-block-size: 2.75rem;
       padding: 0;

@@ -91,21 +91,43 @@ describe('ConceptPage', () => {
     expect(badges('bm')).toEqual(['Traduction : en attente']);
   });
 
-  it('renders each QASet’s answer, then its variants in creation order', async () => {
+  it('opens each section with the answer and its main question together, the other variants below', async () => {
     const element = await render();
     const fr = section(element, 'fr');
+    const blocks = [...fr.children].map((child) => child.className.split(' ')[0]);
 
-    expect(text(fr.querySelector('.answer .text'))).toBe(
+    // The pair comes first, right under the language heading, before any count or list.
+    expect(blocks.indexOf('lead')).toBe(1);
+    expect(blocks.indexOf('lead')).toBeLessThan(blocks.indexOf('counts'));
+    expect(blocks.indexOf('lead')).toBeLessThan(blocks.indexOf('variants'));
+    const lead = fr.querySelector('.lead')!;
+    expect(text(lead.querySelector('.main .text'))).toBe('Comment éviter le paludisme ?');
+    expect(text(lead.querySelector('.answer .text'))).toBe(
       'Dormez chaque nuit sous une moustiquaire imprégnée d’insecticide.',
     );
+    expect(text(fr.querySelector('.others-heading'))).toBe('Autres variantes');
+    expect([...fr.querySelectorAll('ol.variants .variant .text')].map((v) => text(v))).toEqual([
+      'Faut-il dormir sous une moustiquaire ?',
+      'Que faire contre les moustiques la nuit ?',
+    ]);
+    // Every variant, the main question first, in creation order.
     expect([...fr.querySelectorAll('.variant .text')].map((v) => text(v))).toEqual([
       'Comment éviter le paludisme ?',
       'Faut-il dormir sous une moustiquaire ?',
       'Que faire contre les moustiques la nuit ?',
     ]);
-    expect(text(section(element, 'en').querySelector('.variant .text'))).toBe(
-      'How can I avoid malaria?',
-    );
+  });
+
+  it('shows the answer alone at the top when a language has no question yet, and says when there is no other', async () => {
+    const element = await render();
+
+    const en = section(element, 'en');
+    expect(text(en.querySelector('.lead .main .text'))).toBe('How can I avoid malaria?');
+    expect(en.querySelector('ol.variants')).toBeNull();
+    expect(text(en)).toContain('Aucune autre variante.');
+    const bm = section(element, 'bm');
+    expect(bm.querySelector('.lead .main')).toBeNull();
+    expect(bm.querySelector('.lead .answer .text')).not.toBeNull();
   });
 
   it('counts variants and variants with audio per language, as distinct figures', async () => {

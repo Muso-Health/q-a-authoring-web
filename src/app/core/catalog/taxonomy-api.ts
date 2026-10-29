@@ -8,8 +8,11 @@ export interface TaxonomyEntry {
   readonly label: string;
 }
 
+/** No prefix asks for the whole catalogue. */
+const byPrefix = (prefix: string) => (prefix === '' ? {} : { params: { q: prefix } });
+
 /**
- * The shared intent and category catalogues. Search is by prefix, case and space insensitive;
+ * The shared intent and category catalogues. Search is by prefix, case and space insensitive (none lists everything);
  * registering is get-or-create, so the same text always lands on the same entry.
  */
 @Service()
@@ -17,9 +20,7 @@ export class TaxonomyApi {
   readonly #api = inject(ApiPort);
 
   async searchIntents(prefix: string): Promise<TaxonomyEntry[]> {
-    const { items } = await this.#api.get<Schemas['IntentsResponse']>('/intents', {
-      params: { q: prefix },
-    });
+    const { items } = await this.#api.get<Schemas['IntentsResponse']>('/intents', byPrefix(prefix));
     return items.map(({ id, text }) => ({ id, label: text }));
   }
 
@@ -29,9 +30,10 @@ export class TaxonomyApi {
   }
 
   async searchCategories(prefix: string): Promise<TaxonomyEntry[]> {
-    const { items } = await this.#api.get<Schemas['CategoriesResponse']>('/categories', {
-      params: { q: prefix },
-    });
+    const { items } = await this.#api.get<Schemas['CategoriesResponse']>(
+      '/categories',
+      byPrefix(prefix),
+    );
     return items.map(({ id, name }) => ({ id, label: name }));
   }
 

@@ -94,9 +94,6 @@ let nextId = 0;
       @if (error(); as message) {
         <p class="field-error" role="alert">{{ message }}</p>
       }
-      <button type="button" class="secondary" (click)="cancel.emit()">
-        {{ 'typeahead.close' | transloco }}
-      </button>
     </div>
   `,
   styles: `
@@ -143,6 +140,8 @@ export class Typeahead {
   /** Ids already attached: never suggested again. */
   readonly exclude = input<readonly string[]>([]);
   readonly canCreate = input(false);
+  /** List the whole catalogue before anything is typed, as a picker does, instead of waiting. */
+  readonly listAll = input(false);
   /** The engine's refusal, already translated. */
   readonly error = input<string | null>(null);
   readonly picked = output<TypeaheadOption>();
@@ -154,7 +153,7 @@ export class Typeahead {
   protected readonly typed = computed(() => this.#model().text.trim().replace(/\s+/g, ' '));
 
   protected readonly results = resource({
-    params: () => this.typed() || undefined,
+    params: () => (this.listAll() ? this.typed() : this.typed() || undefined),
     loader: async ({ params: prefix, abortSignal }) => {
       await pause(SEARCH_DELAY_MS, abortSignal);
       return this.search()(prefix);
@@ -170,11 +169,14 @@ export class Typeahead {
     return exact && this.exclude().includes(exact.id) ? exact.label : null;
   });
   protected readonly choices = computed<Choice[]>(() => {
-    if (this.typed() === '' || !this.results.hasValue()) return [];
+    if ((this.typed() === '' && !this.listAll()) || !this.results.hasValue()) return [];
     const picks = this.#found()
       .filter((option) => !this.exclude().includes(option.id))
       .map((option) => ({ kind: 'pick' as const, option }));
-    const create = this.canCreate() && !this.#exact() ? [{ kind: 'create' as const }] : [];
+    const create =
+      this.canCreate() && this.typed() !== '' && !this.#exact()
+        ? [{ kind: 'create' as const }]
+        : [];
     return [...picks, ...create];
   });
   protected readonly active = signal(-1);

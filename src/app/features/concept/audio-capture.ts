@@ -69,8 +69,9 @@ export class AudioCapture {
     });
   }
 
-  protected open(): void {
-    this.voiceId.set('');
+  /** Opens on the voice choice; with a voice, already on it — to replace that voice's take. */
+  open(voiceId = ''): void {
+    this.voiceId.set(voiceId);
     this.voiceMissing.set(false);
     this.panel.set('choose');
   }

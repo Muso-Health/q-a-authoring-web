@@ -40,7 +40,7 @@
           >
             <option value="">{{ 'capture.chooseVoice' | transloco }}</option>
             @for (voice of voices(); track voice.id) {
-              <option [value]="voice.id">
+              <option [value]="voice.id" [selected]="voice.id === voiceId()">
                 {{
                   voice.recorded
                     ? ('capture.voiceRecorded' | transloco: { voice: voice.name })
