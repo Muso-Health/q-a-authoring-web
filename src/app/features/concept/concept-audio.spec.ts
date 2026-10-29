@@ -89,7 +89,7 @@ describe('ConceptPage audio', () => {
       await manage('la variante 2');
       expect(title()).toBe('Audio de la variante 2 (Français)');
       expect(voices()).toEqual([]);
-      expect(text(dialog())).toContain('Pas d’audio');
+      expect(dialog()!.querySelector('ul.audios')).toBeNull();
       await press('Fermer');
 
       await manage('la variante 3');

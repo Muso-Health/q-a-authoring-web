@@ -76,7 +76,6 @@
     "variants": "Variantes de la question",
     "noVariants": "Aucune variante dans cette langue.",
     "intents": "Intentions",
-    "noAudio": "Pas d’audio",
     "audios": "Enregistrements de {{ label }}",
     "audioName": "{{ label }}, voix {{ voice }}",
     "answerAudio": "la réponse",
@@ -94,7 +93,10 @@
     },
     "mainQuestion": "Question principale",
     "otherVariants": "Autres variantes",
-    "noOtherVariants": "Aucune autre variante."
+    "noOtherVariants": "Aucune autre variante.",
+    "translations": "Question principale dans les autres langues",
+    "untranslated": "Pas encore de traduction",
+    "mainQuestionAudio": "la question principale"
   },
   "validation": {
     "titles": {
@@ -339,7 +341,8 @@
     },
     "remove": "Retirer",
     "editAnswerTitle": "Modifier la réponse ({{ language }})",
-    "editVariantTitle": "Modifier la variante {{ number }} ({{ language }})"
+    "editVariantTitle": "Modifier la variante {{ number }} ({{ language }})",
+    "translateInto": "Traduire la notion en {{ language }}"
   },
   "typeahead": {
     "create": "Créer « {{ text }} »",
@@ -733,6 +736,16 @@
     "removeCategory": "Retirer une catégorie",
     "removeIntent": "Retirer une intention",
     "answerAudio": "Gérer l’audio de la réponse",
-    "variantAudio": "Gérer l’audio de la variante {{ number }}"
+    "variantAudio": "Gérer l’audio de la variante {{ number }}",
+    "main": {
+      "toolbar": "Outils de la question principale ({{ language }})",
+      "edit": "Modifier la question principale ({{ language }})",
+      "field": "Question principale ({{ language }})",
+      "audio": "Gérer l’audio de la question principale ({{ language }})",
+      "translate": "Traduire la question principale ({{ language }})",
+      "delete": "Supprimer la question principale ({{ language }})",
+      "deleteTitle": "Supprimer la question principale ({{ language }}) ?",
+      "deleteWarning": "La question principale en {{ language }} sera supprimée ; la variante suivante, s’il y en a une, prend sa place. Cette action est irréversible."
+    }
   }
 }

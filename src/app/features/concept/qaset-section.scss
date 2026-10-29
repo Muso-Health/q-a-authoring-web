@@ -12,8 +12,11 @@ h2 {
   text-transform: uppercase;
 }
 h3 {
-  font-size: var(--muso-body-lg-size);
+  font-size: var(--muso-body-size, 1rem);
   margin-block-end: var(--muso-space-1);
+}
+.lead h3 {
+  margin: 0 0 0.125rem;
 }
 .base {
   font-family: var(--muso-font-body);
@@ -48,13 +51,14 @@ dd {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-// The pair the section is about, first and prominent: main question, then its answer.
+// The pair the section is about, first: main question, then its answer — at body size, so it
+// leads without dominating the page.
 .lead {
   display: grid;
   gap: var(--muso-space-2);
-  margin-block: var(--muso-space-3);
-  padding: var(--muso-space-3);
-  border-inline-start: 4px solid var(--muso-teal);
+  margin-block: var(--muso-space-2);
+  padding: var(--muso-space-2) var(--muso-space-3);
+  border-inline-start: 3px solid var(--muso-teal);
   border-radius: var(--muso-radius);
   background: var(--info-bg);
 }
@@ -62,15 +66,11 @@ dd {
   padding: 0;
   border: 0;
 }
-.lead .text {
-  font-size: var(--muso-h3-size);
-}
-.main .text {
-  font-family: var(--muso-font-heading);
+.main app-variant-item {
   font-weight: 600;
 }
 .label {
-  margin: 0 0 var(--muso-space-1);
+  margin: 0 0 0.125rem;
   font-family: var(--muso-font-body);
   font-size: var(--muso-caption-size);
   font-weight: 600;
@@ -84,7 +84,6 @@ dd {
 }
 .text {
   margin: 0;
-  font-size: var(--muso-body-lg-size);
   overflow-wrap: anywhere;
 }
 app-toolbar {
@@ -112,11 +111,4 @@ app-toolbar {
 }
 .add-variant {
   margin-block-start: var(--muso-space-2);
-}
-.translate {
-  margin-block-start: var(--muso-space-2);
-  padding: var(--muso-space-2);
-  border: 1px solid var(--card-border);
-  border-radius: var(--muso-radius);
-  background: var(--muso-surface);
 }

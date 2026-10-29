@@ -1,12 +1,13 @@
 import { Dialog, type DialogRef } from '@angular/cdk/dialog';
+import { DOCUMENT } from '@angular/common';
 import {
   Component,
   DestroyRef,
   Injector,
+  PendingTasks,
   TemplateRef,
   ViewEncapsulation,
   afterNextRender,
-  effect,
   inject,
   input,
   output,
@@ -17,12 +18,19 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 let nextId = 0;
 
+/** How long the fade-out lasts, in step with `muso-dialog-out` below; a safety net past it. */
+const LEAVE_MS = 180;
+
 /**
  * The modal every modal is built on: render it inside an `@if` and it opens over the page; leave
  * the `@if` and it closes. The CDK traps focus inside it (`cdkFocusInitial` marks where focus
  * starts, else the content's first control), labels it by its title, and gives focus back to what opened it.
  * Escape, a click on the overlay and the close button are a dismissal: `dismissed` asks the owner
  * to leave the `@if`. While `locked` — a call in flight — none of them does anything.
+ *
+ * It fades and rises in on open and fades out on close, the backdrop with it; whoever closes it,
+ * it leaves the page only once the fade is done. Under `prefers-reduced-motion` it appears and
+ * goes at once.
  */
 @Component({
   selector: 'app-dialog',
@@ -50,6 +58,38 @@ let nextId = 0;
   styles: `
     .muso-dialog-backdrop {
       background: color-mix(in srgb, var(--muso-navy) 55%, transparent);
+    }
+    .muso-dialog-pane.muso-dialog-enter {
+      animation: muso-dialog-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .muso-dialog-pane.muso-dialog-leave {
+      animation: muso-dialog-out ${LEAVE_MS}ms ease-in both;
+      pointer-events: none;
+    }
+    .cdk-overlay-backdrop.muso-dialog-backdrop-leave {
+      opacity: 0;
+      transition: opacity ${LEAVE_MS}ms ease-in;
+    }
+    @keyframes muso-dialog-in {
+      from {
+        opacity: 0;
+        transform: translateY(1rem) scale(0.95);
+      }
+    }
+    @keyframes muso-dialog-out {
+      to {
+        opacity: 0;
+        transform: translateY(0.5rem) scale(0.97);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .muso-dialog-pane.muso-dialog-enter,
+      .muso-dialog-pane.muso-dialog-leave {
+        animation: none;
+      }
+      .cdk-overlay-backdrop.muso-dialog-backdrop-leave {
+        transition: none;
+      }
     }
     .muso-dialog {
       position: relative;
@@ -94,6 +134,10 @@ export class ModalDialog {
   constructor() {
     const dialog = inject(Dialog);
     const injector = inject(Injector);
+    const tasks = inject(PendingTasks);
+    const media = inject(DOCUMENT).defaultView?.matchMedia;
+    // Without `matchMedia` (a test environment) nothing can say motion is welcome: none.
+    const animate = media ? !media('(prefers-reduced-motion: reduce)').matches : false;
     let closing = false;
 
     afterNextRender(() => {
@@ -103,30 +147,58 @@ export class ModalDialog {
         ariaModal: true,
         autoFocus: 'first-tabbable',
         restoreFocus: true,
-        disableClose: this.locked(),
+        // Escape and the overlay are handled below: closing is the owner's, after the fade.
+        disableClose: true,
+        disableAnimations: !animate,
         width: `calc(100vw - 2 * var(--muso-page-gutter, 16px))`,
         maxWidth: '36rem',
-        panelClass: 'muso-dialog-pane',
+        panelClass: animate ? ['muso-dialog-pane', 'muso-dialog-enter'] : 'muso-dialog-pane',
         backdropClass: 'muso-dialog-backdrop',
       });
+      ref.keydownEvents.subscribe((event) => {
+        if (event.key === 'Escape' && !hasModifier(event)) {
+          event.preventDefault();
+          this.dismiss();
+        }
+      });
+      ref.backdropClick.subscribe(() => this.dismiss());
+      // Closed from elsewhere — a navigation — is a dismissal too.
       ref.closed.subscribe(() => {
         if (!closing) this.dismissed.emit();
       });
       this.#ref.set(ref);
     });
 
-    effect(() => {
-      const ref = this.#ref();
-      if (ref) ref.disableClose = this.locked();
-    });
-
     inject(DestroyRef).onDestroy(() => {
       closing = true;
-      this.#ref()?.close();
+      const ref = this.#ref();
+      if (!ref) return;
+      if (!animate) {
+        ref.close();
+        return;
+      }
+      const pane = ref.overlayRef.overlayElement;
+      pane.classList.replace('muso-dialog-enter', 'muso-dialog-leave');
+      ref.overlayRef.backdropElement?.classList.add('muso-dialog-backdrop-leave');
+      // Held as a pending task, so the app (and a test) is stable only once it has gone.
+      const done = tasks.add();
+      let gone = false;
+      const finish = () => {
+        if (gone) return;
+        gone = true;
+        clearTimeout(timer);
+        ref.close();
+        done();
+      };
+      pane.addEventListener('animationend', finish, { once: true });
+      const timer = setTimeout(finish, LEAVE_MS + 60);
     });
   }
 
   protected dismiss(): void {
-    if (!this.locked()) this.#ref()?.close();
+    if (!this.locked()) this.dismissed.emit();
   }
 }
+
+const hasModifier = (event: KeyboardEvent) =>
+  event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;

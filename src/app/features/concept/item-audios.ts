@@ -8,18 +8,17 @@ import { ConceptEditor } from './concept-editor';
 import type { ItemRole, ItemView } from './concept-view';
 
 /**
- * An answer's or a variant's recordings, one per voice, each with its quality. On the page they
- * only play; with `manage` — in the audio modal — each can be replaced or deleted, and a voice
- * added.
+ * An answer's or a variant's recordings, one per voice, each with its quality — or nothing at all
+ * when it has none. On the page they only play; with `manage` — in the audio modal — each can be
+ * replaced or deleted, and a voice added.
  */
 @Component({
   selector: 'app-item-audios',
   imports: [TranslocoPipe, AudioPlayer, ConfirmAction, ValidationBadge, AudioCapture],
   template: `
     @let it = item();
-    @if (it.audios.length === 0) {
-      <span class="no-audio muso-meta">{{ 'concept.noAudio' | transloco }}</span>
-    } @else {
+    <!-- No audio: nothing to say, so nothing is shown. -->
+    @if (it.audios.length > 0) {
       <ul class="audios" [attr.aria-label]="'concept.audios' | transloco: { label: label() }">
         @for (audio of it.audios; track audio.id) {
           @let named = 'concept.audioName' | transloco: { label: label(), voice: audio.voiceName };
@@ -69,6 +68,10 @@ import type { ItemRole, ItemView } from './concept-view';
       align-items: center;
       gap: var(--muso-space-1) var(--muso-space-3);
       margin-block-start: var(--muso-space-1);
+    }
+    /* Comments (Angular's anchors) still count as empty: no audio leaves no gap. */
+    :host(:empty) {
+      display: none;
     }
     .audios {
       display: grid;

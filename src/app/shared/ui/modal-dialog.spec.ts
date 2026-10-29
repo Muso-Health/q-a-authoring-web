@@ -146,4 +146,63 @@ describe('ModalDialog', () => {
     expect(host.dismissals).toBe(0);
     expect(document.activeElement).toBe(opener);
   });
+
+  describe('motion', () => {
+    /** jsdom has no `matchMedia`: each test says whether the user asks for reduced motion. */
+    const prefersReducedMotion = (reduce: boolean) =>
+      vi.stubGlobal(
+        'matchMedia',
+        (query: string) =>
+          ({ matches: reduce && query.includes('reduce'), media: query }) as MediaQueryList,
+      );
+    afterEach(() => vi.unstubAllGlobals());
+    const pane = () => document.querySelector<HTMLElement>('.muso-dialog-pane')!;
+    const backdrop = () => document.querySelector<HTMLElement>('.cdk-overlay-backdrop');
+
+    it('fades in on open, and fades out before it leaves the page', async () => {
+      prefersReducedMotion(false);
+      const { fixture, host, opener, open, settle } = await render();
+
+      await open();
+      expect(pane().classList).toContain('muso-dialog-enter');
+
+      escape();
+      fixture.detectChanges();
+      // Dismissed, but still on screen while it fades out, and no longer interactive.
+      expect(host.dismissals).toBe(1);
+      expect(dialog()).not.toBeNull();
+      expect(pane().classList).toContain('muso-dialog-leave');
+      expect(pane().classList).not.toContain('muso-dialog-enter');
+      expect(backdrop()?.classList).toContain('muso-dialog-backdrop-leave');
+
+      await settle();
+      expect(dialog()).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    });
+
+    it('also fades out when its owner closes it', async () => {
+      prefersReducedMotion(false);
+      const { fixture, open, settle } = await render();
+      await open();
+
+      dialog()!.querySelector<HTMLButtonElement>('.last')!.click();
+      fixture.detectChanges();
+      expect(pane().classList).toContain('muso-dialog-leave');
+
+      await settle();
+      expect(dialog()).toBeNull();
+    });
+
+    it('neither fades in nor out when the user prefers reduced motion', async () => {
+      prefersReducedMotion(true);
+      const { fixture, open } = await render();
+
+      await open();
+      expect(pane().classList).not.toContain('muso-dialog-enter');
+
+      escape();
+      fixture.detectChanges();
+      expect(dialog()).toBeNull();
+    });
+  });
 });

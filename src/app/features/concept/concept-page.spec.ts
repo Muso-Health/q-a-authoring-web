@@ -176,7 +176,8 @@ describe('ConceptPage', () => {
       null,
       'Moussa',
     ]);
-    expect(text(variants[1].querySelector('.no-audio'))).toBe('Pas d’audio');
+    // No audio: nothing is said, nothing is shown.
+    expect(variants[1].querySelector('app-item-audios')?.textContent?.trim()).toBe('');
   });
 
   it('says so when a language has no variant yet', async () => {
