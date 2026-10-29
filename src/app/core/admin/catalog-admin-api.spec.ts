@@ -82,4 +82,16 @@ describe('CatalogAdminApi', () => {
       `DELETE /themes/${IDS.theme}`,
     ]);
   });
+
+  it('adds a catalogue language to a project, and removes one', async () => {
+    const { api, catalog } = setUp();
+
+    await catalog.addProjectLanguage(IDS.project, IDS.wo);
+    await catalog.removeProjectLanguage(IDS.project, IDS.ff);
+
+    expect(api.writes).toEqual([
+      { method: 'PUT', path: `/projects/${IDS.project}/languages/${IDS.wo}`, body: undefined },
+      { method: 'DELETE', path: `/projects/${IDS.project}/languages/${IDS.ff}`, body: undefined },
+    ]);
+  });
 });

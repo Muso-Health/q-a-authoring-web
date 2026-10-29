@@ -64,6 +64,7 @@ describe('ADMIN_ROUTES', () => {
   it('opens the first content section a content manager may see', async () => {
     expect(await landing('/admin', ['manage_catalog'])).toBe('/admin/catalog');
     expect(await landing('/admin', ['manage_intents', 'manage_categories'])).toBe('/admin/intents');
+    expect(await landing('/admin', ['manage_voices'])).toBe('/admin/voices');
   });
 
   it('keeps the catalogue, at every level, to whoever manages it', async () => {
@@ -80,6 +81,7 @@ describe('ADMIN_ROUTES', () => {
   it('keeps each taxonomy to whoever manages it', async () => {
     const cases: [string, string][] = [
       ['/admin/languages', 'manage_languages'],
+      ['/admin/voices', 'manage_voices'],
       ['/admin/intents', 'manage_intents'],
       ['/admin/categories', 'manage_categories'],
     ];

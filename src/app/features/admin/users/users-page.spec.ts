@@ -169,6 +169,7 @@ describe('UsersPage', () => {
       [IDS.en, 'English'],
       [IDS.fr, 'Français'],
       [IDS.ff, 'Peul'],
+      [IDS.wo, 'Wolof'],
     ]);
   });
 

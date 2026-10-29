@@ -25,9 +25,12 @@ export interface QueuePage<K extends QueueKind> {
   readonly nextCursor: string | null;
 }
 
-/** What a decision is about: one endpoint each. */
+/**
+ * What a decision is about: the base-language QASet (clinical), a translated QASet as a whole —
+ * its answer and variants together (translation) — or one recording (audio).
+ */
 export interface DecisionSubject {
-  readonly kind: 'clinical' | 'translation-answer' | 'translation-variant' | 'audio';
+  readonly kind: 'clinical' | 'translation' | 'audio';
   readonly id: string;
 }
 
@@ -35,8 +38,7 @@ export const QUEUE_PAGE_SIZE = 20;
 
 const DECISION_PATHS: Record<DecisionSubject['kind'], (id: string) => string> = {
   clinical: (id) => `/qasets/${id}/clinical-validation`,
-  'translation-answer': (id) => `/answers/${id}/translation-validation`,
-  'translation-variant': (id) => `/variants/${id}/translation-validation`,
+  translation: (id) => `/qasets/${id}/translation-validation`,
   audio: (id) => `/audios/${id}/audio-validation`,
 };
 

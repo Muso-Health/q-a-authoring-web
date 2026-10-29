@@ -6,6 +6,7 @@ import {
   MANAGE_INTENTS,
   MANAGE_LANGUAGES,
   MANAGE_PROMPTS,
+  MANAGE_VOICES,
 } from '../../core/access/current-user';
 import { permissionGuard } from '../../core/access/permission-guard';
 import { AdminArea } from './admin-area';
@@ -51,6 +52,11 @@ export const ADMIN_ROUTES: Routes = [
         path: 'languages',
         canMatch: [permissionGuard(MANAGE_LANGUAGES)],
         loadComponent: () => import('./languages/languages-page').then((m) => m.LanguagesPage),
+      },
+      {
+        path: 'voices',
+        canMatch: [permissionGuard(MANAGE_VOICES)],
+        loadComponent: () => import('./voices/voices-page').then((m) => m.VoicesPage),
       },
       ...(
         [

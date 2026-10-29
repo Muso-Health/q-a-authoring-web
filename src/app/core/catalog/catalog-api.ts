@@ -3,11 +3,12 @@ import { ApiPort } from '../api/api-port';
 import type { Schemas } from '../api/api-types';
 import {
   LanguageDirectory,
+  type ConceptDetail,
+  type ConceptSummary,
   type Project,
+  type ProjectLanguage,
   type Protocol,
   type ProtocolLineage,
-  type QASetDetail,
-  type QASetSummary,
   type Theme,
   type ThemeLineage,
 } from './catalog.model';
@@ -33,10 +34,22 @@ const toTheme = (t: Schemas['ThemeResponse']): Theme => ({
   description: t.description,
 });
 
-const toQASetSummary = (q: Schemas['QASetSummaryResponse']): QASetSummary => ({
-  id: q.id,
-  themeId: q.theme_id,
-  languages: q.languages.map((l) => ({ languageId: l.language_id, variantCount: l.variant_count })),
+const toConceptSummary = (c: Schemas['ConceptSummaryResponse']): ConceptSummary => ({
+  id: c.id,
+  themeId: c.theme_id,
+  qasets: c.qasets.map((q) => ({
+    id: q.id,
+    languageId: q.language_id,
+    answerText: q.answer_text,
+    variantCount: q.variant_count,
+  })),
+});
+
+const toProjectLanguage = (l: Schemas['ProjectLanguageResponse']): ProjectLanguage => ({
+  id: l.language_id,
+  code: l.code,
+  name: l.name,
+  isBase: l.is_base,
 });
 
 const at = (...segments: string[]): string =>
@@ -74,13 +87,20 @@ export class CatalogApi {
     return toTheme(await this.#api.get<Schemas['ThemeResponse']>(at('/themes', id)));
   }
 
-  async qasets(themeId: string): Promise<QASetSummary[]> {
-    const path = at('/themes', themeId, 'qasets');
-    return (await this.#api.get<Schemas['QASetsResponse']>(path)).items.map(toQASetSummary);
+  async concepts(themeId: string): Promise<ConceptSummary[]> {
+    const path = at('/themes', themeId, 'concepts');
+    return (await this.#api.get<Schemas['ConceptsResponse']>(path)).items.map(toConceptSummary);
   }
 
-  qaset(id: string): Promise<QASetDetail> {
-    return this.#api.get<QASetDetail>(at('/qasets', id));
+  concept(id: string): Promise<ConceptDetail> {
+    return this.#api.get<ConceptDetail>(at('/concepts', id));
+  }
+
+  /** The only languages the project's content may use, its base language first. */
+  async projectLanguages(projectId: string): Promise<ProjectLanguage[]> {
+    const path = at('/projects', projectId, 'languages');
+    const { items } = await this.#api.get<Schemas['ProjectLanguagesResponse']>(path);
+    return items.map(toProjectLanguage);
   }
 
   async lineageOfProtocol(id: string): Promise<ProtocolLineage> {

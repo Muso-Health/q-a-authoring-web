@@ -4,19 +4,19 @@ import { ApiPort } from '../../core/api/api-port';
 import { FakeApiPort, engineError } from '../../core/api/testing/fake-api-port';
 import { IDS, world } from '../../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../../core/i18n/testing/provide-test-i18n';
-import { QASetPage } from './qaset-page';
+import { ConceptPage } from './concept-page';
 
-async function render(answers: Record<string, unknown> = world()) {
+async function render(answers: Record<string, unknown> = world(), language: 'fr' | 'en' = 'fr') {
   TestBed.configureTestingModule({
-    imports: [QASetPage],
+    imports: [ConceptPage],
     providers: [
-      provideTestI18n(),
+      provideTestI18n(language),
       provideRouter([]),
       { provide: ApiPort, useValue: new FakeApiPort(answers) },
     ],
   });
-  const fixture = TestBed.createComponent(QASetPage);
-  fixture.componentRef.setInput('qasetId', IDS.qaset);
+  const fixture = TestBed.createComponent(ConceptPage);
+  fixture.componentRef.setInput('conceptId', IDS.concept);
   await fixture.whenStable();
   return fixture.nativeElement as HTMLElement;
 }
@@ -30,10 +30,11 @@ const text = (element: Element | null) => element?.textContent?.replace(/\s+/g, 
 /** Cell by cell: Angular drops the whitespace between elements, so join the children. */
 const cells = (element: Element) => [...element.children].map((child) => text(child)).join(' ');
 
-describe('QASetPage', () => {
-  it('titles the set with its first base-language question, under the full breadcrumb', async () => {
+describe('ConceptPage', () => {
+  it('titles the concept with its first base-language question, under the full breadcrumb', async () => {
     const element = await render();
 
+    expect(text(element.querySelector('.muso-eyebrow'))).toBe('Notion');
     expect(text(element.querySelector('h1'))).toBe('Comment éviter le paludisme ?');
     const crumbs = element.querySelectorAll('nav[aria-label="Fil d’Ariane"] li');
     expect([...crumbs].map((li) => text(li))).toEqual([
@@ -45,18 +46,31 @@ describe('QASetPage', () => {
     ]);
   });
 
-  it('shows the clinical state and the categories at the set level', async () => {
+  it('is a « Concept » in English', async () => {
+    const element = await render(world(), 'en');
+
+    expect(text(element.querySelector('.muso-eyebrow'))).toBe('Concept');
+    expect(element.textContent).not.toMatch(/\bQ&A set|\bset\b/i);
+  });
+
+  it('never speaks of « ensembles »', async () => {
+    const element = await render();
+
+    expect(element.textContent).not.toMatch(/ensemble/i);
+  });
+
+  it('shows the concept’s intents and categories, for every language', async () => {
     const element = await render();
 
     const header = element.querySelector('header')!;
-    expect(text(header.querySelector('.badge'))).toBe('Validation clinique : validée');
-    expect([...header.querySelectorAll('.muso-chips li')].map((li) => text(li))).toEqual([
-      'Prévention',
-      'Enfants de moins de 5 ans',
-    ]);
+    const chips = (kind: string) =>
+      [...header.querySelectorAll(`[data-kind="${kind}"] .muso-chips li`)].map((li) => text(li));
+    expect(chips('intents')).toEqual(['prévention_paludisme', 'moustiquaire']);
+    expect(chips('categories')).toEqual(['Prévention', 'Enfants de moins de 5 ans']);
+    expect(section(element, 'fr').querySelector('.muso-chips')).toBeNull();
   });
 
-  it('groups by language, base language first, each named, its content tagged with its language', async () => {
+  it('has one section per QASet, base language first, its content tagged with its language', async () => {
     const element = await render();
 
     expect(sections(element).map((s) => s.getAttribute('data-lang'))).toEqual(['fr', 'en', 'bm']);
@@ -67,7 +81,17 @@ describe('QASetPage', () => {
     expect(section(element, 'en').getAttribute('lang')).toBeNull();
   });
 
-  it('renders the answer, then the variants in creation order', async () => {
+  it('badges the clinical state on the base QASet and the translation state on the others', async () => {
+    const element = await render();
+    const badges = (lang: string) =>
+      [...section(element, lang).querySelectorAll('.heading .badge')].map((b) => text(b));
+
+    expect(badges('fr')).toEqual(['Validation clinique : validée']);
+    expect(badges('en')).toEqual(['Traduction : rejetée']);
+    expect(badges('bm')).toEqual(['Traduction : en attente']);
+  });
+
+  it('renders each QASet’s answer, then its variants in creation order', async () => {
     const element = await render();
     const fr = section(element, 'fr');
 
@@ -79,6 +103,9 @@ describe('QASetPage', () => {
       'Faut-il dormir sous une moustiquaire ?',
       'Que faire contre les moustiques la nuit ?',
     ]);
+    expect(text(section(element, 'en').querySelector('.variant .text'))).toBe(
+      'How can I avoid malaria?',
+    );
   });
 
   it('counts variants and variants with audio per language, as distinct figures', async () => {
@@ -108,53 +135,25 @@ describe('QASetPage', () => {
     ]);
   });
 
-  it('shows each variant’s intents as chips', async () => {
+  it('lists each item’s audios per voice, each playable with its quality badge', async () => {
     const element = await render();
-    const [first, second, third] = section(element, 'fr').querySelectorAll('.variant');
+    const answer = section(element, 'fr').querySelector('.answer')!;
 
-    expect([...first.querySelectorAll('.muso-chips li')].map((li) => text(li))).toEqual([
-      'prévention_paludisme',
-      'moustiquaire',
-    ]);
-    expect(second.querySelectorAll('.muso-chips li')).toHaveLength(1);
-    expect(third.querySelector('.muso-chips')).toBeNull();
-  });
-
-  it('links each translation to its counterpart, naming its language', async () => {
-    const element = await render();
-
-    const link = section(element, 'fr').querySelector<HTMLAnchorElement>('.variant .links a')!;
-    expect(text(link)).toBe('English');
-    expect(link.getAttribute('href')).toBe(`/#item-${IDS.variantEn1}`);
-    expect(element.querySelector(`#item-${IDS.variantEn1}`)).not.toBeNull();
-    expect(text(section(element, 'en').querySelector('.answer .links a'))).toBe('Français');
-  });
-
-  it('badges translation state on translated items only', async () => {
-    const element = await render();
-    const translationBadges = (lang: string) =>
-      [...section(element, lang).querySelectorAll('.badge[data-kind="translation"]')].map((b) =>
-        text(b),
-      );
-
-    expect(translationBadges('fr')).toEqual([]);
-    expect(translationBadges('en')).toEqual(['Traduction : validée', 'Traduction : rejetée']);
-    expect(translationBadges('bm')).toEqual(['Traduction : en attente']);
-  });
-
-  it('offers playback and an audio-quality badge on each audio, and nothing without one', async () => {
-    const element = await render();
-    const fr = section(element, 'fr');
-
-    expect(fr.querySelector('.answer app-audio-player')).not.toBeNull();
-    expect(text(fr.querySelector('.answer .badge[data-kind="audio"]'))).toBe(
+    const audios = [...answer.querySelectorAll('li.audio')];
+    expect(audios.map((li) => text(li.querySelector('.voice')))).toEqual(['Awa', 'Moussa']);
+    expect(audios.map((li) => text(li.querySelector('.badge[data-kind="audio"]')))).toEqual([
       'Qualité audio : en attente',
+      'Qualité audio : validée',
+    ]);
+    expect(audios[1].querySelector('app-audio-player button')?.getAttribute('aria-label')).toBe(
+      'Écouter la réponse, voix Moussa (1:01)',
     );
-    const variants = [...fr.querySelectorAll('.variant')];
-    expect(variants.map((v) => text(v.querySelector('.badge[data-kind="audio"]')) ?? null)).toEqual(
-      ['Qualité audio : validée', null, 'Qualité audio : rejetée'],
-    );
-    expect(variants[1].querySelector('app-audio-player')).toBeNull();
+    const variants = [...section(element, 'fr').querySelectorAll('.variant')];
+    expect(variants.map((v) => text(v.querySelector('li.audio .voice')) ?? null)).toEqual([
+      'Awa',
+      null,
+      'Moussa',
+    ]);
     expect(text(variants[1].querySelector('.no-audio'))).toBe('Pas d’audio');
   });
 
@@ -164,10 +163,16 @@ describe('QASetPage', () => {
     expect(text(section(element, 'bm'))).toContain('Aucune variante dans cette langue.');
   });
 
-  it('says the set does not exist when the engine says so', async () => {
+  it('names its languages from the project’s languages', async () => {
+    const element = await render({ ...world(), '/languages': { items: [] } });
+
+    expect(text(section(element, 'bm').querySelector('h2'))).toContain('Bambara');
+  });
+
+  it('says the concept does not exist when the engine says so', async () => {
     const element = await render({
       ...world(),
-      [`/qasets/${IDS.qaset}`]: engineError(404, 'qaset_not_found'),
+      [`/concepts/${IDS.concept}`]: engineError(404, 'concept_not_found'),
     });
 
     expect(element.querySelector('[role="alert"]')?.textContent).toContain('introuvable');

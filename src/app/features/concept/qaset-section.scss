@@ -68,15 +68,14 @@ dd {
   padding-block: var(--muso-space-1);
   border-block-end: 1px solid var(--card-border);
 }
-.variant .muso-chips {
-  margin-block: var(--muso-space-1) 0;
-}
 .heading {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: space-between;
   gap: var(--muso-space-2);
+}
+.heading app-confirm-action {
+  margin-inline-start: auto;
 }
 .item-actions {
   display: flex;

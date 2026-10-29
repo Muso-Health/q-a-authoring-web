@@ -55,9 +55,9 @@
       "empty": "No themes in this protocol."
     },
     "theme": {
-      "qasets": "Q&A sets",
-      "empty": "No Q&A sets in this theme.",
-      "qasetLabel": "Set {{ number }}",
+      "concepts": "Concepts",
+      "empty": "No concepts in this theme.",
+      "conceptLabel": "Concept {{ number }}",
       "languages": "Languages and variant counts",
       "variantCount": {
         "one": "{{ count }} variant",
@@ -65,18 +65,20 @@
       }
     }
   },
-  "qaset": {
-    "eyebrow": "Q&A set",
-    "untitled": "Set without a question",
+  "concept": {
+    "eyebrow": "Concept",
+    "untitled": "Concept without a question",
     "categories": "Categories",
     "noCategories": "No categories",
+    "noIntents": "No intents",
     "baseLanguage": "Base language",
     "answer": "Answer",
     "variants": "Question variants",
     "noVariants": "No variants in this language.",
     "intents": "Intents",
     "noAudio": "No audio",
-    "translatedAs": "Translated as:",
+    "audios": "Recordings of {{ label }}",
+    "audioName": "{{ label }}, voice {{ voice }}",
     "answerAudio": "the answer",
     "variantAudio": "variant {{ number }}",
     "yes": "Yes",
@@ -117,14 +119,14 @@
       "label": "Validation progress"
     },
     "card": {
-      "open": "Open the set",
+      "open": "Open the concept",
       "answer": "Answer ({{ language }})",
       "variants": "Question variants",
       "noVariants": "No variants.",
       "translatedAnswer": "Translated answer ({{ language }})",
-      "translatedVariant": "Translated variant ({{ language }})",
-      "source": "Source in the base language",
-      "fallback": "No linked source: reference answer in the base language",
+      "translatedVariants": "Translated variants ({{ language }})",
+      "source": "Answer in the base language",
+      "sourceVariants": "Variants in the base language",
       "noSource": "No source text available.",
       "voicedAnswer": "Recorded answer ({{ language }})",
       "voicedVariant": "Recorded variant ({{ language }})",
@@ -150,7 +152,7 @@
     "finished": "You have been through the whole list.",
     "reload": "Reload the list",
     "errors": {
-      "noBaseLanguage": "This set has no answer in the project's base language: it cannot be clinically validated.",
+      "noBaseLanguage": "This concept has no answer in the project's base language: it cannot be clinically validated.",
       "notATranslation": "This item is in the base language: it is not a translation.",
       "invalidDecision": "Decision refused: choose validate or reject.",
       "gone": "This item no longer exists: it was removed from the list."
@@ -203,15 +205,26 @@
       "heading": "Add a language",
       "open": "Add a language",
       "submit": "Add the language",
-      "none": "Every registered language is already present in this set."
+      "none": "Every language of the project is already present in this concept."
     },
-    "deleteSet": {
-      "label": "Delete the set",
-      "warning": "The set, its answers and its variants in every language will be deleted. This cannot be undone."
+    "deleteConcept": {
+      "label": "Delete the concept",
+      "warning": "The concept, its answers and its variants in every language will be deleted. This cannot be undone."
+    },
+    "newConcept": {
+      "open": "New concept",
+      "submit": "Create the concept"
+    },
+    "translateConcept": {
+      "heading": "Translate the concept",
+      "open": "Translate the concept",
+      "lead": "The base-language answer and every variant are translated. A language already present is updated: its answer is replaced and missing variants are added.",
+      "none": "The project has no language other than its base language.",
+      "noBase": "This concept has no answer in the project's base language yet: there is nothing to translate."
     },
     "pairs": {
       "heading": "Add questions and answers",
-      "lead": "Project base language: {{ language }}. Each pair links a question to its answer; pairs that share an answer form one set.",
+      "lead": "Project base language: {{ language }}. Each pair links a question to its answer; pairs that share an answer form one concept.",
       "pair": "Pair {{ number }}",
       "question": "Question",
       "answer": "Answer",
@@ -235,12 +248,12 @@
       "summary": {
         "saved": "Pairs saved: {{ created }}, {{ updated }}, {{ variants }}.",
         "created": {
-          "one": "{{ count }} set created",
-          "other": "{{ count }} sets created"
+          "one": "{{ count }} concept created",
+          "other": "{{ count }} concepts created"
         },
         "updated": {
-          "one": "{{ count }} set extended",
-          "other": "{{ count }} sets extended"
+          "one": "{{ count }} concept extended",
+          "other": "{{ count }} concepts extended"
         },
         "variants": {
           "one": "{{ count }} question added",
@@ -266,15 +279,14 @@
       "message": "Your change put back to pending: {{ list }}.",
       "dismiss": "Got it",
       "clinical": "the clinical validation",
-      "translationAnswer": "the translation of the answer ({{ language }})",
-      "translationVariant": "the translation of variant {{ number }} ({{ language }})",
-      "audioAnswer": "the audio quality of the answer ({{ language }})",
-      "audioVariant": "the audio quality of variant {{ number }} ({{ language }})"
+      "translation": "the translation validation ({{ language }})",
+      "audioAnswer": "the audio quality of the answer ({{ language }}, voice {{ voice }})",
+      "audioVariant": "the audio quality of variant {{ number }} ({{ language }}, voice {{ voice }})"
     },
     "errors": {
       "invalidText": "The text was refused: it cannot be empty.",
-      "languageAlreadyPresent": "This language already has an answer in this set.",
-      "languagePresenceRequired": "This language has no answer in this set yet: add it first.",
+      "languageAlreadyPresent": "This language is already present in this concept.",
+      "languagePresenceRequired": "This concept does not have this language yet: add it, or translate the concept, first.",
       "unknownLanguage": "This language is not registered in the engine.",
       "gone": "This item no longer exists: the page has been refreshed.",
       "invalidInput": "The request was refused: check the fields.",
@@ -286,15 +298,17 @@
       "unsupportedLanguageForEngine": "This engine cannot translate into this language: try the other engine.",
       "translationEngine": "The translation engine failed: nothing was added. Try again.",
       "generationEngine": "Generation failed: no variants were proposed. Try again.",
-      "linkAlreadyExists": "These two items are already linked as translations.",
-      "selfLink": "An item cannot be linked to itself.",
       "invalidName": "The name was refused: it cannot be empty.",
       "unsupportedAudioType": "Unsupported audio format: record again or choose another file.",
-      "audioTooLarge": "File too large: choose a shorter or lighter file."
+      "audioTooLarge": "File too large: choose a shorter or lighter file.",
+      "languageNotInProject": "This language is not one of the project’s languages.",
+      "baseLanguageRequired": "A concept starts in the project’s base language.",
+      "answerAlreadyExists": "This theme already has a concept with this answer.",
+      "baseQASetNotRemovable": "The base language cannot be removed: delete the concept instead.",
+      "notBaseLanguage": "This content is not in the project’s base language."
     },
     "translate": {
       "open": "Translate",
-      "answerName": "Translate the answer",
       "variantName": "Translate variant {{ number }}",
       "target": "Target language",
       "engine": "Translation engine",
@@ -327,30 +341,24 @@
   "classification": {
     "intent": "Intent",
     "addIntent": "Add an intent",
-    "addIntentName": "Add an intent to variant {{ number }}",
     "removeIntent": "Remove the intent “{{ label }}”",
     "category": "Category",
     "addCategory": "Add a category",
     "removeCategory": "Remove the category “{{ label }}”"
   },
-  "links": {
-    "open": "Link a translation",
-    "counterpart": "Matching translation",
-    "choose": "Choose the item to link…",
-    "required": "Choose the item to link.",
-    "submit": "Link",
-    "unlinkName": "Unlink the translation ({{ language }})"
-  },
   "capture": {
+    "add": "Add a recording",
+    "addName": "Add a recording of {{ label }}",
+    "voice": "Voice",
+    "chooseVoice": "Choose a voice…",
+    "voiceRequired": "Choose a voice.",
+    "voiceRecorded": "{{ voice }} (replaces its recording)",
+    "noVoices": "No voice is registered: an administrator must create one first.",
     "record": "Record",
-    "recordName": "Record the audio of {{ label }}",
     "upload": "Upload a file",
-    "uploadName": "Upload the audio of {{ label }}",
-    "replace": "Replace",
-    "replaceName": "Replace the audio of {{ label }}",
-    "delete": "Delete the audio",
-    "deleteName": "Delete the audio of {{ label }}",
-    "deleteWarning": "The audio of {{ label }} will be deleted. This cannot be undone.",
+    "delete": "Delete",
+    "deleteName": "Delete the audio of {{ label }}, voice {{ voice }}",
+    "deleteWarning": "The audio of {{ label }} in the voice {{ voice }} will be deleted. This cannot be undone.",
     "panelName": "Audio of {{ label }}",
     "requesting": "Asking for the microphone…",
     "recording": "Recording",
@@ -403,6 +411,7 @@
       "roles": "Roles",
       "catalog": "Catalogue",
       "languages": "Languages",
+      "voices": "Voices",
       "intents": "Intents",
       "categories": "Categories",
       "glossary": "Glossary"
@@ -521,6 +530,32 @@
       "deleteWarning": "Permanently delete language “{{language}}”?",
       "empty": "No languages registered yet."
     },
+    "projectLanguages": {
+      "title": "Project languages",
+      "lead": "The only languages the project's content may be written in. The base language comes first and cannot be removed.",
+      "base": "Base language",
+      "add": "Add a language to the project",
+      "choose": "Choose a catalogue language…",
+      "required": "Choose a language.",
+      "addSubmit": "Add",
+      "none": "Every catalogue language is already in this project.",
+      "remove": "Remove",
+      "removeName": "Remove the language {{language}} from the project",
+      "removeWarning": "Remove {{language}} from the project's languages?"
+    },
+    "voices": {
+      "title": "Voices",
+      "lead": "Every audio recording is made in one of these voices.",
+      "create": "Add a voice",
+      "name": "Name",
+      "note": "Note (optional)",
+      "createSubmit": "Add the voice",
+      "edit": "Edit",
+      "editName": "Edit the voice {{voice}}",
+      "deleteName": "Delete the voice {{voice}}",
+      "deleteWarning": "Permanently delete the voice “{{voice}}”?",
+      "empty": "No voices yet."
+    },
     "terms": {
       "createSubmit": "Add",
       "intents": {
@@ -631,7 +666,7 @@
     "permissions": {
       "manage_languages": "Manage languages",
       "manage_catalog": "Manage projects, protocols and themes",
-      "author_qasets": "Author QA sets",
+      "author_qasets": "Author concepts",
       "manage_intents": "Manage intents",
       "manage_categories": "Manage categories",
       "manage_audio": "Manage audio recordings",
@@ -641,7 +676,8 @@
       "manage_access": "Manage access",
       "manage_prompts": "Manage prompt templates",
       "export_corpus": "Export the corpus",
-      "manage_glossary": "Manage the glossary"
+      "manage_glossary": "Manage the glossary",
+      "manage_voices": "Manage voices"
     },
     "errors": {
       "emailExists": "An account already exists with this email address.",
@@ -652,21 +688,26 @@
       "invalidPromptTemplate": "The template was refused: its placeholders do not match the expected ones.",
       "projectHasProtocols": "This project still has protocols: delete them first.",
       "protocolHasThemes": "This protocol still has themes: delete them first.",
-      "themeHasQASets": "This theme still has QA sets: delete them first.",
+      "themeHasConcepts": "This theme still has concepts: delete them first.",
       "unknownBaseLanguage": "This base language is not registered in the engine.",
       "invalidLanguageCode": "This code was refused: use an ISO 639 language code, such as “bm” or “fr”.",
       "invalidLanguageName": "The language name was refused: it cannot be empty.",
       "languageCodeExists": "A language already has this code.",
       "languageInUse": "This language is still used by a project or content: it cannot be deleted.",
-      "intentInUse": "This intent is still attached to questions: detach it before deleting it.",
-      "categoryInUse": "This category is still attached to QA sets: remove it before deleting it.",
+      "intentInUse": "This intent is still attached to concepts: detach it before deleting it.",
+      "categoryInUse": "This category is still attached to concepts: remove it before deleting it.",
       "roleNotFound": "This role no longer exists: the page has been refreshed.",
       "projectNotFound": "This project no longer exists: the page has been refreshed.",
       "languageNotFound": "This language no longer exists: the page has been refreshed.",
       "assignmentNotFound": "This assignment had already been removed: the page has been refreshed.",
       "invalidGlossaryField": "The label and the preferred form cannot be blank.",
       "glossaryTermNotFound": "This term no longer exists: the page was refreshed.",
-      "glossaryFormNotFound": "This form had already been removed: the page was refreshed."
+      "glossaryFormNotFound": "This form had already been removed: the page was refreshed.",
+      "voiceInUse": "This voice is still used by recordings: it cannot be deleted.",
+      "voiceNotFound": "This voice no longer exists: the page has been refreshed.",
+      "baseLanguageNotRemovable": "The project's base language cannot be removed.",
+      "languageInUseInProject": "The project's content still uses this language: it cannot be removed.",
+      "projectLanguageNotFound": "This language had already been removed from the project: the page has been refreshed."
     }
   }
 }

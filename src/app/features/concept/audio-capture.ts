@@ -2,12 +2,11 @@ import { Component, DestroyRef, computed, inject, input, signal } from '@angular
 import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { RecorderPort, type Recording } from '../../core/audio/recorder-port';
-import { ConfirmAction } from '../../shared/ui/confirm-action';
 import { FileUpload } from '../../shared/ui/file-upload';
 import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { formatDuration } from '../audio/audio-player';
-import { QASetEditor } from './qaset-editor';
-import type { ItemRole, ItemView } from './qaset-view';
+import { ConceptEditor } from './concept-editor';
+import type { ItemRole, ItemView } from './concept-view';
 
 type Panel = 'closed' | 'choose' | 'record' | 'upload';
 
@@ -24,35 +23,45 @@ export function recordingName(type: string): string {
   return `enregistrement.${EXTENSIONS[type.split(';')[0].trim()] ?? 'webm'}`;
 }
 
+let nextId = 0;
+
 /**
- * Recording or uploading the audio of one answer or one variant — always that exact item. A take
- * (or, in the upload control, a chosen file) stays until it is sent or discarded, so a refusal can
- * be retried as is.
+ * Recording or uploading the audio of one answer or one variant, in a chosen voice — always that
+ * exact item. A voice that already speaks it is replaced. A take (or, in the upload control, a
+ * chosen file) stays until it is sent or discarded, so a refusal can be retried as is.
  */
 @Component({
   selector: 'app-audio-capture',
-  imports: [NgTemplateOutlet, TranslocoPipe, ConfirmAction, FileUpload, FocusReturnTarget],
+  imports: [NgTemplateOutlet, TranslocoPipe, FileUpload, FocusReturnTarget],
   templateUrl: './audio-capture.html',
   styleUrl: './audio-capture.scss',
 })
 export class AudioCapture {
-  protected readonly editor = inject(QASetEditor);
+  protected readonly editor = inject(ConceptEditor);
   protected readonly recorder = inject(RecorderPort);
   readonly #focus = inject(FocusReturn);
+  protected readonly id = `audio-capture-${nextId++}`;
 
   readonly role = input.required<ItemRole>();
+  readonly qasetId = input.required<string>();
   readonly item = input.required<ItemView>();
   /** The item as a phrase, completing the controls' names: « la réponse », « la variante 2 ». */
   readonly label = input.required<string>();
 
   protected readonly panel = signal<Panel>('closed');
   protected readonly take = signal<Recording | null>(null);
-  #opener = '';
+  protected readonly voiceId = signal('');
+  protected readonly voiceMissing = signal(false);
 
   protected readonly target = computed(() => `audio:${this.item().id}`);
-  protected readonly key = (what: string) => `audio-${what}:${this.item().id}`;
+  protected readonly opener = computed(() => `audio-add:${this.item().id}`);
   protected readonly canRecord = computed(() => this.recorder.state() !== 'unsupported');
   protected readonly elapsed = computed(() => formatDuration(this.recorder.elapsedMs()));
+  /** Every voice, marked when it already speaks the item: sending in it replaces that take. */
+  protected readonly voices = computed(() => {
+    const recorded = new Set(this.item().audios.map((audio) => audio.voiceId));
+    return this.editor.voices().map((voice) => ({ ...voice, recorded: recorded.has(voice.id) }));
+  });
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -60,15 +69,25 @@ export class AudioCapture {
     });
   }
 
-  protected open(panel: Panel, opener: string): void {
-    this.#opener = opener;
-    this.panel.set(panel);
-    if (panel === 'record') void this.recorder.start();
+  protected open(): void {
+    this.voiceId.set('');
+    this.voiceMissing.set(false);
+    this.panel.set('choose');
   }
 
-  protected chooseRecord(): void {
-    this.panel.set('record');
-    void this.recorder.start();
+  protected chooseVoice(voiceId: string): void {
+    this.voiceId.set(voiceId);
+    if (voiceId) this.voiceMissing.set(false);
+  }
+
+  /** Recording or uploading starts only once the voice is known. */
+  protected start(panel: 'record' | 'upload'): void {
+    if (!this.voiceId()) {
+      this.voiceMissing.set(true);
+      return;
+    }
+    this.panel.set(panel);
+    if (panel === 'record') void this.recorder.start();
   }
 
   protected async stop(): Promise<void> {
@@ -90,19 +109,24 @@ export class AudioCapture {
     await this.#send(file, file.name);
   }
 
-  /** Back to the closed controls; focus returns to whatever opened the panel. */
-  protected close(focusKey = this.#opener): void {
+  /** Back to the closed controls; focus returns to the button that opened the panel. */
+  protected close(): void {
     if (this.panel() === 'record' || this.take()) this.recorder.discard();
     this.take.set(null);
     this.panel.set('closed');
     this.editor.clearError(this.target());
-    this.#focus.to(focusKey);
+    this.#focus.to(this.opener());
   }
 
   async #send(file: Blob, filename: string): Promise<void> {
-    if (await this.editor.setAudio(this.role(), this.item().id, file, filename)) {
-      // The item has audio now, so « Remplacer » is the control that stands where the opener was.
-      this.close(this.key('replace'));
-    }
+    const sent = await this.editor.setAudio(
+      this.qasetId(),
+      this.role(),
+      this.item().id,
+      this.voiceId(),
+      file,
+      filename,
+    );
+    if (sent) this.close();
   }
 }

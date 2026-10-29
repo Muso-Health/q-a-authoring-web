@@ -5,7 +5,7 @@ import type { Language } from '../../core/catalog/catalog.model';
 import {
   TRANSLATION_ENGINES,
   type TranslationEngine,
-} from '../../core/catalog/qaset-authoring-api';
+} from '../../core/catalog/concept-authoring-api';
 
 export interface TranslationRequest {
   readonly targetLanguageId: string;
@@ -19,7 +19,7 @@ const ENGINE_KEYS = {
 
 let nextId = 0;
 
-/** Into which language, by which engine. The engine creates the paired item and its link. */
+/** Into which language, by which engine. The translation lands in that language's QASet. */
 @Component({
   selector: 'app-translate-form',
   imports: [FormField, TranslocoPipe],

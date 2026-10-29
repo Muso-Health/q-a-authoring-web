@@ -45,6 +45,7 @@ describe('AdminArea', () => {
     const cases: [string, string, string][] = [
       ['manage_catalog', 'Catalogue', '/admin/catalog'],
       ['manage_languages', 'Langues', '/admin/languages'],
+      ['manage_voices', 'Voix', '/admin/voices'],
       ['manage_intents', 'Intentions', '/admin/intents'],
       ['manage_categories', 'Catégories', '/admin/categories'],
     ];

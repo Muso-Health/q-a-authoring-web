@@ -1,13 +1,15 @@
 import type { ValidationStatus } from '../../core/catalog/catalog.model';
-import type { QASetView } from './qaset-view';
+import type { ConceptView } from './concept-view';
 
 export type ValidationReset =
   | { readonly kind: 'clinical' }
+  | { readonly kind: 'translation'; readonly language: string }
   | {
-      readonly kind: 'translation' | 'audio';
+      readonly kind: 'audio';
       readonly item: 'answer' | 'variant';
       readonly number?: number;
       readonly language: string;
+      readonly voice: string;
     };
 
 interface Tracked {
@@ -15,12 +17,18 @@ interface Tracked {
   readonly reset: ValidationReset;
 }
 
-function tracked(view: QASetView): Map<string, Tracked> {
-  const states = new Map<string, Tracked>([
-    ['clinical', { status: view.clinical, reset: { kind: 'clinical' } }],
-  ]);
+function tracked(view: ConceptView): Map<string, Tracked> {
+  const states = new Map<string, Tracked>();
   for (const section of view.sections) {
     const language = section.language.name;
+    if (section.isBase) {
+      states.set('clinical', { status: section.clinical, reset: { kind: 'clinical' } });
+    } else {
+      states.set(`translation:${section.id}`, {
+        status: section.translation,
+        reset: { kind: 'translation', language },
+      });
+    }
     const items = [
       { item: section.answer, where: { item: 'answer' as const, language } },
       ...section.variants.map((variant, i) => ({
@@ -29,14 +37,10 @@ function tracked(view: QASetView): Map<string, Tracked> {
       })),
     ];
     for (const { item, where } of items) {
-      states.set(`translation:${item.id}`, {
-        status: item.translation,
-        reset: { kind: 'translation', ...where },
-      });
-      if (item.audio) {
-        states.set(`audio:${item.audio.id}`, {
-          status: item.audio.quality,
-          reset: { kind: 'audio', ...where },
+      for (const audio of item.audios) {
+        states.set(`audio:${audio.id}`, {
+          status: audio.quality,
+          reset: { kind: 'audio', ...where, voice: audio.voiceName },
         });
       }
     }
@@ -47,8 +51,8 @@ function tracked(view: QASetView): Map<string, Tracked> {
 const decided = (status: ValidationStatus | null | undefined): boolean =>
   status === 'validated' || status === 'rejected';
 
-/** Every decision the engine reset to pending between two reads of the same QASet. */
-export function validationResets(before: QASetView, after: QASetView): ValidationReset[] {
+/** Every decision the engine reset to pending between two reads of the same concept. */
+export function validationResets(before: ConceptView, after: ConceptView): ValidationReset[] {
   const previous = tracked(before);
   return [...tracked(after)]
     .filter(([key, now]) => now.status === 'pending' && decided(previous.get(key)?.status))

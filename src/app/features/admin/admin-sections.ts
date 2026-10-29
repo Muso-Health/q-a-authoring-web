@@ -8,6 +8,7 @@ import {
   MANAGE_INTENTS,
   MANAGE_LANGUAGES,
   MANAGE_PROMPTS,
+  MANAGE_VOICES,
 } from '../../core/access/current-user';
 
 export interface AdminSection {
@@ -23,6 +24,7 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { path: 'roles', label: 'admin.nav.roles', permission: MANAGE_ACCESS },
   { path: 'catalog', label: 'admin.nav.catalog', permission: MANAGE_CATALOG },
   { path: 'languages', label: 'admin.nav.languages', permission: MANAGE_LANGUAGES },
+  { path: 'voices', label: 'admin.nav.voices', permission: MANAGE_VOICES },
   { path: 'intents', label: 'admin.nav.intents', permission: MANAGE_INTENTS },
   { path: 'categories', label: 'admin.nav.categories', permission: MANAGE_CATEGORIES },
   { path: 'glossary', label: 'admin.nav.glossary', permission: null },

@@ -17,7 +17,7 @@ describe('RolesPage', () => {
 
     const authors = cardOf(element, 'Auteurs');
     expect([...authors.querySelectorAll('.permissions li')].map(text)).toEqual([
-      'Rédiger les ensembles',
+      'Rédiger les notions',
       'Gérer les enregistrements audio',
     ]);
   });

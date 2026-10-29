@@ -55,9 +55,9 @@
       "empty": "Aucun thème dans ce protocole."
     },
     "theme": {
-      "qasets": "Ensembles questions-réponses",
-      "empty": "Aucun ensemble questions-réponses dans ce thème.",
-      "qasetLabel": "Ensemble {{ number }}",
+      "concepts": "Notions",
+      "empty": "Aucune notion dans ce thème.",
+      "conceptLabel": "Notion {{ number }}",
       "languages": "Langues et nombre de variantes",
       "variantCount": {
         "one": "{{ count }} variante",
@@ -65,18 +65,20 @@
       }
     }
   },
-  "qaset": {
-    "eyebrow": "Ensemble questions-réponses",
-    "untitled": "Ensemble sans question",
+  "concept": {
+    "eyebrow": "Notion",
+    "untitled": "Notion sans question",
     "categories": "Catégories",
     "noCategories": "Aucune catégorie",
+    "noIntents": "Aucune intention",
     "baseLanguage": "Langue de base",
     "answer": "Réponse",
     "variants": "Variantes de la question",
     "noVariants": "Aucune variante dans cette langue.",
     "intents": "Intentions",
     "noAudio": "Pas d’audio",
-    "translatedAs": "Traduit en :",
+    "audios": "Enregistrements de {{ label }}",
+    "audioName": "{{ label }}, voix {{ voice }}",
     "answerAudio": "la réponse",
     "variantAudio": "la variante {{ number }}",
     "yes": "Oui",
@@ -117,14 +119,14 @@
       "label": "Avancement de la validation"
     },
     "card": {
-      "open": "Ouvrir l’ensemble",
+      "open": "Ouvrir la notion",
       "answer": "Réponse ({{ language }})",
       "variants": "Variantes de la question",
       "noVariants": "Aucune variante.",
       "translatedAnswer": "Réponse traduite ({{ language }})",
-      "translatedVariant": "Variante traduite ({{ language }})",
-      "source": "Source en langue de base",
-      "fallback": "Aucune source liée : réponse de référence en langue de base",
+      "translatedVariants": "Variantes traduites ({{ language }})",
+      "source": "Réponse en langue de base",
+      "sourceVariants": "Variantes en langue de base",
       "noSource": "Aucun texte source disponible.",
       "voicedAnswer": "Réponse enregistrée ({{ language }})",
       "voicedVariant": "Variante enregistrée ({{ language }})",
@@ -150,7 +152,7 @@
     "finished": "Vous avez parcouru toute la liste.",
     "reload": "Recharger la liste",
     "errors": {
-      "noBaseLanguage": "Cet ensemble n’a pas de réponse dans la langue de base du projet : il ne peut pas être validé cliniquement.",
+      "noBaseLanguage": "Cette notion n’a pas de réponse dans la langue de base du projet : elle ne peut pas être validée cliniquement.",
       "notATranslation": "Cet élément est dans la langue de base : ce n’est pas une traduction.",
       "invalidDecision": "Décision refusée : choisissez valider ou rejeter.",
       "gone": "Cet élément n’existe plus : il a été retiré de la liste."
@@ -203,15 +205,26 @@
       "heading": "Ajouter une langue",
       "open": "Ajouter une langue",
       "submit": "Ajouter la langue",
-      "none": "Toutes les langues enregistrées sont déjà présentes dans cet ensemble."
+      "none": "Toutes les langues du projet sont déjà présentes dans cette notion."
     },
-    "deleteSet": {
-      "label": "Supprimer l’ensemble",
-      "warning": "L’ensemble, ses réponses et ses variantes dans toutes les langues seront supprimés. Cette action est irréversible."
+    "deleteConcept": {
+      "label": "Supprimer la notion",
+      "warning": "La notion, ses réponses et ses variantes dans toutes les langues seront supprimées. Cette action est irréversible."
+    },
+    "newConcept": {
+      "open": "Nouvelle notion",
+      "submit": "Créer la notion"
+    },
+    "translateConcept": {
+      "heading": "Traduire la notion",
+      "open": "Traduire la notion",
+      "lead": "La réponse et toutes les variantes de la langue de base sont traduites. Une langue déjà présente est mise à jour : sa réponse est remplacée et les variantes manquantes sont ajoutées.",
+      "none": "Le projet n’a pas d’autre langue que sa langue de base.",
+      "noBase": "Cette notion n’a pas encore de réponse dans la langue de base du projet : il n’y a rien à traduire."
     },
     "pairs": {
       "heading": "Ajouter des questions-réponses",
-      "lead": "Langue de base du projet : {{ language }}. Chaque paire associe une question à sa réponse ; les paires qui partagent une réponse forment un même ensemble.",
+      "lead": "Langue de base du projet : {{ language }}. Chaque paire associe une question à sa réponse ; les paires qui partagent une réponse forment une même notion.",
       "pair": "Paire {{ number }}",
       "question": "Question",
       "answer": "Réponse",
@@ -235,12 +248,12 @@
       "summary": {
         "saved": "Paires enregistrées : {{ created }}, {{ updated }}, {{ variants }}.",
         "created": {
-          "one": "{{ count }} ensemble créé",
-          "other": "{{ count }} ensembles créés"
+          "one": "{{ count }} notion créée",
+          "other": "{{ count }} notions créées"
         },
         "updated": {
-          "one": "{{ count }} ensemble complété",
-          "other": "{{ count }} ensembles complétés"
+          "one": "{{ count }} notion complétée",
+          "other": "{{ count }} notions complétées"
         },
         "variants": {
           "one": "{{ count }} question ajoutée",
@@ -266,15 +279,14 @@
       "message": "Votre modification a remis en attente : {{ list }}.",
       "dismiss": "Compris",
       "clinical": "la validation clinique",
-      "translationAnswer": "la traduction de la réponse ({{ language }})",
-      "translationVariant": "la traduction de la variante {{ number }} ({{ language }})",
-      "audioAnswer": "la qualité audio de la réponse ({{ language }})",
-      "audioVariant": "la qualité audio de la variante {{ number }} ({{ language }})"
+      "translation": "la validation de la traduction ({{ language }})",
+      "audioAnswer": "la qualité audio de la réponse ({{ language }}, voix {{ voice }})",
+      "audioVariant": "la qualité audio de la variante {{ number }} ({{ language }}, voix {{ voice }})"
     },
     "errors": {
       "invalidText": "Le texte a été refusé : il ne peut pas être vide.",
-      "languageAlreadyPresent": "Cette langue a déjà une réponse dans cet ensemble.",
-      "languagePresenceRequired": "Cette langue n’a pas encore de réponse dans cet ensemble : ajoutez-la d’abord.",
+      "languageAlreadyPresent": "Cette langue est déjà présente dans cette notion.",
+      "languagePresenceRequired": "Cette notion n’a pas encore cette langue : ajoutez-la, ou traduisez la notion, d’abord.",
       "unknownLanguage": "Cette langue n’est pas enregistrée dans le moteur.",
       "gone": "Cet élément n’existe plus : la page a été actualisée.",
       "invalidInput": "La demande a été refusée : vérifiez les champs.",
@@ -286,15 +298,17 @@
       "unsupportedLanguageForEngine": "Ce moteur ne sait pas traduire vers cette langue : essayez l’autre moteur.",
       "translationEngine": "Le moteur de traduction a échoué : rien n’a été ajouté. Réessayez.",
       "generationEngine": "La génération a échoué : aucune variante n’a été proposée. Réessayez.",
-      "linkAlreadyExists": "Ces deux éléments sont déjà liés comme traductions.",
-      "selfLink": "Un élément ne peut pas être lié à lui-même.",
       "invalidName": "Le nom a été refusé : il ne peut pas être vide.",
       "unsupportedAudioType": "Format audio non pris en charge : enregistrez à nouveau ou choisissez un autre fichier.",
-      "audioTooLarge": "Fichier trop volumineux : choisissez un fichier plus court ou plus léger."
+      "audioTooLarge": "Fichier trop volumineux : choisissez un fichier plus court ou plus léger.",
+      "languageNotInProject": "Cette langue n’est pas une langue du projet.",
+      "baseLanguageRequired": "Une notion commence dans la langue de base du projet.",
+      "answerAlreadyExists": "Ce thème a déjà une notion avec cette réponse.",
+      "baseQASetNotRemovable": "La langue de base ne peut pas être retirée : supprimez plutôt la notion.",
+      "notBaseLanguage": "Ce contenu n’est pas dans la langue de base du projet."
     },
     "translate": {
       "open": "Traduire",
-      "answerName": "Traduire la réponse",
       "variantName": "Traduire la variante {{ number }}",
       "target": "Langue cible",
       "engine": "Moteur de traduction",
@@ -327,30 +341,24 @@
   "classification": {
     "intent": "Intention",
     "addIntent": "Ajouter une intention",
-    "addIntentName": "Ajouter une intention à la variante {{ number }}",
     "removeIntent": "Retirer l’intention « {{ label }} »",
     "category": "Catégorie",
     "addCategory": "Ajouter une catégorie",
     "removeCategory": "Retirer la catégorie « {{ label }} »"
   },
-  "links": {
-    "open": "Lier une traduction",
-    "counterpart": "Traduction correspondante",
-    "choose": "Choisir l’élément à lier…",
-    "required": "Choisissez l’élément à lier.",
-    "submit": "Lier",
-    "unlinkName": "Délier la traduction ({{ language }})"
-  },
   "capture": {
+    "add": "Ajouter un enregistrement",
+    "addName": "Ajouter un enregistrement de {{ label }}",
+    "voice": "Voix",
+    "chooseVoice": "Choisir une voix…",
+    "voiceRequired": "Choisissez une voix.",
+    "voiceRecorded": "{{ voice }} (remplace son enregistrement)",
+    "noVoices": "Aucune voix n’est enregistrée : un administrateur doit d’abord en créer une.",
     "record": "Enregistrer",
-    "recordName": "Enregistrer l’audio de {{ label }}",
     "upload": "Téléverser un fichier",
-    "uploadName": "Téléverser l’audio de {{ label }}",
-    "replace": "Remplacer",
-    "replaceName": "Remplacer l’audio de {{ label }}",
-    "delete": "Supprimer l’audio",
-    "deleteName": "Supprimer l’audio de {{ label }}",
-    "deleteWarning": "L’audio de {{ label }} sera supprimé. Cette action est irréversible.",
+    "delete": "Supprimer",
+    "deleteName": "Supprimer l’audio de {{ label }}, voix {{ voice }}",
+    "deleteWarning": "L’audio de {{ label }} dans la voix {{ voice }} sera supprimé. Cette action est irréversible.",
     "panelName": "Audio de {{ label }}",
     "requesting": "Autorisation du micro…",
     "recording": "Enregistrement en cours",
@@ -403,6 +411,7 @@
       "roles": "Rôles",
       "catalog": "Catalogue",
       "languages": "Langues",
+      "voices": "Voix",
       "intents": "Intentions",
       "categories": "Catégories",
       "glossary": "Glossaire"
@@ -521,6 +530,32 @@
       "deleteWarning": "Supprimer définitivement la langue « {{language}} » ?",
       "empty": "Aucune langue enregistrée pour l’instant."
     },
+    "projectLanguages": {
+      "title": "Langues du projet",
+      "lead": "Les seules langues dans lesquelles le contenu du projet peut être écrit. La langue de base vient en premier et ne peut pas être retirée.",
+      "base": "Langue de base",
+      "add": "Ajouter une langue au projet",
+      "choose": "Choisir une langue du catalogue…",
+      "required": "Choisissez une langue.",
+      "addSubmit": "Ajouter",
+      "none": "Toutes les langues du catalogue sont déjà dans ce projet.",
+      "remove": "Retirer",
+      "removeName": "Retirer la langue {{language}} du projet",
+      "removeWarning": "Retirer {{language}} des langues du projet ?"
+    },
+    "voices": {
+      "title": "Voix",
+      "lead": "Chaque enregistrement audio est fait dans l’une de ces voix.",
+      "create": "Ajouter une voix",
+      "name": "Nom",
+      "note": "Note (facultative)",
+      "createSubmit": "Ajouter la voix",
+      "edit": "Modifier",
+      "editName": "Modifier la voix {{voice}}",
+      "deleteName": "Supprimer la voix {{voice}}",
+      "deleteWarning": "Supprimer définitivement la voix « {{voice}} » ?",
+      "empty": "Aucune voix pour l’instant."
+    },
     "terms": {
       "createSubmit": "Ajouter",
       "intents": {
@@ -631,7 +666,7 @@
     "permissions": {
       "manage_languages": "Gérer les langues",
       "manage_catalog": "Gérer les projets, protocoles et thèmes",
-      "author_qasets": "Rédiger les ensembles",
+      "author_qasets": "Rédiger les notions",
       "manage_intents": "Gérer les intentions",
       "manage_categories": "Gérer les catégories",
       "manage_audio": "Gérer les enregistrements audio",
@@ -641,7 +676,8 @@
       "manage_access": "Gérer les accès",
       "manage_prompts": "Gérer les modèles de prompt",
       "export_corpus": "Exporter le corpus",
-      "manage_glossary": "Gérer le glossaire"
+      "manage_glossary": "Gérer le glossaire",
+      "manage_voices": "Gérer les voix"
     },
     "errors": {
       "emailExists": "Un compte existe déjà avec cette adresse e-mail.",
@@ -652,21 +688,26 @@
       "invalidPromptTemplate": "Le modèle a été refusé : ses placeholders ne correspondent pas à ceux attendus.",
       "projectHasProtocols": "Ce projet contient encore des protocoles : supprimez-les d’abord.",
       "protocolHasThemes": "Ce protocole contient encore des thèmes : supprimez-les d’abord.",
-      "themeHasQASets": "Ce thème contient encore des ensembles questions-réponses : supprimez-les d’abord.",
+      "themeHasConcepts": "Ce thème contient encore des notions : supprimez-les d’abord.",
       "unknownBaseLanguage": "Cette langue de base n’est pas enregistrée dans le moteur.",
       "invalidLanguageCode": "Ce code a été refusé : utilisez un code de langue ISO 639, par exemple « bm » ou « fr ».",
       "invalidLanguageName": "Le nom de la langue a été refusé : il ne peut pas être vide.",
       "languageCodeExists": "Une langue porte déjà ce code.",
       "languageInUse": "Cette langue est encore utilisée par un projet ou des contenus : elle ne peut pas être supprimée.",
-      "intentInUse": "Cette intention est encore attachée à des questions : détachez-la avant de la supprimer.",
-      "categoryInUse": "Cette catégorie est encore attachée à des ensembles : retirez-la avant de la supprimer.",
+      "intentInUse": "Cette intention est encore attachée à des notions : détachez-la avant de la supprimer.",
+      "categoryInUse": "Cette catégorie est encore attachée à des notions : retirez-la avant de la supprimer.",
       "roleNotFound": "Ce rôle n’existe plus : la page a été actualisée.",
       "projectNotFound": "Ce projet n’existe plus : la page a été actualisée.",
       "languageNotFound": "Cette langue n’existe plus : la page a été actualisée.",
       "assignmentNotFound": "Cette attribution avait déjà été retirée : la page a été actualisée.",
       "invalidGlossaryField": "Le libellé et la forme préférée ne peuvent pas être vides.",
       "glossaryTermNotFound": "Ce terme n’existe plus : la page a été actualisée.",
-      "glossaryFormNotFound": "Cette forme avait déjà été retirée : la page a été actualisée."
+      "glossaryFormNotFound": "Cette forme avait déjà été retirée : la page a été actualisée.",
+      "voiceInUse": "Cette voix est encore utilisée par des enregistrements : elle ne peut pas être supprimée.",
+      "voiceNotFound": "Cette voix n’existe plus : la page a été actualisée.",
+      "baseLanguageNotRemovable": "La langue de base du projet ne peut pas être retirée.",
+      "languageInUseInProject": "Le contenu du projet utilise encore cette langue : elle ne peut pas être retirée.",
+      "projectLanguageNotFound": "Cette langue avait déjà été retirée du projet : la page a été actualisée."
     }
   }
 }

@@ -4,6 +4,7 @@ import {
   IDS,
   LANGUAGES,
   PROJECT,
+  PROJECT_LANGUAGES,
   PROTOCOL,
   THEME,
 } from '../../../core/catalog/testing/catalog-fixtures';
@@ -22,6 +23,8 @@ const PROJECTS = { '/projects': { items: [PROJECT, NUTRITION] }, '/languages': L
 const PROTOCOLS = {
   [`/projects/${IDS.project}`]: PROJECT,
   [`/projects/${IDS.project}/protocols`]: { items: [PROTOCOL] },
+  [`/projects/${IDS.project}/languages`]: PROJECT_LANGUAGES,
+  '/languages': LANGUAGES,
 };
 
 const THEMES = {
@@ -69,6 +72,7 @@ describe('CatalogPage — projects', () => {
       'English (en)',
       'Français (fr)',
       'Peul (ff)',
+      'Wolof (wo)',
     ]);
     await type('Nom', 'Santé maternelle', form);
     await type('Description', 'Suivi des grossesses', form);
@@ -210,6 +214,14 @@ describe('CatalogPage — protocols of a project', () => {
     );
   });
 
+  it('shows the project’s languages above its protocols', async () => {
+    const { element } = await render();
+
+    const languages = element.querySelector('app-project-languages');
+    expect(text(languages?.querySelector('h3'))).toBe('Langues du projet');
+    expect(languages?.querySelectorAll('li.project-language')).toHaveLength(4);
+  });
+
   it('creates a protocol under the project, then re-reads', async () => {
     const { api, element, type, submit } = await render();
     const form = element.querySelector('form.create');
@@ -321,16 +333,16 @@ describe('CatalogPage — themes of a protocol', () => {
     );
   });
 
-  it('explains a theme that still has QA sets', async () => {
+  it('explains a theme that still has concepts', async () => {
     const { element, click } = await render({
-      [`DELETE /themes/${IDS.theme}`]: engineError(409, 'theme_has_qasets'),
+      [`DELETE /themes/${IDS.theme}`]: engineError(409, 'theme_has_concepts'),
     });
 
     await click('Supprimer le thème Prévention');
     await click('Confirmer', cardOf(element, 'Prévention'));
 
     expect(text(cardOf(element, 'Prévention').querySelector('[role="alert"]'))).toBe(
-      'Ce thème contient encore des ensembles questions-réponses : supprimez-les d’abord.',
+      'Ce thème contient encore des notions : supprimez-les d’abord.',
     );
   });
 });

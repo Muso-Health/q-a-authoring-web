@@ -86,7 +86,7 @@ describe('TermsPage — intents', () => {
 
     expect(api.writes).toEqual([{ method: 'DELETE', path: `/intents/${TAXONOMY_IDS.fever}` }]);
     expect(text(cardOf(element, 'Reconnaître la fièvre').querySelector('[role="alert"]'))).toBe(
-      'Cette intention est encore attachée à des questions : détachez-la avant de la supprimer.',
+      'Cette intention est encore attachée à des notions : détachez-la avant de la supprimer.',
     );
   });
 
@@ -136,7 +136,7 @@ describe('TermsPage — categories', () => {
     await click('Confirmer', malaria);
 
     expect(text(cardOf(element, 'Paludisme').querySelector('[role="alert"]'))).toBe(
-      'Cette catégorie est encore attachée à des ensembles : retirez-la avant de la supprimer.',
+      'Cette catégorie est encore attachée à des notions : retirez-la avant de la supprimer.',
     );
   });
 });

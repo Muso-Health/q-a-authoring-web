@@ -9,8 +9,8 @@ import {
   CLINICAL_A,
   CLINICAL_B,
   CLINICAL_C,
-  TRANSLATION_LINKED,
-  TRANSLATION_UNLINKED,
+  TRANSLATION_EN,
+  TRANSLATION_NO_BASE,
   page,
   queuePath,
 } from '../../core/validation/testing/queue-fixtures';
@@ -76,7 +76,9 @@ describe('ValidationPage', () => {
       expect(text(card()?.querySelector('.context'))).toBe(
         'Santé communautaire Mali › Paludisme › Prévention',
       );
-      expect(card()?.querySelector('a.open')?.getAttribute('href')).toBe(`/qasets/${IDS.qaset}`);
+      expect(card()?.querySelector('a.open')?.getAttribute('href')).toBe(
+        `/concepts/${IDS.concept}`,
+      );
       expect(text(card()?.querySelector('.answer'))).toContain(CLINICAL_A.answer_text);
       expect([...card()!.querySelectorAll('.variants li')].map((li) => text(li))).toEqual(
         CLINICAL_A.variant_texts,
@@ -85,27 +87,50 @@ describe('ValidationPage', () => {
       expect(text(element.querySelector('.progress'))).toBe('3 / 3 restants');
     });
 
-    it('sets a translation beside its linked source', async () => {
+    it('sets a translated QASet — answer and variants — beside the base-language one', async () => {
       const { card } = await render('translation', {
-        [queuePath('translation')]: page([TRANSLATION_LINKED], 1),
+        [queuePath('translation')]: page([TRANSLATION_EN], 1),
       });
 
-      expect(text(card()?.querySelector('.translated'))).toContain('How can I avoid malaria?');
-      expect(card()?.querySelector('.translated [lang="en"]')).not.toBeNull();
-      expect(text(card()?.querySelector('.source'))).toContain('Comment éviter le paludisme ?');
+      const translated = card()!.querySelector('.translated')!;
+      expect(text(translated)).toContain('Réponse traduite (English)');
+      expect(text(translated)).toContain('Sleep under an insecticide-treated net every night.');
+      expect([...translated.querySelectorAll('.variants li')].map((li) => text(li))).toEqual([
+        'How can I avoid malaria?',
+      ]);
+      expect(translated.querySelector('[lang="en"]')).not.toBeNull();
+      const source = card()!.querySelector('.source')!;
+      expect(text(source)).toContain(TRANSLATION_EN.base_answer_text!);
+      expect([...source.querySelectorAll('.variants li')].map((li) => text(li))).toEqual(
+        TRANSLATION_EN.base_variant_texts,
+      );
+      expect(card()?.querySelector('a.open')?.getAttribute('href')).toBe(
+        `/concepts/${IDS.concept}`,
+      );
     });
 
-    it('falls back to the base answer when the translation has no linked source', async () => {
+    it('says so when there is no base-language text to compare with', async () => {
       const { card } = await render('translation', {
-        [queuePath('translation')]: page([TRANSLATION_UNLINKED], 1),
+        [queuePath('translation')]: page([TRANSLATION_NO_BASE], 1),
       });
 
-      expect(text(card()?.querySelector('.source'))).toContain(
-        'Aucune source liée : réponse de référence en langue de base',
-      );
-      expect(text(card()?.querySelector('.source'))).toContain(
-        TRANSLATION_UNLINKED.fallback_base_answer_text!,
-      );
+      expect(text(card()?.querySelector('.source'))).toBe('Aucun texte source disponible.');
+    });
+
+    it('decides a translation on its QASet as a whole', async () => {
+      const { api, click } = await render('translation', {
+        [queuePath('translation')]: page([TRANSLATION_EN], 1),
+      });
+
+      await click('Valider');
+
+      expect(api.writes).toEqual([
+        {
+          method: 'POST',
+          path: `/qasets/${IDS.qasetEn}/translation-validation`,
+          body: { decision: 'validated' },
+        },
+      ]);
     });
 
     it('plays an audio item through its playback URL', async () => {

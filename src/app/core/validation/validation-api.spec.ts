@@ -44,21 +44,15 @@ describe('ValidationApi', () => {
     const { api, validation } = setUp();
 
     await validation.decide({ kind: 'clinical', id: 'q1' }, 'validated', '');
-    await validation.decide({ kind: 'translation-answer', id: 'a1' }, 'rejected', ' Faux sens ');
-    await validation.decide({ kind: 'translation-variant', id: 'v1' }, 'validated', '');
+    await validation.decide({ kind: 'translation', id: 'q2' }, 'rejected', ' Faux sens ');
     await validation.decide({ kind: 'audio', id: 'au1' }, 'rejected', 'Bruit de fond');
 
     expect(api.writes).toEqual([
       { method: 'POST', path: '/qasets/q1/clinical-validation', body: { decision: 'validated' } },
       {
         method: 'POST',
-        path: '/answers/a1/translation-validation',
+        path: '/qasets/q2/translation-validation',
         body: { decision: 'rejected', note: 'Faux sens' },
-      },
-      {
-        method: 'POST',
-        path: '/variants/v1/translation-validation',
-        body: { decision: 'validated' },
       },
       {
         method: 'POST',

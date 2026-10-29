@@ -1,49 +1,15 @@
-@let it = item();
 @if (panel() === 'closed') {
   <span class="controls">
-    @if (it.audio) {
-      <button
-        type="button"
-        class="secondary small"
-        [appFocusReturn]="key('replace')"
-        [disabled]="editor.busy()"
-        [attr.aria-label]="'capture.replaceName' | transloco: { label: label() }"
-        (click)="open('choose', key('replace'))"
-      >
-        {{ 'capture.replace' | transloco }}
-      </button>
-      <app-confirm-action
-        [small]="true"
-        [label]="'capture.delete' | transloco"
-        [accessibleName]="'capture.deleteName' | transloco: { label: label() }"
-        [warning]="'capture.deleteWarning' | transloco: { label: label() }"
-        [busy]="editor.busy()"
-        (confirmed)="editor.deleteAudio(role(), it.id)"
-      />
-    } @else {
-      @if (canRecord()) {
-        <button
-          type="button"
-          class="secondary small"
-          [appFocusReturn]="key('record')"
-          [disabled]="editor.busy()"
-          [attr.aria-label]="'capture.recordName' | transloco: { label: label() }"
-          (click)="open('record', key('record'))"
-        >
-          <span aria-hidden="true">●</span> {{ 'capture.record' | transloco }}
-        </button>
-      }
-      <button
-        type="button"
-        class="secondary small"
-        [appFocusReturn]="key('upload')"
-        [disabled]="editor.busy()"
-        [attr.aria-label]="'capture.uploadName' | transloco: { label: label() }"
-        (click)="open('upload', key('upload'))"
-      >
-        {{ 'capture.upload' | transloco }}
-      </button>
-    }
+    <button
+      type="button"
+      class="secondary small"
+      [appFocusReturn]="opener()"
+      [disabled]="editor.busy()"
+      [attr.aria-label]="'capture.addName' | transloco: { label: label() }"
+      (click)="open()"
+    >
+      <span aria-hidden="true">●</span> {{ 'capture.add' | transloco }}
+    </button>
     @if (editor.errorFor(target()); as message) {
       <span class="field-error" role="alert">{{ message }}</span>
     }
@@ -56,19 +22,52 @@
   >
     @switch (panel()) {
       @case ('choose') {
-        <div class="actions">
-          @if (canRecord()) {
-            <button type="button" (click)="chooseRecord()">
-              {{ 'capture.record' | transloco }}
+        @if (voices().length === 0) {
+          <p class="muso-notice">{{ 'capture.noVoices' | transloco }}</p>
+          <div class="actions">
+            <button type="button" class="secondary" (click)="close()">
+              {{ 'authoring.cancel' | transloco }}
             </button>
+          </div>
+        } @else {
+          <label [for]="id + '-voice'">{{ 'capture.voice' | transloco }}</label>
+          <select
+            [id]="id + '-voice'"
+            [value]="voiceId()"
+            [attr.aria-invalid]="voiceMissing() ? 'true' : null"
+            [attr.aria-describedby]="voiceMissing() ? id + '-voice-error' : null"
+            (change)="chooseVoice($any($event.target).value)"
+          >
+            <option value="">{{ 'capture.chooseVoice' | transloco }}</option>
+            @for (voice of voices(); track voice.id) {
+              <option [value]="voice.id">
+                {{
+                  voice.recorded
+                    ? ('capture.voiceRecorded' | transloco: { voice: voice.name })
+                    : voice.name
+                }}
+              </option>
+            }
+          </select>
+          @if (voiceMissing()) {
+            <p class="field-error" [id]="id + '-voice-error'">
+              {{ 'capture.voiceRequired' | transloco }}
+            </p>
           }
-          <button type="button" class="secondary" (click)="panel.set('upload')">
-            {{ 'capture.upload' | transloco }}
-          </button>
-          <button type="button" class="secondary" (click)="close()">
-            {{ 'authoring.cancel' | transloco }}
-          </button>
-        </div>
+          <div class="actions">
+            @if (canRecord()) {
+              <button type="button" (click)="start('record')">
+                {{ 'capture.record' | transloco }}
+              </button>
+            }
+            <button type="button" class="secondary" (click)="start('upload')">
+              {{ 'capture.upload' | transloco }}
+            </button>
+            <button type="button" class="secondary" (click)="close()">
+              {{ 'authoring.cancel' | transloco }}
+            </button>
+          </div>
+        }
       }
       @case ('record') {
         @switch (recorder.state()) {

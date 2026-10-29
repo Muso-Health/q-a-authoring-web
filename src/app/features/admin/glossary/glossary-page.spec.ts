@@ -373,6 +373,7 @@ describe('GlossaryPage — forms by language', () => {
       'Bambara (bm)',
       'English (en)',
       'Peul (ff)',
+      'Wolof (wo)',
     ]);
     await choose('Langue', IDS.en, form);
     await type('Forme préférée', '  malaria ', form);
@@ -563,7 +564,7 @@ describe('GlossaryPage — importing', () => {
 
     expect(text(panel(element).querySelector('h3'))).toBe('Importer des termes');
     expect(text(panel(element))).toContain(
-      'une colonne par langue, nommée par son code (bm, en, fr, ff)',
+      'une colonne par langue, nommée par son code (bm, en, fr, ff, wo)',
     );
   });
 
@@ -678,7 +679,7 @@ describe('GlossaryPage — importing', () => {
 
     await upload(namedFile('langues.xlsx'));
     expect(alert(element)).toBe(
-      'Colonnes inconnues dans « langues.xlsx » : xx et remarque. Hors « label » et « note », chaque colonne porte le code d’une langue : bm, en, fr, ff. Rien n’a été chargé.',
+      'Colonnes inconnues dans « langues.xlsx » : xx et remarque. Hors « label » et « note », chaque colonne porte le code d’une langue : bm, en, fr, ff, wo. Rien n’a été chargé.',
     );
 
     await upload(namedFile('vide.csv'));

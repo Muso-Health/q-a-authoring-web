@@ -38,8 +38,8 @@ export const routes: Routes = [
           import('./features/theme-detail/theme-detail-page').then((m) => m.ThemeDetailPage),
       },
       {
-        path: 'qasets/:qasetId',
-        loadComponent: () => import('./features/qaset/qaset-page').then((m) => m.QASetPage),
+        path: 'concepts/:conceptId',
+        loadComponent: () => import('./features/concept/concept-page').then((m) => m.ConceptPage),
       },
       ...(
         [

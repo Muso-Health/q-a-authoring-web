@@ -3,7 +3,7 @@ import { FormField, applyEach, form, requiredError, validate } from '@angular/fo
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Language } from '../../core/catalog/catalog.model';
 import { TextEditor } from '../../shared/ui/text-editor';
-import { QASetEditor } from './qaset-editor';
+import { ConceptEditor } from './concept-editor';
 
 let nextId = 0;
 
@@ -13,7 +13,7 @@ interface Candidate {
 }
 
 /**
- * Asks the engine for question variants of an answer, then lets the author edit and pick before
+ * Asks the engine for question variants of a QASet, in its language, then lets the author edit and pick before
  * anything is saved. Candidates live only here: discarded ones are simply dropped.
  */
 @Component({
@@ -99,14 +99,14 @@ interface Candidate {
   `,
 })
 export class VariantGenerator {
-  protected readonly editor = inject(QASetEditor);
+  protected readonly editor = inject(ConceptEditor);
   protected readonly id = `generator-${nextId++}`;
 
-  readonly answerId = input.required<string>();
+  readonly qasetId = input.required<string>();
   readonly language = input.required<Language>();
   readonly closed = output();
 
-  protected readonly target = computed(() => `generate:${this.answerId()}`);
+  protected readonly target = computed(() => `generate:${this.qasetId()}`);
   protected readonly proposed = signal(false);
   protected readonly tried = signal(false);
 
@@ -123,7 +123,7 @@ export class VariantGenerator {
   );
 
   protected async generate(context: string): Promise<void> {
-    const candidates = await this.editor.generateVariants(this.answerId(), context);
+    const candidates = await this.editor.generateVariants(this.qasetId(), context);
     if (candidates === null) return;
     this.#model.set({ candidates: candidates.map((text) => ({ text, keep: true })) });
     this.proposed.set(true);
@@ -139,8 +139,7 @@ export class VariantGenerator {
       .filter((candidate) => candidate.keep);
     const added = new Set<number>();
     const ok = await this.editor.addVariants(
-      this.answerId(),
-      this.language().id,
+      this.qasetId(),
       kept.map((candidate) => candidate.text.trim()),
       (i) => added.add(kept[i].index),
     );

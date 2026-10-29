@@ -27,14 +27,27 @@ export interface Theme {
   readonly description: string | null;
 }
 
+/** One language of a concept, as a theme lists it. */
 export interface QASetSummary {
   readonly id: string;
+  readonly languageId: string;
+  readonly answerText: string;
+  readonly variantCount: number;
+}
+
+export interface ConceptSummary {
+  readonly id: string;
   readonly themeId: string;
-  readonly languages: readonly { readonly languageId: string; readonly variantCount: number }[];
+  readonly qasets: readonly QASetSummary[];
 }
 
 /** The engine's detail read, mapped per page by the feature that shows it. */
-export type QASetDetail = Schemas['QASetResponse'];
+export type ConceptDetail = Schemas['ConceptResponse'];
+
+/** One of the languages a project's content may use. */
+export interface ProjectLanguage extends Language {
+  readonly isBase: boolean;
+}
 
 export interface ProtocolLineage {
   readonly project: Project;
@@ -47,7 +60,7 @@ export interface ThemeLineage extends ProtocolLineage {
 
 export type ValidationStatus = 'validated' | 'rejected' | 'pending';
 
-/** Inside a QASet the engine sends null for pending (never decided, or reset by an edit). */
+/** Inside a concept the engine sends null for pending (never decided, or reset by an edit). */
 export function toValidationStatus(
   state: Schemas['ValidationStateResponse'] | null | undefined,
 ): ValidationStatus {

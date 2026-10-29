@@ -37,11 +37,26 @@ describe('writeFailureOf', () => {
     }
   });
 
-  it('maps the link and catalogue refusals', () => {
-    expect(writeFailureOf(engineError(409, 'link_already_exists')).key).toBe(
-      'authoring.errors.linkAlreadyExists',
-    );
-    expect(writeFailureOf(engineError(422, 'self_link')).key).toBe('authoring.errors.selfLink');
+  it('maps the concept and project-language refusals', () => {
+    const cases: [number, string, string][] = [
+      [422, 'language_not_in_project', 'authoring.errors.languageNotInProject'],
+      [422, 'base_language_required', 'authoring.errors.baseLanguageRequired'],
+      [409, 'answer_already_exists', 'authoring.errors.answerAlreadyExists'],
+      [422, 'base_qaset_not_removable', 'authoring.errors.baseQASetNotRemovable'],
+      [422, 'base_language_not_removable', 'admin.errors.baseLanguageNotRemovable'],
+      [409, 'language_in_use_in_project', 'admin.errors.languageInUseInProject'],
+      [409, 'theme_has_concepts', 'admin.errors.themeHasConcepts'],
+      [409, 'voice_in_use', 'admin.errors.voiceInUse'],
+    ];
+    for (const [status, code, key] of cases) {
+      expect(writeFailureOf(engineError(status, code))).toEqual({ key, gone: false });
+    }
+    expect(writeFailureOf(engineError(404, 'project_language_not_found')).gone).toBe(true);
+    expect(writeFailureOf(engineError(404, 'voice_not_found')).gone).toBe(true);
+    expect(writeFailureOf(engineError(404, 'concept_not_found')).gone).toBe(true);
+  });
+
+  it('maps the catalogue refusals', () => {
     expect(writeFailureOf(engineError(422, 'invalid_name')).key).toBe(
       'authoring.errors.invalidName',
     );
