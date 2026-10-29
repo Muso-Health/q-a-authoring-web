@@ -320,14 +320,19 @@
     },
     "generate": {
       "open": "Générer des variantes",
-      "context": "Contexte (facultatif)",
+      "title": "Générer des variantes",
+      "lead": "Le moteur propose des questions en {{ language }}. Rien n’est ajouté tant que vous n’acceptez pas.",
+      "context": "Contexte",
+      "optional": "(facultatif)",
+      "contextHint": "Par exemple le public ou la situation, pour orienter les propositions.",
       "submit": "Générer",
+      "generating": "Génération en cours…",
       "candidates": "Propositions",
+      "review": "Décochez celles à écarter.",
       "none": "Le moteur n’a proposé aucune variante.",
-      "keep": "Retenir la proposition {{ number }}",
-      "candidate": "Texte de la proposition {{ number }}",
-      "addKept": "Ajouter les retenues ({{ count }})",
-      "discard": "Abandonner les propositions"
+      "retry": "Réessayer",
+      "accept": "Accepter la sélection ({{ count }})",
+      "discard": "Abandonner"
     }
   },
   "typeahead": {
@@ -709,5 +714,8 @@
       "languageInUseInProject": "Le contenu du projet utilise encore cette langue : elle ne peut pas être retirée.",
       "projectLanguageNotFound": "Cette langue avait déjà été retirée du projet : la page a été actualisée."
     }
+  },
+  "dialog": {
+    "close": "Fermer"
   }
 }

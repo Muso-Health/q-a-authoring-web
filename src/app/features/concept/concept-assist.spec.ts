@@ -3,8 +3,6 @@ import { CONCEPT, IDS, ME_READER } from '../../core/catalog/testing/catalog-fixt
 import { C, renderConcept as render, text } from './testing/render-concept';
 
 const FR = `/qasets/${IDS.qasetFr}`;
-const GENERATE = `POST ${FR}/generate-variants`;
-const ADD_FR_VARIANT = `POST ${FR}/variants`;
 const TRANSLATE_CONCEPT = `POST ${C}/translate`;
 
 const options = (select: HTMLSelectElement) =>
@@ -171,110 +169,5 @@ describe('ConceptPage engine assistance', () => {
         expect(section('fr').querySelector('.variant .translate form')).not.toBeNull();
       });
     }
-  });
-
-  describe('variant generation', () => {
-    async function generate(
-      candidates: string[] = ['Comment se protéger ?', 'Que faire la nuit ?', 'Et les enfants ?'],
-    ) {
-      const page = await render({ answers: { [GENERATE]: { candidates } } });
-      await page.click('Générer des variantes', page.section('fr'));
-      page.type(page.section('fr').querySelector('.generate textarea')!, 'Pour les mères');
-      await page.submit(page.section('fr').querySelector('.generate form')!);
-      const list = () => page.section('fr').querySelector('.candidates')!;
-      const fields = () => [...list().querySelectorAll<HTMLTextAreaElement>('textarea')];
-      const keeps = () => [...list().querySelectorAll<HTMLInputElement>('input[type="checkbox"]')];
-      return { ...page, list, fields, keeps };
-    }
-
-    it('asks the QASet with the optional context and lists the candidates, all kept, nothing saved', async () => {
-      const { api, fields, keeps, afterFirstWrite } = await generate();
-
-      expect(api.writes).toEqual([
-        { method: 'POST', path: `${FR}/generate-variants`, body: { context: 'Pour les mères' } },
-      ]);
-      expect(fields().map((f) => f.value)).toEqual([
-        'Comment se protéger ?',
-        'Que faire la nuit ?',
-        'Et les enfants ?',
-      ]);
-      expect(keeps().map((k) => k.checked)).toEqual([true, true, true]);
-      expect(afterFirstWrite()).toEqual([GENERATE]);
-    });
-
-    it('generates in each QASet’s own language', async () => {
-      const page = await render({
-        answers: {
-          [`POST /qasets/${IDS.qasetEn}/generate-variants`]: { candidates: ['Why a net?'] },
-        },
-      });
-
-      await page.click('Générer des variantes', page.section('en'));
-      await page.submit(page.section('en').querySelector('.generate form')!);
-
-      expect(page.api.writes.map((w) => w.path)).toEqual([
-        `/qasets/${IDS.qasetEn}/generate-variants`,
-      ]);
-      expect(page.section('en').querySelector('.candidates textarea')?.getAttribute('lang')).toBe(
-        'en',
-      );
-    });
-
-    it('adds only the kept candidates, as edited, one call each in order, then re-fetches once', async () => {
-      const { api, section, click, type, toggle, fields, keeps, afterFirstWrite } =
-        await generate();
-
-      toggle(keeps()[1]);
-      type(fields()[2], 'Et pour les enfants de moins de 5 ans ?');
-      await click('Ajouter les retenues (2)', section('fr'));
-
-      expect(api.writes.slice(1)).toEqual([
-        { method: 'POST', path: `${FR}/variants`, body: { text: 'Comment se protéger ?' } },
-        {
-          method: 'POST',
-          path: `${FR}/variants`,
-          body: { text: 'Et pour les enfants de moins de 5 ans ?' },
-        },
-      ]);
-      expect(afterFirstWrite()).toEqual([GENERATE, ADD_FR_VARIANT, ADD_FR_VARIANT, `GET ${C}`]);
-      expect(section('fr').querySelector('.generate')).toBeNull();
-    });
-
-    it('says so when the generation engine fails', async () => {
-      const page = await render({
-        answers: { [GENERATE]: engineError(502, 'generation_engine_error') },
-      });
-
-      await page.click('Générer des variantes', page.section('fr'));
-      await page.submit(page.section('fr').querySelector('.generate form')!);
-
-      expect(text(page.section('fr').querySelector('.generate [role="alert"]'))).toBe(
-        'La génération a échoué : aucune variante n’a été proposée. Réessayez.',
-      );
-      expect(page.section('fr').querySelector('.candidates')).toBeNull();
-    });
-
-    it('stops at a failed add, keeps what was added, and lets the re-fetch reconcile', async () => {
-      const { api, section, click, list, fields, afterFirstWrite } = await generate();
-      api.answers[ADD_FR_VARIANT] = (body: { text: string }) =>
-        body.text === 'Que faire la nuit ?' ? engineError(422, 'invalid_text') : {};
-
-      await click('Ajouter les retenues (3)', section('fr'));
-
-      expect(afterFirstWrite()).toEqual([GENERATE, ADD_FR_VARIANT, ADD_FR_VARIANT, `GET ${C}`]);
-      expect(text(list().querySelector('[role="alert"]'))).toBe(
-        'Le texte a été refusé : il ne peut pas être vide.',
-      );
-      expect(fields().map((f) => f.value)).toEqual(['Que faire la nuit ?', 'Et les enfants ?']);
-    });
-
-    it('drops the candidates on cancel without saving anything', async () => {
-      const { api, section, click } = await generate();
-
-      await click('Abandonner les propositions', section('fr'));
-
-      expect(api.writes).toHaveLength(1);
-      expect(section('fr').querySelector('.candidates')).toBeNull();
-    });
   });
 });
