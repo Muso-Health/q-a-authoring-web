@@ -10,7 +10,7 @@ export interface LanguageAnswer {
 
 let nextId = 0;
 
-/** Choose a language and give its answer — how a QASet, or a language in one, begins. */
+/** Choose a language and give its answer — how a concept's QASet in that language begins. */
 @Component({
   selector: 'app-language-answer-form',
   imports: [FormField, TranslocoPipe],
@@ -56,7 +56,7 @@ export class LanguageAnswerForm {
   protected readonly id = `language-answer-${nextId++}`;
 
   readonly languages = input.required<readonly Language[]>();
-  /** Pre-selected, e.g. the project's base language for a new QASet. */
+  /** Pre-selected, e.g. the project's base language. */
   readonly preselected = input<string>('');
   readonly submitLabel = input.required<string>();
   readonly busy = input(false);

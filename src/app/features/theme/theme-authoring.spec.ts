@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import type { Schemas } from '../../core/api/api-types';
 import { ApiPort } from '../../core/api/api-port';
 import { FakeApiPort, engineError } from '../../core/api/testing/fake-api-port';
@@ -18,10 +18,10 @@ import {
 import { ThemePage } from './theme-page';
 
 const PAIRS = `POST /themes/${IDS.theme}/qa-pairs`;
-const QASETS = `/themes/${IDS.theme}/qasets`;
+const CONCEPTS = `/themes/${IDS.theme}/concepts`;
 const AUTHORED: Schemas['AuthoredPairsResponse'] = {
-  qasets_created: 1,
-  qasets_updated: 0,
+  concepts_created: 1,
+  concepts_updated: 0,
   variants_added: 2,
   skipped_rows: [],
 };
@@ -85,10 +85,77 @@ async function render(me: Schemas['MeResponse'] = ME_AUTHOR) {
   };
   const values = () =>
     rows().map((row) => [row.querySelector('input')!.value, row.querySelector('textarea')!.value]);
-  return { api, sheets, element, rows, button, click, type, fill, submit, upload, values };
+  const router = TestBed.inject(Router);
+  const settle = () => fixture.whenStable();
+  return {
+    api,
+    sheets,
+    element,
+    rows,
+    button,
+    click,
+    type,
+    fill,
+    submit,
+    upload,
+    values,
+    router,
+    settle,
+  };
 }
 
 describe('ThemePage authoring', () => {
+  describe('a new concept', () => {
+    const CREATE = `POST /themes/${IDS.theme}/concepts`;
+
+    it('is offered only with author_qasets', async () => {
+      const reader = await render(ME_READER);
+
+      expect(reader.button('Nouvelle notion')).toBeUndefined();
+    });
+
+    it('starts in the base language with its answer, then opens the new concept', async () => {
+      const { api, element, click, router, settle } = await render();
+      const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      api.answers[CREATE] = { id: 'new-concept' };
+
+      await click('Nouvelle notion');
+      const form = element.querySelector<HTMLFormElement>('.new-concept form')!;
+      expect(text(form.querySelector('label'))).toBe('Réponse (Français)');
+      const answer = form.querySelector('textarea')!;
+      answer.value = ' Lavez-vous les mains. ';
+      answer.dispatchEvent(new Event('input'));
+      form.dispatchEvent(new Event('submit'));
+      await settle();
+
+      expect(api.writes).toEqual([
+        {
+          method: 'POST',
+          path: `/themes/${IDS.theme}/concepts`,
+          body: { language_id: IDS.fr, answer_text: 'Lavez-vous les mains.' },
+        },
+      ]);
+      expect(navigate).toHaveBeenCalledWith(['/concepts', 'new-concept']);
+    });
+
+    it('keeps the form and says so when the theme already has that answer', async () => {
+      const { api, element, click, settle } = await render();
+      api.answers[CREATE] = engineError(409, 'answer_already_exists', { concept_id: IDS.concept });
+
+      await click('Nouvelle notion');
+      const form = element.querySelector<HTMLFormElement>('.new-concept form')!;
+      const answer = form.querySelector('textarea')!;
+      answer.value = 'Dormez chaque nuit sous une moustiquaire imprégnée d’insecticide.';
+      answer.dispatchEvent(new Event('input'));
+      form.dispatchEvent(new Event('submit'));
+      await settle();
+
+      expect(text(element.querySelector('.new-concept [role="alert"]'))).toBe(
+        'Ce thème a déjà une notion avec cette réponse.',
+      );
+    });
+  });
+
   it('offers pair authoring only with author_qasets', async () => {
     const reader = await render(ME_READER);
 
@@ -218,28 +285,28 @@ describe('ThemePage authoring', () => {
     it('shows the summary, resets to one empty row and re-reads the theme’s QA sets', async () => {
       const { api, element, rows, fill, submit, values } = await render();
       api.answers[PAIRS] = {
-        qasets_created: 2,
-        qasets_updated: 1,
+        concepts_created: 2,
+        concepts_updated: 1,
         variants_added: 3,
         // Sent: Q1, Q2, Q3, Q1 — the repeated Q1 is the batch's index 3, the form's row 5.
         skipped_rows: [3],
       } satisfies Schemas['AuthoredPairsResponse'];
       await fill(['Q1', 'R1'], ['', ''], ['Q2', 'R2'], ['Q3', 'R3'], ['Q1', 'R1']);
-      const reads = api.reads.filter((path) => path === QASETS).length;
-      api.answers[QASETS] = { items: [] };
+      const reads = api.reads.filter((path) => path === CONCEPTS).length;
+      api.answers[CONCEPTS] = { items: [] };
 
       await submit();
 
       const summary = element.querySelector('.summary[role="status"]');
       expect(text(summary)).toContain(
-        'Paires enregistrées : 2 ensembles créés, 1 ensemble complété, 3 questions ajoutées.',
+        'Paires enregistrées : 2 notions créées, 1 notion complétée, 3 questions ajoutées.',
       );
       // The skipped index is the engine's (in what was sent); the reader sees their own row.
       expect(text(summary)).toContain('Déjà présente, donc ignorée : paire 5.');
       expect(rows()).toHaveLength(1);
       expect(values()).toEqual([['', '']]);
-      expect(api.reads.filter((path) => path === QASETS).length).toBe(reads + 1);
-      expect(element.textContent).toContain('Aucun ensemble questions-réponses dans ce thème.');
+      expect(api.reads.filter((path) => path === CONCEPTS).length).toBe(reads + 1);
+      expect(element.textContent).toContain('Aucune notion dans ce thème.');
     });
 
     it('lists several skipped rows together', async () => {
@@ -261,7 +328,7 @@ describe('ThemePage authoring', () => {
       await submit();
 
       expect(text(element.querySelector('.summary'))).toBe(
-        'Paires enregistrées : 1 ensemble créé, 0 ensemble complété, 2 questions ajoutées.',
+        'Paires enregistrées : 1 notion créée, 0 notion complétée, 2 questions ajoutées.',
       );
     });
   });
@@ -442,7 +509,7 @@ describe('ThemePage authoring', () => {
 
       expect(values()).toEqual([['Q1', 'R1']]);
       expect(text(element.querySelector('.import [role="alert"]'))).toBe(
-        'Colonne introuvable dans « liste.xlsx » : réponse. La première ligne doit nommer une colonne « question » (ou « pregunta ») et une colonne « réponse » (ou « answer », « respuesta »). Rien n’a été chargé.',
+        'Colonne introuvable dans « liste.xlsx » : réponse. La première ligne doit nommer une colonne « question » et une colonne « réponse » (ou « answer »). Rien n’a été chargé.',
       );
       expect(element.querySelector('.import [role="status"]')?.textContent?.trim()).toBeFalsy();
     });

@@ -16,15 +16,15 @@ describe('AudioApi', () => {
     expect(await audio.playbackUrl('a1')).toBe('https://x');
   });
 
-  it('sets an answer’s or a variant’s audio as a multipart file', async () => {
+  it('sets an answer’s or a variant’s audio in a voice, as a multipart file', async () => {
     const { api, audio } = setUp();
     const blob = new Blob(['bytes'], { type: 'audio/webm' });
 
-    await audio.setAudio('q1', 'answer', 'an1', blob, 'enregistrement.webm');
-    await audio.setAudio('q1', 'variant', 'v1', blob, 'question.ogg');
+    await audio.setAudio('q1', 'answer', 'an1', 'voice-a', blob, 'enregistrement.webm');
+    await audio.setAudio('q1', 'variant', 'v1', 'voice-b', blob, 'question.ogg');
 
     expect(api.writes.map((w) => `${w.method} ${w.path}`)).toEqual([
-      'POST /qasets/q1/answers/an1/audio',
+      'POST /qasets/q1/answer/audio',
       'POST /qasets/q1/variants/v1/audio',
     ]);
     const body = api.writes[0].body as FormData;
@@ -32,17 +32,19 @@ describe('AudioApi', () => {
     const file = body.get('file') as File;
     expect(file.name).toBe('enregistrement.webm');
     expect(file.type).toBe('audio/webm');
+    expect(body.get('voice_id')).toBe('voice-a');
+    expect((api.writes[1].body as FormData).get('voice_id')).toBe('voice-b');
   });
 
-  it('deletes an answer’s or a variant’s audio', async () => {
+  it('deletes an answer’s or a variant’s audio by its voice', async () => {
     const { api, audio } = setUp();
 
-    await audio.deleteAudio('q1', 'answer', 'an1');
-    await audio.deleteAudio('q1', 'variant', 'v1');
+    await audio.deleteAudio('q1', 'answer', 'an1', 'voice-a');
+    await audio.deleteAudio('q1', 'variant', 'v1', 'voice-b');
 
     expect(api.writes.map((w) => `${w.method} ${w.path}`)).toEqual([
-      'DELETE /qasets/q1/answers/an1/audio',
-      'DELETE /qasets/q1/variants/v1/audio',
+      'DELETE /qasets/q1/answer/audio/voice-a',
+      'DELETE /qasets/q1/variants/v1/audio/voice-b',
     ]);
   });
 });

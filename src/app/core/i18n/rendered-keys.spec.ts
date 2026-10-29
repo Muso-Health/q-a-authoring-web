@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { SPANISH } from './testing/spanish';
 
 const ROOT = process.cwd();
 const bundle = (language: string) =>
@@ -59,4 +60,14 @@ describe('the keys the application uses', () => {
       expect(unresolved).toEqual([]);
     });
   }
+});
+
+describe('the templates and component strings', () => {
+  it('carry no Spanish: their words come from the French and English files', () => {
+    const spanish = sources('src/app').filter((file) =>
+      SPANISH.test(readFileSync(join(ROOT, file), 'utf8')),
+    );
+
+    expect(spanish).toEqual([]);
+  });
 });

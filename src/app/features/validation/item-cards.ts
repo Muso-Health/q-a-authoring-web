@@ -44,7 +44,7 @@ export class ClinicalCard {
   readonly languageName = input.required<string>();
 }
 
-/** Translation: the translated text beside what it translates, to compare at a glance. */
+/** Translation: the translated QASet beside the base-language one, to compare at a glance. */
 @Component({
   selector: 'app-translation-card',
   imports: [TranslocoPipe],
@@ -52,25 +52,35 @@ export class ClinicalCard {
     @let it = item();
     <div class="compare">
       <section class="translated">
+        <h3>{{ 'validation.card.translatedAnswer' | transloco: { language: languageName() } }}</h3>
+        <p class="muso-lead" [attr.lang]="it.languageCode">{{ it.answerText }}</p>
         <h3>
-          {{
-            (it.itemKind === 'answer'
-              ? 'validation.card.translatedAnswer'
-              : 'validation.card.translatedVariant'
-            ) | transloco: { language: languageName() }
-          }}
+          {{ 'validation.card.translatedVariants' | transloco: { language: languageName() } }}
         </h3>
-        <p class="muso-lead" [attr.lang]="it.languageCode">{{ it.text }}</p>
+        @if (it.variantTexts.length === 0) {
+          <p class="muso-meta">{{ 'validation.card.noVariants' | transloco }}</p>
+        } @else {
+          <ol class="variants">
+            @for (variant of it.variantTexts; track $index) {
+              <li [attr.lang]="it.languageCode">{{ variant }}</li>
+            }
+          </ol>
+        }
       </section>
       <section class="source">
-        @if (it.sources.length > 0) {
+        @if (it.baseAnswerText !== null) {
           <h3>{{ 'validation.card.source' | transloco }}</h3>
-          @for (source of it.sources; track $index) {
-            <p class="muso-lead">{{ source }}</p>
+          <p class="muso-lead">{{ it.baseAnswerText }}</p>
+          <h3>{{ 'validation.card.sourceVariants' | transloco }}</h3>
+          @if (it.baseVariantTexts.length === 0) {
+            <p class="muso-meta">{{ 'validation.card.noVariants' | transloco }}</p>
+          } @else {
+            <ol class="variants">
+              @for (variant of it.baseVariantTexts; track $index) {
+                <li>{{ variant }}</li>
+              }
+            </ol>
           }
-        } @else if (it.fallbackBaseAnswer) {
-          <h3>{{ 'validation.card.fallback' | transloco }}</h3>
-          <p class="muso-lead">{{ it.fallbackBaseAnswer }}</p>
         } @else {
           <p class="muso-meta">{{ 'validation.card.noSource' | transloco }}</p>
         }

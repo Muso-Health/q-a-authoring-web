@@ -8,12 +8,14 @@ import {
   MANAGE_INTENTS,
   MANAGE_LANGUAGES,
   MANAGE_PROMPTS,
+  MANAGE_VOICES,
 } from '../../core/access/current-user';
 
 export interface AdminSection {
   readonly path: string;
   readonly label: string;
-  readonly permission: string;
+  /** Null for a section anyone in the area may read: its writes are gated on the page. */
+  readonly permission: string | null;
 }
 
 export const ADMIN_SECTIONS: readonly AdminSection[] = [
@@ -22,8 +24,10 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
   { path: 'roles', label: 'admin.nav.roles', permission: MANAGE_ACCESS },
   { path: 'catalog', label: 'admin.nav.catalog', permission: MANAGE_CATALOG },
   { path: 'languages', label: 'admin.nav.languages', permission: MANAGE_LANGUAGES },
+  { path: 'voices', label: 'admin.nav.voices', permission: MANAGE_VOICES },
   { path: 'intents', label: 'admin.nav.intents', permission: MANAGE_INTENTS },
   { path: 'categories', label: 'admin.nav.categories', permission: MANAGE_CATEGORIES },
+  { path: 'glossary', label: 'admin.nav.glossary', permission: null },
 ];
 
 /** `/admin` itself opens the first section the user may see. */
@@ -31,7 +35,8 @@ export const firstAdminSection: CanActivateFn = async () => {
   const router = inject(Router);
   const user = inject(CurrentUser);
   for (const section of ADMIN_SECTIONS) {
-    if (await user.has(section.permission)) return router.createUrlTree(['/admin', section.path]);
+    if (section.permission === null || (await user.has(section.permission)))
+      return router.createUrlTree(['/admin', section.path]);
   }
   return router.createUrlTree(['/projects']);
 };

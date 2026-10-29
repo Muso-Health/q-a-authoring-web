@@ -11,7 +11,7 @@ import {
   signal,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { QASetAuthoringApi, type AuthoredPairs } from '../../core/catalog/qaset-authoring-api';
+import { ConceptAuthoringApi, type AuthoredPairs } from '../../core/catalog/concept-authoring-api';
 import {
   invalidPairRowsOf,
   isInvalidRequest,
@@ -21,6 +21,7 @@ import { Translator } from '../../core/i18n/translator';
 import {
   EmptyFileError,
   MissingColumnError,
+  SPREADSHEET_TYPES,
   SpreadsheetImportPort,
   UnreadableFileError,
   type ImportedPair,
@@ -59,13 +60,6 @@ function importFailureOf(
   return { kind: 'unreadable' };
 }
 
-const ACCEPTED = [
-  '.xlsx',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  '.csv',
-  'text/csv',
-].join(',');
-
 /** What was saved, with the skipped rows numbered as the author saw them (from 1). */
 interface Outcome extends Omit<AuthoredPairs, 'skippedRows'> {
   readonly skipped: readonly number[];
@@ -74,7 +68,7 @@ interface Outcome extends Omit<AuthoredPairs, 'skippedRows'> {
 /**
  * Questions and their answers under a theme, several pairs at once, always in the project's base
  * language — so there is no language to choose, and none is sent. The engine groups pairs by
- * answer: one QASet per answer, each question a variant.
+ * answer: one concept per answer, each question a variant of its base-language QASet.
  *
  * Rows left entirely blank are dropped; a row with only one of its two halves stops the batch
  * here, before the engine sees it. What the engine says about rows (refused, or skipped as
@@ -311,7 +305,7 @@ interface Outcome extends Omit<AuthoredPairs, 'skippedRows'> {
   `,
 })
 export class QAPairsForm {
-  readonly #authoring = inject(QASetAuthoringApi);
+  readonly #authoring = inject(ConceptAuthoringApi);
   readonly #sheets = inject(SpreadsheetImportPort);
   readonly #translator = inject(Translator);
   readonly #tasks = inject(PendingTasks);
@@ -322,7 +316,7 @@ export class QAPairsForm {
   readonly themeId = input.required<string>();
   /** The project's base language, named: what the pairs are written in. */
   readonly languageName = input.required<string>();
-  /** The theme's QASets changed, or the theme is gone: either way, re-read it. */
+  /** The theme's concepts changed, or the theme is gone: either way, re-read it. */
   readonly written = output();
 
   protected readonly rows = signal<readonly PairRow[]>([emptyRow()]);
@@ -332,7 +326,7 @@ export class QAPairsForm {
   /** Rows (by key) to complete or clear. */
   protected readonly flags = signal<ReadonlySet<number>>(new Set());
   readonly #outcome = signal<Outcome | null>(null);
-  protected readonly accepted = ACCEPTED;
+  protected readonly accepted = SPREADSHEET_TYPES;
   protected readonly importing = signal(false);
   readonly #imported = signal<ImportNote | null>(null);
 
@@ -377,8 +371,8 @@ export class QAPairsForm {
       this.#translator.plural(`authoring.pairs.summary.${key}`, count);
     const lines = [
       this.#translator.t('authoring.pairs.summary.saved', {
-        created: plural('created', outcome.qasetsCreated),
-        updated: plural('updated', outcome.qasetsUpdated),
+        created: plural('created', outcome.conceptsCreated),
+        updated: plural('updated', outcome.conceptsUpdated),
         variants: plural('variants', outcome.variantsAdded),
       }),
     ];

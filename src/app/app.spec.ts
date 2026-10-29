@@ -22,7 +22,7 @@ describe('App', () => {
       'projects/:projectId',
       'protocols/:protocolId',
       'themes/:themeId',
-      'qasets/:qasetId',
+      'concepts/:conceptId',
       'validation/clinical',
       'validation/translation',
       'validation/audio',

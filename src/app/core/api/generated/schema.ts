@@ -247,6 +247,7 @@ export interface paths {
         /**
          * Create Project
          * @description Create a project. 422 if the base language does not exist; it cannot change afterwards.
+         *     The base language is the project's first language.
          */
         post: operations["create_project_projects_post"];
         delete?: never;
@@ -278,6 +279,53 @@ export interface paths {
          * @description Edit the name and/or description. The base language is immutable.
          */
         patch: operations["update_project_projects__project_id__patch"];
+        trace?: never;
+    };
+    "/projects/{project_id}/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Project Languages
+         * @description The only languages the project's content may use: its base language first.
+         */
+        get: operations["list_project_languages_projects__project_id__languages_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{project_id}/languages/{language_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Add Project Language
+         * @description Add a catalogue language to the project: 201 when added, 200 when it already had it.
+         *     404 ``language_not_found`` for a language outside the catalogue. Returns its languages.
+         */
+        put: operations["add_project_language_projects__project_id__languages__language_id__put"];
+        post?: never;
+        /**
+         * Remove Project Language
+         * @description 422 ``base_language_not_removable`` for the base language; 409
+         *     ``language_in_use_in_project`` while the project's content uses it; 404
+         *     ``project_language_not_found`` if the project does not have it.
+         */
+        delete: operations["remove_project_language_projects__project_id__languages__language_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/projects/{project_id}/protocols": {
@@ -363,23 +411,28 @@ export interface paths {
         patch: operations["update_theme_themes__theme_id__patch"];
         trace?: never;
     };
-    "/themes/{theme_id}/qasets": {
+    "/themes/{theme_id}/concepts": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Qasets */
-        get: operations["list_qasets_themes__theme_id__qasets_get"];
+        /**
+         * List Concepts
+         * @description The theme's concepts, each with its QA sets summarised (language, answer, variant
+         *     count).
+         */
+        get: operations["list_concepts_themes__theme_id__concepts_get"];
         put?: never;
         /**
-         * Create Qaset
-         * @description Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language;
-         *     409 ``answer_already_exists`` (with its ``qaset_id``) if the theme already has this
-         *     base-language answer.
+         * Create Concept
+         * @description Start a concept with its base-language QA set (its answer). 404 if the theme is unknown;
+         *     422 ``unknown_language``, ``language_not_in_project``, or ``base_language_required`` for a
+         *     language other than the project's base one (other languages come by translation); 409
+         *     ``answer_already_exists`` (with its ``concept_id``) if the theme already has the answer.
          */
-        post: operations["create_qaset_themes__theme_id__qasets_post"];
+        post: operations["create_concept_themes__theme_id__concepts_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -398,13 +451,164 @@ export interface paths {
         /**
          * Author Qa Pairs
          * @description Author question-answer pairs in the project's base language. Pairs sharing an answer
-         *     (trimmed) form one QA set, and an answer the theme already has gains the new questions;
-         *     repeated questions are skipped. At most ``MAX_QA_PAIRS`` (500) pairs per request. 422
-         *     ``invalid_qa_pairs`` with the offending row indices if a question or answer is empty (nothing
-         *     is written).
+         *     (trimmed) form one concept (its base-language QA set), and an answer the theme already has
+         *     gains the new questions; repeated questions are skipped. At most ``MAX_QA_PAIRS`` (500)
+         *     pairs per request. 422 ``invalid_qa_pairs`` with the offending row indices if a question or
+         *     answer is empty (nothing is written).
          */
         post: operations["author_qa_pairs_themes__theme_id__qa_pairs_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Concept
+         * @description The concept with every QA set (answer, variants, audios, validation state), its intents
+         *     and categories.
+         */
+        get: operations["get_concept_concepts__concept_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Concept
+         * @description Deletes the concept with all its QA sets.
+         */
+        delete: operations["delete_concept_concepts__concept_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/qasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Qaset
+         * @description Give the concept a QA set in one of its project's languages by writing its answer. 409
+         *     ``language_already_present``; 422 ``language_not_in_project``.
+         */
+        post: operations["add_qaset_concepts__concept_id__qasets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/translate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Translate Concept
+         * @description Translate the concept's base-language QA set (answer and every variant) into one of the
+         *     project's languages: 201 when that language's QA set is created, 200 when the existing one
+         *     is updated (answer replaced, missing variants added). 422 ``language_not_in_project``; 502
+         *     if the engine fails (nothing saved).
+         */
+        post: operations["translate_concept_concepts__concept_id__translate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach Intent
+         * @description Tag the concept (every language) with a catalogue intent. Idempotent: 201 when attached,
+         *     200 when it already was.
+         */
+        post: operations["attach_intent_concepts__concept_id__intents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/intents/{intent_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Detach Intent
+         * @description 404 ``intent_not_attached`` if the concept does not carry the intent.
+         */
+        delete: operations["detach_intent_concepts__concept_id__intents__intent_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Category
+         * @description Attach a catalogue category to the concept (every language). Idempotent: 201 when
+         *     attached, 200 when it already was.
+         */
+        post: operations["add_category_concepts__concept_id__categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/concepts/{concept_id}/categories/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Category
+         * @description 404 ``category_not_attached`` if the concept does not carry the category.
+         */
+        delete: operations["remove_category_concepts__concept_id__categories__category_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -417,16 +621,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Qaset
-         * @description The QA set grouped by language: each language's answer, variants and variant count.
-         */
+        /** Get Qaset */
         get: operations["get_qaset_qasets__qaset_id__get"];
         put?: never;
         post?: never;
         /**
          * Delete Qaset
-         * @description Deletes the QA set together with its answers and question variants.
+         * @description Remove one language of the concept. 422 ``base_qaset_not_removable`` for the
+         *     base-language QA set: delete the concept instead.
          */
         delete: operations["delete_qaset_qasets__qaset_id__delete"];
         options?: never;
@@ -434,27 +636,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/qasets/{qaset_id}/languages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Add Language Presence
-         * @description Add a language by giving its answer. 409 if the language already has one.
-         */
-        post: operations["add_language_presence_qasets__qaset_id__languages_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/languages/{language_id}": {
+    "/qasets/{qaset_id}/answer": {
         parameters: {
             query?: never;
             header?: never;
@@ -464,21 +646,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * Remove Language Presence
-         * @description Remove a language's answer and all its question variants.
-         */
-        delete: operations["remove_language_presence_qasets__qaset_id__languages__language_id__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         /**
          * Update Answer
-         * @description Edit the answer text in a language present in the QA set.
+         * @description Edit the QA set's answer; it returns its validation to pending.
          */
-        patch: operations["update_answer_qasets__qaset_id__languages__language_id__patch"];
+        patch: operations["update_answer_qasets__qaset_id__answer_patch"];
         trace?: never;
     };
-    "/qasets/{qaset_id}/languages/{language_id}/variants": {
+    "/qasets/{qaset_id}/variants": {
         parameters: {
             query?: never;
             header?: never;
@@ -487,11 +665,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Add Question Variant
-         * @description 409 if the language has no answer in this QA set yet.
-         */
-        post: operations["add_question_variant_qasets__qaset_id__languages__language_id__variants_post"];
+        /** Add Question Variant */
+        post: operations["add_question_variant_qasets__qaset_id__variants_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -516,7 +691,7 @@ export interface paths {
         patch: operations["update_question_variant_qasets__qaset_id__variants__variant_id__patch"];
         trace?: never;
     };
-    "/qasets/{qaset_id}/answer-links": {
+    "/qasets/{qaset_id}/variants/{variant_id}/translate": {
         parameters: {
             query?: never;
             header?: never;
@@ -526,147 +701,13 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Link Answers
-         * @description Link two answers of this QA set, in different languages, as translations (symmetric).
+         * Translate Variant
+         * @description Translate the variant into another language of its concept, adding it to that
+         *     language's QA set: 201 when added, 200 when that QA set already had the translation. 409
+         *     ``language_presence_required`` if the concept has no QA set in that language yet.
          */
-        post: operations["link_answers_qasets__qaset_id__answer_links_post"];
+        post: operations["translate_variant_qasets__qaset_id__variants__variant_id__translate_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/answer-links/{link_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unlink Answers */
-        delete: operations["unlink_answers_qasets__qaset_id__answer_links__link_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/variant-links": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Link Variants
-         * @description Link two question variants of this QA set, in different languages (symmetric).
-         */
-        post: operations["link_variants_qasets__qaset_id__variant_links_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/variant-links/{link_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unlink Variants */
-        delete: operations["unlink_variants_qasets__qaset_id__variant_links__link_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/variants/{variant_id}/intents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Attach Intent
-         * @description Tag the variant with a catalogue intent. Idempotent: 201 when attached, 200 when it
-         *     already was. Not propagated to translations.
-         */
-        post: operations["attach_intent_qasets__qaset_id__variants__variant_id__intents_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/variants/{variant_id}/intents/{intent_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Detach Intent
-         * @description 404 ``intent_not_attached`` if the variant does not carry the intent.
-         */
-        delete: operations["detach_intent_qasets__qaset_id__variants__variant_id__intents__intent_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Add Category
-         * @description Attach a catalogue category to the whole QA set. Idempotent: 201 when attached, 200 when
-         *     it already was. Returns the QA set.
-         */
-        post: operations["add_category_qasets__qaset_id__categories_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/categories/{category_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove Category
-         * @description 404 ``category_not_attached`` if the QA set does not carry the category.
-         */
-        delete: operations["remove_category_qasets__qaset_id__categories__category_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -764,7 +805,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/qasets/{qaset_id}/answers/{answer_id}/audio": {
+    "/glossary/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Glossary Terms
+         * @description Terms ordered by label (case-insensitive) with their forms, and the count of every match.
+         *     ``q`` matches inside the label or any preferred form, synonym or form to avoid, ignoring case
+         *     and accents.
+         */
+        get: operations["list_glossary_terms_glossary_terms_get"];
+        put?: never;
+        /**
+         * Create Glossary Term
+         * @description A term with its optional first forms (one per language; a repeated language keeps its
+         *     last form). 404 ``language_not_found``; 422 ``invalid_glossary_field`` naming the field.
+         */
+        post: operations["create_glossary_term_glossary_terms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Glossary Term */
+        get: operations["get_glossary_term_glossary_terms__term_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Glossary Term
+         * @description Change the label and/or the note (``note: null`` clears it).
+         */
+        patch: operations["update_glossary_term_glossary_terms__term_id__patch"];
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/archive": {
         parameters: {
             query?: never;
             header?: never;
@@ -774,13 +863,153 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Set Answer Audio
-         * @description Upload (multipart ``file``) the answer's recording: 201 when set, 200 when it replaced one.
-         *     The type is detected from the bytes; 422 if unsupported or too large.
+         * Archive Glossary Term
+         * @description Hide the term from the default (active) listing. Idempotent.
          */
-        post: operations["set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post"];
-        /** Delete Answer Audio */
-        delete: operations["delete_answer_audio_qasets__qaset_id__answers__answer_id__audio_delete"];
+        post: operations["archive_glossary_term_glossary_terms__term_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unarchive Glossary Term
+         * @description Idempotent.
+         */
+        post: operations["unarchive_glossary_term_glossary_terms__term_id__unarchive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/glossary/terms/{term_id}/forms/{language_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Upsert Glossary Form
+         * @description Set the term's form in the language: 201 when it had none, 200 when it replaced it (the
+         *     form keeps its id). Synonyms and forms to avoid are trimmed, blanks and repeats dropped.
+         *     Returns the term.
+         */
+        put: operations["upsert_glossary_form_glossary_terms__term_id__forms__language_id__put"];
+        post?: never;
+        /**
+         * Remove Glossary Form
+         * @description 404 ``glossary_form_not_found`` if the term has no form in the language.
+         */
+        delete: operations["remove_glossary_form_glossary_terms__term_id__forms__language_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/voices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Voices
+         * @description The catalogue ordered by name (case-insensitive).
+         */
+        get: operations["list_voices_voices_get"];
+        put?: never;
+        /**
+         * Create Voice
+         * @description 422 ``invalid_name`` for a blank name.
+         */
+        post: operations["create_voice_voices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/voices/{voice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Voice */
+        get: operations["get_voice_voices__voice_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Voice
+         * @description 409 ``voice_in_use`` while any audio is recorded in the voice.
+         */
+        delete: operations["delete_voice_voices__voice_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Voice
+         * @description Change the name and/or the note (``note: null`` clears it).
+         */
+        patch: operations["update_voice_voices__voice_id__patch"];
+        trace?: never;
+    };
+    "/qasets/{qaset_id}/answer/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Answer Audios
+         * @description The answer's recordings, one per voice, ordered by voice name.
+         */
+        get: operations["list_answer_audios_qasets__qaset_id__answer_audio_get"];
+        put?: never;
+        /**
+         * Set Answer Audio
+         * @description Upload (multipart ``file`` and ``voice_id``) the QA set answer's recording in that voice:
+         *     201 when set, 200 when it replaced the answer's recording in that voice (other voices are
+         *     untouched). 404 ``voice_not_found``; the type is detected from the bytes, 422 if unsupported
+         *     or too large.
+         */
+        post: operations["set_answer_audio_qasets__qaset_id__answer_audio_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qasets/{qaset_id}/answer/audio/{voice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Answer Audio
+         * @description Remove the answer's recording in that voice; 404 ``audio_not_found`` if it has none.
+         */
+        delete: operations["delete_answer_audio_qasets__qaset_id__answer_audio__voice_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -793,16 +1022,39 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Variant Audios
+         * @description The variant's recordings, one per voice, ordered by voice name.
+         */
+        get: operations["list_variant_audios_qasets__qaset_id__variants__variant_id__audio_get"];
         put?: never;
         /**
          * Set Variant Audio
-         * @description Upload (multipart ``file``) the variant's recording: 201 when set, 200 when it replaced
-         *     one.
+         * @description Upload (multipart ``file`` and ``voice_id``) the variant's recording in that voice: 201
+         *     when set, 200 when it replaced the variant's recording in that voice.
          */
         post: operations["set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post"];
-        /** Delete Variant Audio */
-        delete: operations["delete_variant_audio_qasets__qaset_id__variants__variant_id__audio_delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/qasets/{qaset_id}/variants/{variant_id}/audio/{voice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Variant Audio
+         * @description Remove the variant's recording in that voice; 404 ``audio_not_found`` if it has none.
+         */
+        delete: operations["delete_variant_audio_qasets__qaset_id__variants__variant_id__audio__voice_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -857,8 +1109,8 @@ export interface paths {
         put?: never;
         /**
          * Record Clinical Decision
-         * @description Record a clinical decision (201 the first time, 200 after). 409 if the QA set has no
-         *     answer in its project's base language.
+         * @description Record a clinical decision on the concept's base-language QA set (201 the first time,
+         *     200 after). 422 ``not_base_language`` for any other QA set.
          */
         post: operations["record_clinical_decision_qasets__qaset_id__clinical_validation_post"];
         delete?: never;
@@ -867,42 +1119,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/answers/{answer_id}/translation-validation": {
+    "/qasets/{qaset_id}/translation-validation": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Answer Translation Validation */
-        get: operations["get_answer_translation_validation_answers__answer_id__translation_validation_get"];
+        /** Get Translation Validation */
+        get: operations["get_translation_validation_qasets__qaset_id__translation_validation_get"];
         put?: never;
         /**
-         * Record Answer Translation Decision
-         * @description 422 ``not_a_translation`` for an answer in the project's base language.
+         * Record Translation Decision
+         * @description Record a decision on the QA set as a translation (its answer and variants together).
+         *     422 ``not_a_translation`` for the base-language QA set.
          */
-        post: operations["record_answer_translation_decision_answers__answer_id__translation_validation_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/variants/{variant_id}/translation-validation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Variant Translation Validation */
-        get: operations["get_variant_translation_validation_variants__variant_id__translation_validation_get"];
-        put?: never;
-        /**
-         * Record Variant Translation Decision
-         * @description 422 ``not_a_translation`` for a variant in the project's base language.
-         */
-        post: operations["record_variant_translation_decision_variants__variant_id__translation_validation_post"];
+        post: operations["record_translation_decision_qasets__qaset_id__translation_validation_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -969,49 +1201,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/qasets/{qaset_id}/answers/{answer_id}/translate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Translate Answer
-         * @description Translate the answer into a language the QA set lacks, with the chosen engine: creates
-         *     that language's answer and links it to the source. 502 if the engine fails (nothing saved).
-         */
-        post: operations["translate_answer_qasets__qaset_id__answers__answer_id__translate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/variants/{variant_id}/translate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Translate Variant
-         * @description Translate the question variant into a language that already has an answer in the QA set:
-         *     creates the variant and links it to the source. 409 if the target has no answer yet.
-         */
-        post: operations["translate_variant_qasets__qaset_id__variants__variant_id__translate_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/qasets/{qaset_id}/answers/{answer_id}/generate-variants": {
+    "/qasets/{qaset_id}/generate-variants": {
         parameters: {
             query?: never;
             header?: never;
@@ -1022,10 +1212,10 @@ export interface paths {
         put?: never;
         /**
          * Generate Variants
-         * @description Propose question variants in the answer's language. Nothing is saved: keep the chosen
-         *     ones through ``POST /qasets/{id}/languages/{language_id}/variants``.
+         * @description Propose question variants for the QA set, in its language. Nothing is saved: keep the
+         *     chosen ones through ``POST /qasets/{id}/variants``.
          */
-        post: operations["generate_variants_qasets__qaset_id__answers__answer_id__generate_variants_post"];
+        post: operations["generate_variants_qasets__qaset_id__generate_variants_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1122,9 +1312,9 @@ export interface paths {
         put?: never;
         /**
          * Export Project Corpus
-         * @description Export the project's clinically validated QA sets, in every language, as two Parquet
-         *     files: ``qa_rows`` (one row per question variant) and ``translation_links``. Read-only.
-         *     409 if no QA set is clinically validated.
+         * @description Export the project's concepts whose base-language QA set is clinically validated, with
+         *     every language's QA set, as one Parquet file: ``qa_rows`` (one row per question variant of
+         *     each QA set). Read-only. 409 if no concept is clinically validated.
          */
         post: operations["export_project_corpus_projects__project_id__export_post"];
         delete?: never;
@@ -1207,7 +1397,8 @@ export interface components {
         };
         /**
          * AnswerInLanguageRequest
-         * @description Create a QA set, or add a language to one, with the answer in that language.
+         * @description Start a concept (in the project's base language), or add a QA set to one, with the
+         *     answer in that language.
          */
         AnswerInLanguageRequest: {
             /**
@@ -1218,22 +1409,6 @@ export interface components {
             /** Answer Text */
             answer_text: string;
         };
-        /**
-         * AnswerLinkResponse
-         * @description ``answer_ids`` is the canonical pair: the smaller id first, whatever the request order.
-         */
-        AnswerLinkResponse: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Answer Ids */
-            answer_ids: [
-                string,
-                string
-            ];
-        };
         /** AnswerResponse */
         AnswerResponse: {
             /**
@@ -1243,10 +1418,8 @@ export interface components {
             id: string;
             /** Text */
             text: string;
-            /** Links */
-            links: components["schemas"]["TranslationResponse"][];
-            audio: components["schemas"]["AudioSummaryResponse"] | null;
-            translation_validation: components["schemas"]["ValidationStateResponse"] | null;
+            /** Audios */
+            audios: components["schemas"]["AudioSummaryResponse"][];
         };
         /**
          * AssignRoleRequest
@@ -1312,6 +1485,11 @@ export interface components {
              * Format: uuid
              */
             qaset_id: string;
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
             project: components["schemas"]["NamedRefResponse"];
             protocol: components["schemas"]["NamedRefResponse"];
             theme: components["schemas"]["NamedRefResponse"];
@@ -1353,6 +1531,13 @@ export interface components {
              * Format: uuid
              */
             audio_id: string;
+            /**
+             * Voice Id
+             * Format: uuid
+             */
+            voice_id: string;
+            /** Voice Name */
+            voice_name: string;
             /** Mime Type */
             mime_type: string;
             /** Duration Ms */
@@ -1369,7 +1554,8 @@ export interface components {
         };
         /**
          * AudioSummaryResponse
-         * @description An item's recording as listed in a QA set; play it via its playback-url.
+         * @description One of an item's recordings (one per voice) as listed in a QA set; play it via its
+         *     playback-url.
          */
         AudioSummaryResponse: {
             /**
@@ -1377,6 +1563,13 @@ export interface components {
              * Format: uuid
              */
             audio_id: string;
+            /**
+             * Voice Id
+             * Format: uuid
+             */
+            voice_id: string;
+            /** Voice Name */
+            voice_name: string;
             /** Mime Type */
             mime_type: string;
             /** Duration Ms */
@@ -1387,26 +1580,44 @@ export interface components {
             checksum_sha256: string;
             audio_validation: components["schemas"]["ValidationStateResponse"] | null;
         };
+        /**
+         * AudiosResponse
+         * @description An item's recordings, one per voice, ordered by voice name.
+         */
+        AudiosResponse: {
+            /** Items */
+            items: components["schemas"]["AudioResponse"][];
+        };
         /** AuthoredPairsResponse */
         AuthoredPairsResponse: {
-            /** Qasets Created */
-            qasets_created: number;
-            /** Qasets Updated */
-            qasets_updated: number;
+            /** Concepts Created */
+            concepts_created: number;
+            /** Concepts Updated */
+            concepts_updated: number;
             /** Variants Added */
             variants_added: number;
             /** Skipped Rows */
             skipped_rows: number[];
         };
-        /** Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post */
-        Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post: {
+        /** Body_set_answer_audio_qasets__qaset_id__answer_audio_post */
+        Body_set_answer_audio_qasets__qaset_id__answer_audio_post: {
             /** File */
             file: string;
+            /**
+             * Voice Id
+             * Format: uuid
+             */
+            voice_id: string;
         };
         /** Body_set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post */
         Body_set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post: {
             /** File */
             file: string;
+            /**
+             * Voice Id
+             * Format: uuid
+             */
+            voice_id: string;
         };
         /** Body_upload_documentation_themes__theme_id__documentation_post */
         Body_upload_documentation_themes__theme_id__documentation_post: {
@@ -1435,6 +1646,11 @@ export interface components {
              * Format: uuid
              */
             qaset_id: string;
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
             project: components["schemas"]["NamedRefResponse"];
             protocol: components["schemas"]["NamedRefResponse"];
             theme: components["schemas"]["NamedRefResponse"];
@@ -1463,6 +1679,61 @@ export interface components {
         CompletenessResponse: {
             /** Uncovered Notions */
             uncovered_notions: string[];
+        };
+        /**
+         * ConceptResponse
+         * @description A concept: its QA sets (one per language, in creation order), and the intents and
+         *     categories that apply to it in every language.
+         */
+        ConceptResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Theme Id
+             * Format: uuid
+             */
+            theme_id: string;
+            /** Qasets */
+            qasets: components["schemas"]["QASetResponse"][];
+            /** Intents */
+            intents: components["schemas"]["AttachedIntentResponse"][];
+            /** Categories */
+            categories: components["schemas"]["AttachedCategoryResponse"][];
+        };
+        /** ConceptSummaryResponse */
+        ConceptSummaryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Theme Id
+             * Format: uuid
+             */
+            theme_id: string;
+            /** Qasets */
+            qasets: components["schemas"]["QASetSummaryResponse"][];
+        };
+        /** ConceptsResponse */
+        ConceptsResponse: {
+            /** Items */
+            items: components["schemas"]["ConceptSummaryResponse"][];
+        };
+        /** CreateGlossaryTermRequest */
+        CreateGlossaryTermRequest: {
+            /** Label */
+            label: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Forms
+             * @default []
+             */
+            forms: components["schemas"]["InitialGlossaryFormRequest"][];
         };
         /** CreateNamedRequest */
         CreateNamedRequest: {
@@ -1496,6 +1767,13 @@ export interface components {
             email: string;
             /** Display Name */
             display_name: string;
+        };
+        /** CreateVoiceRequest */
+        CreateVoiceRequest: {
+            /** Name */
+            name: string;
+            /** Note */
+            note?: string | null;
         };
         /**
          * DecisionRequest
@@ -1550,20 +1828,19 @@ export interface components {
         };
         /** ExportCountsResponse */
         ExportCountsResponse: {
+            /** Concept Count */
+            concept_count: number;
             /** Qaset Count */
             qaset_count: number;
             /** Qa Row Count */
             qa_row_count: number;
-            /** Link Count */
-            link_count: number;
         };
         /**
          * ExportResponse
-         * @description Short-lived signed URLs to the Parquet files, and what they contain.
+         * @description A short-lived signed URL to the Parquet file, and what it contains.
          */
         ExportResponse: {
             qa_rows: components["schemas"]["DownloadUrlResponse"];
-            translation_links: components["schemas"]["DownloadUrlResponse"];
             counts: components["schemas"]["ExportCountsResponse"];
         };
         /**
@@ -1581,6 +1858,77 @@ export interface components {
         GeneratedVariantsResponse: {
             /** Candidates */
             candidates: string[];
+        };
+        /** GlossaryFormRequest */
+        GlossaryFormRequest: {
+            /** Preferred */
+            preferred: string;
+            /**
+             * Synonyms
+             * @default []
+             */
+            synonyms: string[];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /** Note */
+            note?: string | null;
+        };
+        /** GlossaryFormResponse */
+        GlossaryFormResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+            /** Preferred */
+            preferred: string;
+            /** Synonyms */
+            synonyms: string[];
+            /** Avoid */
+            avoid: string[];
+            /** Note */
+            note: string | null;
+        };
+        /** GlossaryTermResponse */
+        GlossaryTermResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Forms */
+            forms: components["schemas"]["GlossaryFormResponse"][];
+        };
+        /** GlossaryTermsResponse */
+        GlossaryTermsResponse: {
+            /** Items */
+            items: components["schemas"]["GlossaryTermResponse"][];
+            /** Total */
+            total: number;
         };
         /**
          * GrantResponse
@@ -1609,6 +1957,28 @@ export interface components {
              */
             status: "ok";
         };
+        /** InitialGlossaryFormRequest */
+        InitialGlossaryFormRequest: {
+            /** Preferred */
+            preferred: string;
+            /**
+             * Synonyms
+             * @default []
+             */
+            synonyms: string[];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /** Note */
+            note?: string | null;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+        };
         /** IntentResponse */
         IntentResponse: {
             /**
@@ -1623,19 +1993,6 @@ export interface components {
         IntentsResponse: {
             /** Items */
             items: components["schemas"]["IntentResponse"][];
-        };
-        /** LanguagePresenceResponse */
-        LanguagePresenceResponse: {
-            /**
-             * Language Id
-             * Format: uuid
-             */
-            language_id: string;
-            answer: components["schemas"]["AnswerResponse"];
-            /** Variants */
-            variants: components["schemas"]["QuestionVariantResponse"][];
-            /** Variant Count */
-            variant_count: number;
         };
         /** LanguageRefResponse */
         LanguageRefResponse: {
@@ -1661,46 +2018,10 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** LanguageSummaryResponse */
-        LanguageSummaryResponse: {
-            /**
-             * Language Id
-             * Format: uuid
-             */
-            language_id: string;
-            /** Variant Count */
-            variant_count: number;
-        };
         /** LanguagesResponse */
         LanguagesResponse: {
             /** Items */
             items: components["schemas"]["LanguageResponse"][];
-        };
-        /** LinkAnswersRequest */
-        LinkAnswersRequest: {
-            /**
-             * Answer A Id
-             * Format: uuid
-             */
-            answer_a_id: string;
-            /**
-             * Answer B Id
-             * Format: uuid
-             */
-            answer_b_id: string;
-        };
-        /** LinkVariantsRequest */
-        LinkVariantsRequest: {
-            /**
-             * Variant A Id
-             * Format: uuid
-             */
-            variant_a_id: string;
-            /**
-             * Variant B Id
-             * Format: uuid
-             */
-            variant_b_id: string;
         };
         /**
          * MeResponse
@@ -1748,6 +2069,28 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+        };
+        /** ProjectLanguageResponse */
+        ProjectLanguageResponse: {
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Is Base */
+            is_base: boolean;
+        };
+        /**
+         * ProjectLanguagesResponse
+         * @description A project's languages: its base language first, then the others by code.
+         */
+        ProjectLanguagesResponse: {
+            /** Items */
+            items: components["schemas"]["ProjectLanguageResponse"][];
         };
         /** ProjectRefResponse */
         ProjectRefResponse: {
@@ -1837,7 +2180,11 @@ export interface components {
             /** Answer */
             answer: string;
         };
-        /** QASetResponse */
+        /**
+         * QASetResponse
+         * @description One language of a concept: its answer and question variants. The base-language QA set
+         *     carries ``clinical_validation``, every other one ``translation_validation``.
+         */
         QASetResponse: {
             /**
              * Id
@@ -1845,38 +2192,25 @@ export interface components {
              */
             id: string;
             /**
-             * Theme Id
+             * Concept Id
              * Format: uuid
              */
-            theme_id: string;
-            /** Languages */
-            languages: components["schemas"]["LanguagePresenceResponse"][];
-            /** Categories */
-            categories: components["schemas"]["AttachedCategoryResponse"][];
+            concept_id: string;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+            answer: components["schemas"]["AnswerResponse"];
+            /** Variants */
+            variants: components["schemas"]["QuestionVariantResponse"][];
+            /** Variant Count */
+            variant_count: number;
             clinical_validation: components["schemas"]["ValidationStateResponse"] | null;
+            translation_validation: components["schemas"]["ValidationStateResponse"] | null;
         };
         /** QASetSummaryResponse */
         QASetSummaryResponse: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /**
-             * Theme Id
-             * Format: uuid
-             */
-            theme_id: string;
-            /** Languages */
-            languages: components["schemas"]["LanguageSummaryResponse"][];
-        };
-        /** QASetsResponse */
-        QASetsResponse: {
-            /** Items */
-            items: components["schemas"]["QASetSummaryResponse"][];
-        };
-        /** QuestionVariantResponse */
-        QuestionVariantResponse: {
             /**
              * Id
              * Format: uuid
@@ -1887,14 +2221,32 @@ export interface components {
              * Format: uuid
              */
             language_id: string;
+            /** Answer Text */
+            answer_text: string;
+            /** Variant Count */
+            variant_count: number;
+        };
+        /** QuestionVariantResponse */
+        QuestionVariantResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Qaset Id
+             * Format: uuid
+             */
+            qaset_id: string;
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
             /** Text */
             text: string;
-            /** Links */
-            links: components["schemas"]["TranslationResponse"][];
-            /** Intents */
-            intents: components["schemas"]["AttachedIntentResponse"][];
-            audio: components["schemas"]["AudioSummaryResponse"] | null;
-            translation_validation: components["schemas"]["ValidationStateResponse"] | null;
+            /** Audios */
+            audios: components["schemas"]["AudioSummaryResponse"][];
         };
         /** RegisterCategoryRequest */
         RegisterCategoryRequest: {
@@ -1940,16 +2292,6 @@ export interface components {
             /** Items */
             items: components["schemas"]["RoleResponse"][];
         };
-        /** SourceTextResponse */
-        SourceTextResponse: {
-            /**
-             * Item Id
-             * Format: uuid
-             */
-            item_id: string;
-            /** Text */
-            text: string;
-        };
         /** TextRequest */
         TextRequest: {
             /** Text */
@@ -1990,44 +2332,35 @@ export interface components {
             /** Engine */
             engine: string;
         };
-        /** TranslatedAnswerResponse */
-        TranslatedAnswerResponse: {
-            presence: components["schemas"]["LanguagePresenceResponse"];
-            link: components["schemas"]["AnswerLinkResponse"];
-        };
-        /** TranslatedVariantResponse */
-        TranslatedVariantResponse: {
-            variant: components["schemas"]["QuestionVariantResponse"];
-            link: components["schemas"]["VariantLinkResponse"];
-        };
-        /** TranslationQueueItemResponse */
+        /**
+         * TranslationQueueItemResponse
+         * @description A QA set to review as a translation, with its concept's base-language answer and
+         *     variants to compare with (None and empty without a base-language QA set).
+         */
         TranslationQueueItemResponse: {
             /**
              * Qaset Id
              * Format: uuid
              */
             qaset_id: string;
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
             project: components["schemas"]["NamedRefResponse"];
             protocol: components["schemas"]["NamedRefResponse"];
             theme: components["schemas"]["NamedRefResponse"];
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "answer" | "variant";
-            /**
-             * Item Id
-             * Format: uuid
-             */
-            item_id: string;
             /** Language Code */
             language_code: string;
-            /** Text */
-            text: string;
-            /** Sources */
-            sources: components["schemas"]["SourceTextResponse"][];
-            /** Fallback Base Answer Text */
-            fallback_base_answer_text: string | null;
+            /** Answer Text */
+            answer_text: string;
+            /** Variant Texts */
+            variant_texts: string[];
+            /** Base Answer Text */
+            base_answer_text: string | null;
+            /** Base Variant Texts */
+            base_variant_texts: string[];
             /** State */
             state: string;
         };
@@ -2041,25 +2374,14 @@ export interface components {
             total: number;
         };
         /**
-         * TranslationResponse
-         * @description One translation link, seen from the item that carries it.
+         * UpdateGlossaryTermRequest
+         * @description PATCH: an absent field is unchanged; ``note: null`` clears the note.
          */
-        TranslationResponse: {
-            /**
-             * Link Id
-             * Format: uuid
-             */
-            link_id: string;
-            /**
-             * Other Id
-             * Format: uuid
-             */
-            other_id: string;
-            /**
-             * Other Language Id
-             * Format: uuid
-             */
-            other_language_id: string;
+        UpdateGlossaryTermRequest: {
+            /** Label */
+            label?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /**
          * UpdateLanguageRequest
@@ -2103,6 +2425,16 @@ export interface components {
             display_name?: string | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /**
+         * UpdateVoiceRequest
+         * @description PATCH: an absent field is unchanged; ``note: null`` clears the note.
+         */
+        UpdateVoiceRequest: {
+            /** Name */
+            name?: string | null;
+            /** Note */
+            note?: string | null;
         };
         /** UserResponse */
         UserResponse: {
@@ -2176,21 +2508,32 @@ export interface components {
             /** State */
             state: string;
         };
-        /**
-         * VariantLinkResponse
-         * @description ``variant_ids`` is the canonical pair: the smaller id first, whatever the request order.
-         */
-        VariantLinkResponse: {
+        /** VoiceResponse */
+        VoiceResponse: {
             /**
              * Id
              * Format: uuid
              */
             id: string;
-            /** Variant Ids */
-            variant_ids: [
-                string,
-                string
-            ];
+            /** Name */
+            name: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** VoicesResponse */
+        VoicesResponse: {
+            /** Items */
+            items: components["schemas"]["VoiceResponse"][];
         };
     };
     responses: never;
@@ -2889,6 +3232,99 @@ export interface operations {
             };
         };
     };
+    list_project_languages_projects__project_id__languages_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectLanguagesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_project_language_projects__project_id__languages__language_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                language_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectLanguagesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_project_language_projects__project_id__languages__language_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                language_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_protocols_projects__project_id__protocols_get: {
         parameters: {
             query?: never;
@@ -3211,7 +3647,7 @@ export interface operations {
             };
         };
     };
-    list_qasets_themes__theme_id__qasets_get: {
+    list_concepts_themes__theme_id__concepts_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3228,7 +3664,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QASetsResponse"];
+                    "application/json": components["schemas"]["ConceptsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3242,7 +3678,7 @@ export interface operations {
             };
         };
     };
-    create_qaset_themes__theme_id__qasets_post: {
+    create_concept_themes__theme_id__concepts_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3263,7 +3699,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["QASetResponse"];
+                    "application/json": components["schemas"]["ConceptResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3300,6 +3736,266 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AuthoredPairsResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_concept_concepts__concept_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_concept_concepts__concept_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_qaset_concepts__concept_id__qasets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerInLanguageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QASetResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    translate_concept_concepts__concept_id__translate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TranslateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QASetResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attach_intent_concepts__concept_id__intents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detach_intent_concepts__concept_id__intents__intent_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+                intent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_category_concepts__concept_id__categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_category_concepts__concept_id__categories__category_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                concept_id: string;
+                category_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -3372,78 +4068,12 @@ export interface operations {
             };
         };
     };
-    add_language_presence_qasets__qaset_id__languages_post: {
+    update_answer_qasets__qaset_id__answer_patch: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 qaset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AnswerInLanguageRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LanguagePresenceResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_language_presence_qasets__qaset_id__languages__language_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                language_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_answer_qasets__qaset_id__languages__language_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                language_id: string;
             };
             cookie?: never;
         };
@@ -3459,7 +4089,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LanguagePresenceResponse"];
+                    "application/json": components["schemas"]["QASetResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3473,13 +4103,12 @@ export interface operations {
             };
         };
     };
-    add_question_variant_qasets__qaset_id__languages__language_id__variants_post: {
+    add_question_variant_qasets__qaset_id__variants_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 qaset_id: string;
-                language_id: string;
             };
             cookie?: never;
         };
@@ -3575,137 +4204,7 @@ export interface operations {
             };
         };
     };
-    link_answers_qasets__qaset_id__answer_links_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LinkAnswersRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AnswerLinkResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    unlink_answers_qasets__qaset_id__answer_links__link_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                link_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    link_variants_qasets__qaset_id__variant_links_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LinkVariantsRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VariantLinkResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    unlink_variants_qasets__qaset_id__variant_links__link_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                link_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    attach_intent_qasets__qaset_id__variants__variant_id__intents_post: {
+    translate_variant_qasets__qaset_id__variants__variant_id__translate_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3717,7 +4216,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AttachIntentRequest"];
+                "application/json": components["schemas"]["TranslateRequest"];
             };
         };
         responses: {
@@ -3729,102 +4228,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["QuestionVariantResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    detach_intent_qasets__qaset_id__variants__variant_id__intents__intent_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                variant_id: string;
-                intent_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_category_qasets__qaset_id__categories_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddCategoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QASetResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_category_qasets__qaset_id__categories__category_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                category_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -4085,19 +4488,458 @@ export interface operations {
             };
         };
     };
-    set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post: {
+    list_glossary_terms_glossary_terms_get: {
+        parameters: {
+            query?: {
+                status?: "active" | "archived" | "all";
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_glossary_term_glossary_terms_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGlossaryTermRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_glossary_term_glossary_terms__term_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                qaset_id: string;
-                answer_id: string;
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_glossary_term_glossary_terms__term_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post"];
+                "application/json": components["schemas"]["UpdateGlossaryTermRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_glossary_term_glossary_terms__term_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unarchive_glossary_term_glossary_terms__term_id__unarchive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_glossary_form_glossary_terms__term_id__forms__language_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+                language_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GlossaryFormRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GlossaryTermResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_glossary_form_glossary_terms__term_id__forms__language_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                term_id: string;
+                language_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_voices_voices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoicesResponse"];
+                };
+            };
+        };
+    };
+    create_voice_voices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_voice_voices__voice_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_voice_voices__voice_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_voice_voices__voice_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                voice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_answer_audios_qasets__qaset_id__answer_audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qaset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudiosResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_answer_audio_qasets__qaset_id__answer_audio_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qaset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_set_answer_audio_qasets__qaset_id__answer_audio_post"];
             };
         };
         responses: {
@@ -4121,13 +4963,13 @@ export interface operations {
             };
         };
     };
-    delete_answer_audio_qasets__qaset_id__answers__answer_id__audio_delete: {
+    delete_answer_audio_qasets__qaset_id__answer_audio__voice_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 qaset_id: string;
-                answer_id: string;
+                voice_id: string;
             };
             cookie?: never;
         };
@@ -4139,6 +4981,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_variant_audios_qasets__qaset_id__variants__variant_id__audio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                qaset_id: string;
+                variant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudiosResponse"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -4187,13 +5061,14 @@ export interface operations {
             };
         };
     };
-    delete_variant_audio_qasets__qaset_id__variants__variant_id__audio_delete: {
+    delete_variant_audio_qasets__qaset_id__variants__variant_id__audio__voice_id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 qaset_id: string;
                 variant_id: string;
+                voice_id: string;
             };
             cookie?: never;
         };
@@ -4345,12 +5220,12 @@ export interface operations {
             };
         };
     };
-    get_answer_translation_validation_answers__answer_id__translation_validation_get: {
+    get_translation_validation_qasets__qaset_id__translation_validation_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                answer_id: string;
+                qaset_id: string;
             };
             cookie?: never;
         };
@@ -4376,78 +5251,12 @@ export interface operations {
             };
         };
     };
-    record_answer_translation_decision_answers__answer_id__translation_validation_post: {
+    record_translation_decision_qasets__qaset_id__translation_validation_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                answer_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DecisionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_variant_translation_validation_variants__variant_id__translation_validation_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                variant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ValidationResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    record_variant_translation_decision_variants__variant_id__translation_validation_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                variant_id: string;
+                qaset_id: string;
             };
             cookie?: never;
         };
@@ -4629,85 +5438,12 @@ export interface operations {
             };
         };
     };
-    translate_answer_qasets__qaset_id__answers__answer_id__translate_post: {
+    generate_variants_qasets__qaset_id__generate_variants_post: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 qaset_id: string;
-                answer_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TranslateRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TranslatedAnswerResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    translate_variant_qasets__qaset_id__variants__variant_id__translate_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                variant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TranslateRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TranslatedVariantResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    generate_variants_qasets__qaset_id__answers__answer_id__generate_variants_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                qaset_id: string;
-                answer_id: string;
             };
             cookie?: never;
         };

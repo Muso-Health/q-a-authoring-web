@@ -123,7 +123,7 @@ describe('Worklist', () => {
 
     expect(worklist.current()?.key).toBe(CLINICAL_A.qaset_id);
     expect(worklist.decisionError()).toBe(
-      'Cet ensemble n’a pas de réponse dans la langue de base du projet : il ne peut pas être validé cliniquement.',
+      'Cette notion n’a pas de réponse dans la langue de base du projet : elle ne peut pas être validée cliniquement.',
     );
   });
 

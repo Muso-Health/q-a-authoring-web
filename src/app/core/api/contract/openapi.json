@@ -733,7 +733,7 @@
           "projects"
         ],
         "summary": "Create Project",
-        "description": "Create a project. 422 if the base language does not exist; it cannot change afterwards.",
+        "description": "Create a project. 422 if the base language does not exist; it cannot change afterwards.\nThe base language is the project's first language.",
         "operationId": "create_project_projects_post",
         "requestBody": {
           "content": {
@@ -879,6 +879,149 @@
               "type": "string",
               "format": "uuid",
               "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/languages": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "List Project Languages",
+        "description": "The only languages the project's content may use: its base language first.",
+        "operationId": "list_project_languages_projects__project_id__languages_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectLanguagesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/languages/{language_id}": {
+      "put": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Add Project Language",
+        "description": "Add a catalogue language to the project: 201 when added, 200 when it already had it.\n404 ``language_not_found`` for a language outside the catalogue. Returns its languages.",
+        "operationId": "add_project_language_projects__project_id__languages__language_id__put",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "language_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Language Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectLanguagesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Remove Project Language",
+        "description": "422 ``base_language_not_removable`` for the base language; 409\n``language_in_use_in_project`` while the project's content uses it; 404\n``project_language_not_found`` if the project does not have it.",
+        "operationId": "remove_project_language_projects__project_id__languages__language_id__delete",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "language_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Language Id"
             }
           }
         ],
@@ -1346,14 +1489,14 @@
         }
       }
     },
-    "/themes/{theme_id}/qasets": {
+    "/themes/{theme_id}/concepts": {
       "post": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
-        "summary": "Create Qaset",
-        "description": "Create a QA set with its first answer. 404 if the theme is unknown, 422 if the language;\n409 ``answer_already_exists`` (with its ``qaset_id``) if the theme already has this\nbase-language answer.",
-        "operationId": "create_qaset_themes__theme_id__qasets_post",
+        "summary": "Create Concept",
+        "description": "Start a concept with its base-language QA set (its answer). 404 if the theme is unknown;\n422 ``unknown_language``, ``language_not_in_project``, or ``base_language_required`` for a\nlanguage other than the project's base one (other languages come by translation); 409\n``answer_already_exists`` (with its ``concept_id``) if the theme already has the answer.",
+        "operationId": "create_concept_themes__theme_id__concepts_post",
         "parameters": [
           {
             "name": "theme_id",
@@ -1382,7 +1525,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QASetResponse"
+                  "$ref": "#/components/schemas/ConceptResponse"
                 }
               }
             }
@@ -1401,10 +1544,11 @@
       },
       "get": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
-        "summary": "List Qasets",
-        "operationId": "list_qasets_themes__theme_id__qasets_get",
+        "summary": "List Concepts",
+        "description": "The theme's concepts, each with its QA sets summarised (language, answer, variant\ncount).",
+        "operationId": "list_concepts_themes__theme_id__concepts_get",
         "parameters": [
           {
             "name": "theme_id",
@@ -1423,7 +1567,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/QASetsResponse"
+                  "$ref": "#/components/schemas/ConceptsResponse"
                 }
               }
             }
@@ -1444,10 +1588,10 @@
     "/themes/{theme_id}/qa-pairs": {
       "post": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Author Qa Pairs",
-        "description": "Author question-answer pairs in the project's base language. Pairs sharing an answer\n(trimmed) form one QA set, and an answer the theme already has gains the new questions;\nrepeated questions are skipped. At most ``MAX_QA_PAIRS`` (500) pairs per request. 422\n``invalid_qa_pairs`` with the offending row indices if a question or answer is empty (nothing\nis written).",
+        "description": "Author question-answer pairs in the project's base language. Pairs sharing an answer\n(trimmed) form one concept (its base-language QA set), and an answer the theme already has\ngains the new questions; repeated questions are skipped. At most ``MAX_QA_PAIRS`` (500)\npairs per request. 422 ``invalid_qa_pairs`` with the offending row indices if a question or\nanswer is empty (nothing is written).",
         "operationId": "author_qa_pairs_themes__theme_id__qa_pairs_post",
         "parameters": [
           {
@@ -1500,13 +1644,401 @@
         }
       }
     },
+    "/concepts/{concept_id}": {
+      "get": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Get Concept",
+        "description": "The concept with every QA set (answer, variants, audios, validation state), its intents\nand categories.",
+        "operationId": "get_concept_concepts__concept_id__get",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Delete Concept",
+        "description": "Deletes the concept with all its QA sets.",
+        "operationId": "delete_concept_concepts__concept_id__delete",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/qasets": {
+      "post": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Add Qaset",
+        "description": "Give the concept a QA set in one of its project's languages by writing its answer. 409\n``language_already_present``; 422 ``language_not_in_project``.",
+        "operationId": "add_qaset_concepts__concept_id__qasets_post",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerInLanguageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QASetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/translate": {
+      "post": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Translate Concept",
+        "description": "Translate the concept's base-language QA set (answer and every variant) into one of the\nproject's languages: 201 when that language's QA set is created, 200 when the existing one\nis updated (answer replaced, missing variants added). 422 ``language_not_in_project``; 502\nif the engine fails (nothing saved).",
+        "operationId": "translate_concept_concepts__concept_id__translate_post",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QASetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/intents": {
+      "post": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Attach Intent",
+        "description": "Tag the concept (every language) with a catalogue intent. Idempotent: 201 when attached,\n200 when it already was.",
+        "operationId": "attach_intent_concepts__concept_id__intents_post",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachIntentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/intents/{intent_id}": {
+      "delete": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Detach Intent",
+        "description": "404 ``intent_not_attached`` if the concept does not carry the intent.",
+        "operationId": "detach_intent_concepts__concept_id__intents__intent_id__delete",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          },
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Intent Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/categories": {
+      "post": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Add Category",
+        "description": "Attach a catalogue category to the concept (every language). Idempotent: 201 when\nattached, 200 when it already was.",
+        "operationId": "add_category_concepts__concept_id__categories_post",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCategoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConceptResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{concept_id}/categories/{category_id}": {
+      "delete": {
+        "tags": [
+          "concepts"
+        ],
+        "summary": "Remove Category",
+        "description": "404 ``category_not_attached`` if the concept does not carry the category.",
+        "operationId": "remove_category_concepts__concept_id__categories__category_id__delete",
+        "parameters": [
+          {
+            "name": "concept_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Concept Id"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Category Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/qasets/{qaset_id}": {
       "get": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Get Qaset",
-        "description": "The QA set grouped by language: each language's answer, variants and variant count.",
         "operationId": "get_qaset_qasets__qaset_id__get",
         "parameters": [
           {
@@ -1545,10 +2077,10 @@
       },
       "delete": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Delete Qaset",
-        "description": "Deletes the QA set together with its answers and question variants.",
+        "description": "Remove one language of the concept. 422 ``base_qaset_not_removable`` for the\nbase-language QA set: delete the concept instead.",
         "operationId": "delete_qaset_qasets__qaset_id__delete",
         "parameters": [
           {
@@ -1579,68 +2111,14 @@
         }
       }
     },
-    "/qasets/{qaset_id}/languages": {
-      "post": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Add Language Presence",
-        "description": "Add a language by giving its answer. 409 if the language already has one.",
-        "operationId": "add_language_presence_qasets__qaset_id__languages_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AnswerInLanguageRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LanguagePresenceResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/languages/{language_id}": {
+    "/qasets/{qaset_id}/answer": {
       "patch": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Update Answer",
-        "description": "Edit the answer text in a language present in the QA set.",
-        "operationId": "update_answer_qasets__qaset_id__languages__language_id__patch",
+        "description": "Edit the QA set's answer; it returns its validation to pending.",
+        "operationId": "update_answer_qasets__qaset_id__answer_patch",
         "parameters": [
           {
             "name": "qaset_id",
@@ -1650,16 +2128,6 @@
               "type": "string",
               "format": "uuid",
               "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "language_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Language Id"
             }
           }
         ],
@@ -1679,55 +2147,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LanguagePresenceResponse"
+                  "$ref": "#/components/schemas/QASetResponse"
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Remove Language Presence",
-        "description": "Remove a language's answer and all its question variants.",
-        "operationId": "remove_language_presence_qasets__qaset_id__languages__language_id__delete",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "language_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Language Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -1742,14 +2165,13 @@
         }
       }
     },
-    "/qasets/{qaset_id}/languages/{language_id}/variants": {
+    "/qasets/{qaset_id}/variants": {
       "post": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Add Question Variant",
-        "description": "409 if the language has no answer in this QA set yet.",
-        "operationId": "add_question_variant_qasets__qaset_id__languages__language_id__variants_post",
+        "operationId": "add_question_variant_qasets__qaset_id__variants_post",
         "parameters": [
           {
             "name": "qaset_id",
@@ -1759,16 +2181,6 @@
               "type": "string",
               "format": "uuid",
               "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "language_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Language Id"
             }
           }
         ],
@@ -1809,7 +2221,7 @@
     "/qasets/{qaset_id}/variants/{variant_id}": {
       "patch": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Update Question Variant",
         "operationId": "update_question_variant_qasets__qaset_id__variants__variant_id__patch",
@@ -1870,7 +2282,7 @@
       },
       "delete": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
         "summary": "Delete Question Variant",
         "operationId": "delete_question_variant_qasets__qaset_id__variants__variant_id__delete",
@@ -1913,214 +2325,14 @@
         }
       }
     },
-    "/qasets/{qaset_id}/answer-links": {
+    "/qasets/{qaset_id}/variants/{variant_id}/translate": {
       "post": {
         "tags": [
-          "qasets"
+          "concepts"
         ],
-        "summary": "Link Answers",
-        "description": "Link two answers of this QA set, in different languages, as translations (symmetric).",
-        "operationId": "link_answers_qasets__qaset_id__answer_links_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkAnswersRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AnswerLinkResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/answer-links/{link_id}": {
-      "delete": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Unlink Answers",
-        "operationId": "unlink_answers_qasets__qaset_id__answer_links__link_id__delete",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "link_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Link Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/variant-links": {
-      "post": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Link Variants",
-        "description": "Link two question variants of this QA set, in different languages (symmetric).",
-        "operationId": "link_variants_qasets__qaset_id__variant_links_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkVariantsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VariantLinkResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/variant-links/{link_id}": {
-      "delete": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Unlink Variants",
-        "operationId": "unlink_variants_qasets__qaset_id__variant_links__link_id__delete",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "link_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Link Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/variants/{variant_id}/intents": {
-      "post": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Attach Intent",
-        "description": "Tag the variant with a catalogue intent. Idempotent: 201 when attached, 200 when it\nalready was. Not propagated to translations.",
-        "operationId": "attach_intent_qasets__qaset_id__variants__variant_id__intents_post",
+        "summary": "Translate Variant",
+        "description": "Translate the variant into another language of its concept, adding it to that\nlanguage's QA set: 201 when added, 200 when that QA set already had the translation. 409\n``language_presence_required`` if the concept has no QA set in that language yet.",
+        "operationId": "translate_variant_qasets__qaset_id__variants__variant_id__translate_post",
         "parameters": [
           {
             "name": "qaset_id",
@@ -2148,7 +2360,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AttachIntentRequest"
+                "$ref": "#/components/schemas/TranslateRequest"
               }
             }
           }
@@ -2163,164 +2375,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/variants/{variant_id}/intents/{intent_id}": {
-      "delete": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Detach Intent",
-        "description": "404 ``intent_not_attached`` if the variant does not carry the intent.",
-        "operationId": "detach_intent_qasets__qaset_id__variants__variant_id__intents__intent_id__delete",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "variant_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Variant Id"
-            }
-          },
-          {
-            "name": "intent_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Intent Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/categories": {
-      "post": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Add Category",
-        "description": "Attach a catalogue category to the whole QA set. Idempotent: 201 when attached, 200 when\nit already was. Returns the QA set.",
-        "operationId": "add_category_qasets__qaset_id__categories_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddCategoryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QASetResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/categories/{category_id}": {
-      "delete": {
-        "tags": [
-          "qasets"
-        ],
-        "summary": "Remove Category",
-        "description": "404 ``category_not_attached`` if the QA set does not carry the category.",
-        "operationId": "remove_category_qasets__qaset_id__categories__category_id__delete",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "category_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Category Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",
@@ -2671,14 +2725,626 @@
         }
       }
     },
-    "/qasets/{qaset_id}/answers/{answer_id}/audio": {
+    "/glossary/terms": {
+      "post": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Create Glossary Term",
+        "description": "A term with its optional first forms (one per language; a repeated language keeps its\nlast form). 404 ``language_not_found``; 422 ``invalid_glossary_field`` naming the field.",
+        "operationId": "create_glossary_term_glossary_terms_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGlossaryTermRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "List Glossary Terms",
+        "description": "Terms ordered by label (case-insensitive) with their forms, and the count of every match.\n``q`` matches inside the label or any preferred form, synonym or form to avoid, ignoring case\nand accents.",
+        "operationId": "list_glossary_terms_glossary_terms_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "archived",
+                "all"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/glossary/terms/{term_id}": {
+      "get": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Get Glossary Term",
+        "operationId": "get_glossary_term_glossary_terms__term_id__get",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Update Glossary Term",
+        "description": "Change the label and/or the note (``note: null`` clears it).",
+        "operationId": "update_glossary_term_glossary_terms__term_id__patch",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGlossaryTermRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/glossary/terms/{term_id}/archive": {
+      "post": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Archive Glossary Term",
+        "description": "Hide the term from the default (active) listing. Idempotent.",
+        "operationId": "archive_glossary_term_glossary_terms__term_id__archive_post",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/glossary/terms/{term_id}/unarchive": {
+      "post": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Unarchive Glossary Term",
+        "description": "Idempotent.",
+        "operationId": "unarchive_glossary_term_glossary_terms__term_id__unarchive_post",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/glossary/terms/{term_id}/forms/{language_id}": {
+      "put": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Upsert Glossary Form",
+        "description": "Set the term's form in the language: 201 when it had none, 200 when it replaced it (the\nform keeps its id). Synonyms and forms to avoid are trimmed, blanks and repeats dropped.\nReturns the term.",
+        "operationId": "upsert_glossary_form_glossary_terms__term_id__forms__language_id__put",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          },
+          {
+            "name": "language_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Language Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlossaryFormRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlossaryTermResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "glossary"
+        ],
+        "summary": "Remove Glossary Form",
+        "description": "404 ``glossary_form_not_found`` if the term has no form in the language.",
+        "operationId": "remove_glossary_form_glossary_terms__term_id__forms__language_id__delete",
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Term Id"
+            }
+          },
+          {
+            "name": "language_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Language Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voices": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "List Voices",
+        "description": "The catalogue ordered by name (case-insensitive).",
+        "operationId": "list_voices_voices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoicesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Create Voice",
+        "description": "422 ``invalid_name`` for a blank name.",
+        "operationId": "create_voice_voices_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voices/{voice_id}": {
+      "get": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Get Voice",
+        "operationId": "get_voice_voices__voice_id__get",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Update Voice",
+        "description": "Change the name and/or the note (``note: null`` clears it).",
+        "operationId": "update_voice_voices__voice_id__patch",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVoiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "voices"
+        ],
+        "summary": "Delete Voice",
+        "description": "409 ``voice_in_use`` while any audio is recorded in the voice.",
+        "operationId": "delete_voice_voices__voice_id__delete",
+        "parameters": [
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Voice Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/qasets/{qaset_id}/answer/audio": {
       "post": {
         "tags": [
           "audio"
         ],
         "summary": "Set Answer Audio",
-        "description": "Upload (multipart ``file``) the answer's recording: 201 when set, 200 when it replaced one.\nThe type is detected from the bytes; 422 if unsupported or too large.",
-        "operationId": "set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post",
+        "description": "Upload (multipart ``file`` and ``voice_id``) the QA set answer's recording in that voice:\n201 when set, 200 when it replaced the answer's recording in that voice (other voices are\nuntouched). 404 ``voice_not_found``; the type is detected from the bytes, 422 if unsupported\nor too large.",
+        "operationId": "set_answer_audio_qasets__qaset_id__answer_audio_post",
         "parameters": [
           {
             "name": "qaset_id",
@@ -2689,16 +3355,6 @@
               "format": "uuid",
               "title": "Qaset Id"
             }
-          },
-          {
-            "name": "answer_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Answer Id"
-            }
           }
         ],
         "requestBody": {
@@ -2706,7 +3362,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post"
+                "$ref": "#/components/schemas/Body_set_answer_audio_qasets__qaset_id__answer_audio_post"
               }
             }
           }
@@ -2734,12 +3390,57 @@
           }
         }
       },
+      "get": {
+        "tags": [
+          "audio"
+        ],
+        "summary": "List Answer Audios",
+        "description": "The answer's recordings, one per voice, ordered by voice name.",
+        "operationId": "list_answer_audios_qasets__qaset_id__answer_audio_get",
+        "parameters": [
+          {
+            "name": "qaset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Qaset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudiosResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/qasets/{qaset_id}/answer/audio/{voice_id}": {
       "delete": {
         "tags": [
           "audio"
         ],
         "summary": "Delete Answer Audio",
-        "operationId": "delete_answer_audio_qasets__qaset_id__answers__answer_id__audio_delete",
+        "description": "Remove the answer's recording in that voice; 404 ``audio_not_found`` if it has none.",
+        "operationId": "delete_answer_audio_qasets__qaset_id__answer_audio__voice_id__delete",
         "parameters": [
           {
             "name": "qaset_id",
@@ -2752,13 +3453,13 @@
             }
           },
           {
-            "name": "answer_id",
+            "name": "voice_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Answer Id"
+              "title": "Voice Id"
             }
           }
         ],
@@ -2785,7 +3486,7 @@
           "audio"
         ],
         "summary": "Set Variant Audio",
-        "description": "Upload (multipart ``file``) the variant's recording: 201 when set, 200 when it replaced\none.",
+        "description": "Upload (multipart ``file`` and ``voice_id``) the variant's recording in that voice: 201\nwhen set, 200 when it replaced the variant's recording in that voice.",
         "operationId": "set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post",
         "parameters": [
           {
@@ -2842,12 +3543,13 @@
           }
         }
       },
-      "delete": {
+      "get": {
         "tags": [
           "audio"
         ],
-        "summary": "Delete Variant Audio",
-        "operationId": "delete_variant_audio_qasets__qaset_id__variants__variant_id__audio_delete",
+        "summary": "List Variant Audios",
+        "description": "The variant's recordings, one per voice, ordered by voice name.",
+        "operationId": "list_variant_audios_qasets__qaset_id__variants__variant_id__audio_get",
         "parameters": [
           {
             "name": "qaset_id",
@@ -2867,6 +3569,70 @@
               "type": "string",
               "format": "uuid",
               "title": "Variant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudiosResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/qasets/{qaset_id}/variants/{variant_id}/audio/{voice_id}": {
+      "delete": {
+        "tags": [
+          "audio"
+        ],
+        "summary": "Delete Variant Audio",
+        "description": "Remove the variant's recording in that voice; 404 ``audio_not_found`` if it has none.",
+        "operationId": "delete_variant_audio_qasets__qaset_id__variants__variant_id__audio__voice_id__delete",
+        "parameters": [
+          {
+            "name": "qaset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Qaset Id"
+            }
+          },
+          {
+            "name": "variant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Variant Id"
+            }
+          },
+          {
+            "name": "voice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Voice Id"
             }
           }
         ],
@@ -2980,7 +3746,7 @@
           "validation"
         ],
         "summary": "Record Clinical Decision",
-        "description": "Record a clinical decision (201 the first time, 200 after). 409 if the QA set has no\nanswer in its project's base language.",
+        "description": "Record a clinical decision on the concept's base-language QA set (201 the first time,\n200 after). 422 ``not_base_language`` for any other QA set.",
         "operationId": "record_clinical_decision_qasets__qaset_id__clinical_validation_post",
         "parameters": [
           {
@@ -3069,23 +3835,23 @@
         }
       }
     },
-    "/answers/{answer_id}/translation-validation": {
+    "/qasets/{qaset_id}/translation-validation": {
       "post": {
         "tags": [
           "validation"
         ],
-        "summary": "Record Answer Translation Decision",
-        "description": "422 ``not_a_translation`` for an answer in the project's base language.",
-        "operationId": "record_answer_translation_decision_answers__answer_id__translation_validation_post",
+        "summary": "Record Translation Decision",
+        "description": "Record a decision on the QA set as a translation (its answer and variants together).\n422 ``not_a_translation`` for the base-language QA set.",
+        "operationId": "record_translation_decision_qasets__qaset_id__translation_validation_post",
         "parameters": [
           {
-            "name": "answer_id",
+            "name": "qaset_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Answer Id"
+              "title": "Qaset Id"
             }
           }
         ],
@@ -3126,112 +3892,17 @@
         "tags": [
           "validation"
         ],
-        "summary": "Get Answer Translation Validation",
-        "operationId": "get_answer_translation_validation_answers__answer_id__translation_validation_get",
+        "summary": "Get Translation Validation",
+        "operationId": "get_translation_validation_qasets__qaset_id__translation_validation_get",
         "parameters": [
           {
-            "name": "answer_id",
+            "name": "qaset_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Answer Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/variants/{variant_id}/translation-validation": {
-      "post": {
-        "tags": [
-          "validation"
-        ],
-        "summary": "Record Variant Translation Decision",
-        "description": "422 ``not_a_translation`` for a variant in the project's base language.",
-        "operationId": "record_variant_translation_decision_variants__variant_id__translation_validation_post",
-        "parameters": [
-          {
-            "name": "variant_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Variant Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DecisionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "validation"
-        ],
-        "summary": "Get Variant Translation Validation",
-        "operationId": "get_variant_translation_validation_variants__variant_id__translation_validation_get",
-        "parameters": [
-          {
-            "name": "variant_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Variant Id"
+              "title": "Qaset Id"
             }
           }
         ],
@@ -3468,142 +4139,14 @@
         }
       }
     },
-    "/qasets/{qaset_id}/answers/{answer_id}/translate": {
-      "post": {
-        "tags": [
-          "translation"
-        ],
-        "summary": "Translate Answer",
-        "description": "Translate the answer into a language the QA set lacks, with the chosen engine: creates\nthat language's answer and links it to the source. 502 if the engine fails (nothing saved).",
-        "operationId": "translate_answer_qasets__qaset_id__answers__answer_id__translate_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "answer_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Answer Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TranslateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TranslatedAnswerResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/variants/{variant_id}/translate": {
-      "post": {
-        "tags": [
-          "translation"
-        ],
-        "summary": "Translate Variant",
-        "description": "Translate the question variant into a language that already has an answer in the QA set:\ncreates the variant and links it to the source. 409 if the target has no answer yet.",
-        "operationId": "translate_variant_qasets__qaset_id__variants__variant_id__translate_post",
-        "parameters": [
-          {
-            "name": "qaset_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "variant_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Variant Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TranslateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TranslatedVariantResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/qasets/{qaset_id}/answers/{answer_id}/generate-variants": {
+    "/qasets/{qaset_id}/generate-variants": {
       "post": {
         "tags": [
           "generation"
         ],
         "summary": "Generate Variants",
-        "description": "Propose question variants in the answer's language. Nothing is saved: keep the chosen\nones through ``POST /qasets/{id}/languages/{language_id}/variants``.",
-        "operationId": "generate_variants_qasets__qaset_id__answers__answer_id__generate_variants_post",
+        "description": "Propose question variants for the QA set, in its language. Nothing is saved: keep the\nchosen ones through ``POST /qasets/{id}/variants``.",
+        "operationId": "generate_variants_qasets__qaset_id__generate_variants_post",
         "parameters": [
           {
             "name": "qaset_id",
@@ -3613,16 +4156,6 @@
               "type": "string",
               "format": "uuid",
               "title": "Qaset Id"
-            }
-          },
-          {
-            "name": "answer_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Answer Id"
             }
           }
         ],
@@ -3895,7 +4428,7 @@
           "export"
         ],
         "summary": "Export Project Corpus",
-        "description": "Export the project's clinically validated QA sets, in every language, as two Parquet\nfiles: ``qa_rows`` (one row per question variant) and ``translation_links``. Read-only.\n409 if no QA set is clinically validated.",
+        "description": "Export the project's concepts whose base-language QA set is clinically validated, with\nevery language's QA set, as one Parquet file: ``qa_rows`` (one row per question variant of\neach QA set). Read-only. 409 if no concept is clinically validated.",
         "operationId": "export_project_corpus_projects__project_id__export_post",
         "parameters": [
           {
@@ -4282,39 +4815,7 @@
           "answer_text"
         ],
         "title": "AnswerInLanguageRequest",
-        "description": "Create a QA set, or add a language to one, with the answer in that language."
-      },
-      "AnswerLinkResponse": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "answer_ids": {
-            "prefixItems": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "string",
-                "format": "uuid"
-              }
-            ],
-            "type": "array",
-            "maxItems": 2,
-            "minItems": 2,
-            "title": "Answer Ids"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "answer_ids"
-        ],
-        "title": "AnswerLinkResponse",
-        "description": "``answer_ids`` is the canonical pair: the smaller id first, whatever the request order."
+        "description": "Start a concept (in the project's base language), or add a QA set to one, with the\nanswer in that language."
       },
       "AnswerResponse": {
         "properties": {
@@ -4327,41 +4828,19 @@
             "type": "string",
             "title": "Text"
           },
-          "links": {
+          "audios": {
             "items": {
-              "$ref": "#/components/schemas/TranslationResponse"
+              "$ref": "#/components/schemas/AudioSummaryResponse"
             },
             "type": "array",
-            "title": "Links"
-          },
-          "audio": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AudioSummaryResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "translation_validation": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ValidationStateResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "title": "Audios"
           }
         },
         "type": "object",
         "required": [
           "id",
           "text",
-          "links",
-          "audio",
-          "translation_validation"
+          "audios"
         ],
         "title": "AnswerResponse"
       },
@@ -4506,6 +4985,11 @@
             "format": "uuid",
             "title": "Qaset Id"
           },
+          "concept_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Concept Id"
+          },
           "project": {
             "$ref": "#/components/schemas/NamedRefResponse"
           },
@@ -4549,6 +5033,7 @@
         "type": "object",
         "required": [
           "qaset_id",
+          "concept_id",
           "project",
           "protocol",
           "theme",
@@ -4602,6 +5087,15 @@
             "format": "uuid",
             "title": "Audio Id"
           },
+          "voice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Voice Id"
+          },
+          "voice_name": {
+            "type": "string",
+            "title": "Voice Name"
+          },
           "mime_type": {
             "type": "string",
             "title": "Mime Type"
@@ -4627,6 +5121,8 @@
         "type": "object",
         "required": [
           "audio_id",
+          "voice_id",
+          "voice_name",
           "mime_type",
           "duration_ms",
           "size_bytes",
@@ -4641,6 +5137,15 @@
             "type": "string",
             "format": "uuid",
             "title": "Audio Id"
+          },
+          "voice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Voice Id"
+          },
+          "voice_name": {
+            "type": "string",
+            "title": "Voice Name"
           },
           "mime_type": {
             "type": "string",
@@ -4672,6 +5177,8 @@
         "type": "object",
         "required": [
           "audio_id",
+          "voice_id",
+          "voice_name",
           "mime_type",
           "duration_ms",
           "size_bytes",
@@ -4679,17 +5186,34 @@
           "audio_validation"
         ],
         "title": "AudioSummaryResponse",
-        "description": "An item's recording as listed in a QA set; play it via its playback-url."
+        "description": "One of an item's recordings (one per voice) as listed in a QA set; play it via its\nplayback-url."
+      },
+      "AudiosResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AudioResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "AudiosResponse",
+        "description": "An item's recordings, one per voice, ordered by voice name."
       },
       "AuthoredPairsResponse": {
         "properties": {
-          "qasets_created": {
+          "concepts_created": {
             "type": "integer",
-            "title": "Qasets Created"
+            "title": "Concepts Created"
           },
-          "qasets_updated": {
+          "concepts_updated": {
             "type": "integer",
-            "title": "Qasets Updated"
+            "title": "Concepts Updated"
           },
           "variants_added": {
             "type": "integer",
@@ -4705,26 +5229,32 @@
         },
         "type": "object",
         "required": [
-          "qasets_created",
-          "qasets_updated",
+          "concepts_created",
+          "concepts_updated",
           "variants_added",
           "skipped_rows"
         ],
         "title": "AuthoredPairsResponse"
       },
-      "Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post": {
+      "Body_set_answer_audio_qasets__qaset_id__answer_audio_post": {
         "properties": {
           "file": {
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "File"
+          },
+          "voice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Voice Id"
           }
         },
         "type": "object",
         "required": [
-          "file"
+          "file",
+          "voice_id"
         ],
-        "title": "Body_set_answer_audio_qasets__qaset_id__answers__answer_id__audio_post"
+        "title": "Body_set_answer_audio_qasets__qaset_id__answer_audio_post"
       },
       "Body_set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post": {
         "properties": {
@@ -4732,11 +5262,17 @@
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "File"
+          },
+          "voice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Voice Id"
           }
         },
         "type": "object",
         "required": [
-          "file"
+          "file",
+          "voice_id"
         ],
         "title": "Body_set_variant_audio_qasets__qaset_id__variants__variant_id__audio_post"
       },
@@ -4796,6 +5332,11 @@
             "format": "uuid",
             "title": "Qaset Id"
           },
+          "concept_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Concept Id"
+          },
           "project": {
             "$ref": "#/components/schemas/NamedRefResponse"
           },
@@ -4828,6 +5369,7 @@
         "type": "object",
         "required": [
           "qaset_id",
+          "concept_id",
           "project",
           "protocol",
           "theme",
@@ -4888,6 +5430,128 @@
         ],
         "title": "CompletenessResponse",
         "description": "Notions of the theme's documentation that no answer covers yet, in the base language."
+      },
+      "ConceptResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "theme_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Theme Id"
+          },
+          "qasets": {
+            "items": {
+              "$ref": "#/components/schemas/QASetResponse"
+            },
+            "type": "array",
+            "title": "Qasets"
+          },
+          "intents": {
+            "items": {
+              "$ref": "#/components/schemas/AttachedIntentResponse"
+            },
+            "type": "array",
+            "title": "Intents"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/AttachedCategoryResponse"
+            },
+            "type": "array",
+            "title": "Categories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "theme_id",
+          "qasets",
+          "intents",
+          "categories"
+        ],
+        "title": "ConceptResponse",
+        "description": "A concept: its QA sets (one per language, in creation order), and the intents and\ncategories that apply to it in every language."
+      },
+      "ConceptSummaryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "theme_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Theme Id"
+          },
+          "qasets": {
+            "items": {
+              "$ref": "#/components/schemas/QASetSummaryResponse"
+            },
+            "type": "array",
+            "title": "Qasets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "theme_id",
+          "qasets"
+        ],
+        "title": "ConceptSummaryResponse"
+      },
+      "ConceptsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptSummaryResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ConceptsResponse"
+      },
+      "CreateGlossaryTermRequest": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "forms": {
+            "items": {
+              "$ref": "#/components/schemas/InitialGlossaryFormRequest"
+            },
+            "type": "array",
+            "title": "Forms",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "CreateGlossaryTermRequest"
       },
       "CreateNamedRequest": {
         "properties": {
@@ -4985,6 +5649,31 @@
           "display_name"
         ],
         "title": "CreateUserRequest"
+      },
+      "CreateVoiceRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CreateVoiceRequest"
       },
       "DecisionRequest": {
         "properties": {
@@ -5095,6 +5784,10 @@
       },
       "ExportCountsResponse": {
         "properties": {
+          "concept_count": {
+            "type": "integer",
+            "title": "Concept Count"
+          },
           "qaset_count": {
             "type": "integer",
             "title": "Qaset Count"
@@ -5102,26 +5795,19 @@
           "qa_row_count": {
             "type": "integer",
             "title": "Qa Row Count"
-          },
-          "link_count": {
-            "type": "integer",
-            "title": "Link Count"
           }
         },
         "type": "object",
         "required": [
+          "concept_count",
           "qaset_count",
-          "qa_row_count",
-          "link_count"
+          "qa_row_count"
         ],
         "title": "ExportCountsResponse"
       },
       "ExportResponse": {
         "properties": {
           "qa_rows": {
-            "$ref": "#/components/schemas/DownloadUrlResponse"
-          },
-          "translation_links": {
             "$ref": "#/components/schemas/DownloadUrlResponse"
           },
           "counts": {
@@ -5131,11 +5817,10 @@
         "type": "object",
         "required": [
           "qa_rows",
-          "translation_links",
           "counts"
         ],
         "title": "ExportResponse",
-        "description": "Short-lived signed URLs to the Parquet files, and what they contain."
+        "description": "A short-lived signed URL to the Parquet file, and what it contains."
       },
       "GenerateVariantsRequest": {
         "properties": {
@@ -5165,6 +5850,177 @@
           "candidates"
         ],
         "title": "GeneratedVariantsResponse"
+      },
+      "GlossaryFormRequest": {
+        "properties": {
+          "preferred": {
+            "type": "string",
+            "title": "Preferred"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Synonyms",
+            "default": []
+          },
+          "avoid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid",
+            "default": []
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "preferred"
+        ],
+        "title": "GlossaryFormRequest"
+      },
+      "GlossaryFormResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          },
+          "preferred": {
+            "type": "string",
+            "title": "Preferred"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Synonyms"
+          },
+          "avoid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "language_id",
+          "preferred",
+          "synonyms",
+          "avoid",
+          "note"
+        ],
+        "title": "GlossaryFormResponse"
+      },
+      "GlossaryTermResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "forms": {
+            "items": {
+              "$ref": "#/components/schemas/GlossaryFormResponse"
+            },
+            "type": "array",
+            "title": "Forms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "note",
+          "status",
+          "created_at",
+          "updated_at",
+          "forms"
+        ],
+        "title": "GlossaryTermResponse"
+      },
+      "GlossaryTermsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GlossaryTermResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "GlossaryTermsResponse"
       },
       "GrantResponse": {
         "properties": {
@@ -5231,6 +6087,53 @@
         "type": "object",
         "title": "HealthResponse"
       },
+      "InitialGlossaryFormRequest": {
+        "properties": {
+          "preferred": {
+            "type": "string",
+            "title": "Preferred"
+          },
+          "synonyms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Synonyms",
+            "default": []
+          },
+          "avoid": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avoid",
+            "default": []
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "preferred",
+          "language_id"
+        ],
+        "title": "InitialGlossaryFormRequest"
+      },
       "IntentResponse": {
         "properties": {
           "id": {
@@ -5265,37 +6168,6 @@
           "items"
         ],
         "title": "IntentsResponse"
-      },
-      "LanguagePresenceResponse": {
-        "properties": {
-          "language_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Language Id"
-          },
-          "answer": {
-            "$ref": "#/components/schemas/AnswerResponse"
-          },
-          "variants": {
-            "items": {
-              "$ref": "#/components/schemas/QuestionVariantResponse"
-            },
-            "type": "array",
-            "title": "Variants"
-          },
-          "variant_count": {
-            "type": "integer",
-            "title": "Variant Count"
-          }
-        },
-        "type": "object",
-        "required": [
-          "language_id",
-          "answer",
-          "variants",
-          "variant_count"
-        ],
-        "title": "LanguagePresenceResponse"
       },
       "LanguageRefResponse": {
         "properties": {
@@ -5345,25 +6217,6 @@
         ],
         "title": "LanguageResponse"
       },
-      "LanguageSummaryResponse": {
-        "properties": {
-          "language_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Language Id"
-          },
-          "variant_count": {
-            "type": "integer",
-            "title": "Variant Count"
-          }
-        },
-        "type": "object",
-        "required": [
-          "language_id",
-          "variant_count"
-        ],
-        "title": "LanguageSummaryResponse"
-      },
       "LanguagesResponse": {
         "properties": {
           "items": {
@@ -5379,48 +6232,6 @@
           "items"
         ],
         "title": "LanguagesResponse"
-      },
-      "LinkAnswersRequest": {
-        "properties": {
-          "answer_a_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Answer A Id"
-          },
-          "answer_b_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Answer B Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "answer_a_id",
-          "answer_b_id"
-        ],
-        "title": "LinkAnswersRequest"
-      },
-      "LinkVariantsRequest": {
-        "properties": {
-          "variant_a_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Variant A Id"
-          },
-          "variant_b_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Variant B Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "variant_a_id",
-          "variant_b_id"
-        ],
-        "title": "LinkVariantsRequest"
       },
       "MeResponse": {
         "properties": {
@@ -5524,6 +6335,52 @@
           "expires_at"
         ],
         "title": "PlaybackUrlResponse"
+      },
+      "ProjectLanguageResponse": {
+        "properties": {
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_base": {
+            "type": "boolean",
+            "title": "Is Base"
+          }
+        },
+        "type": "object",
+        "required": [
+          "language_id",
+          "code",
+          "name",
+          "is_base"
+        ],
+        "title": "ProjectLanguageResponse"
+      },
+      "ProjectLanguagesResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectLanguageResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ProjectLanguagesResponse",
+        "description": "A project's languages: its base language first, then the others by code."
       },
       "ProjectRefResponse": {
         "properties": {
@@ -5738,124 +6595,34 @@
             "format": "uuid",
             "title": "Id"
           },
-          "theme_id": {
+          "concept_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Theme Id"
-          },
-          "languages": {
-            "items": {
-              "$ref": "#/components/schemas/LanguagePresenceResponse"
-            },
-            "type": "array",
-            "title": "Languages"
-          },
-          "categories": {
-            "items": {
-              "$ref": "#/components/schemas/AttachedCategoryResponse"
-            },
-            "type": "array",
-            "title": "Categories"
-          },
-          "clinical_validation": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ValidationStateResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "theme_id",
-          "languages",
-          "categories",
-          "clinical_validation"
-        ],
-        "title": "QASetResponse"
-      },
-      "QASetSummaryResponse": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "theme_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Theme Id"
-          },
-          "languages": {
-            "items": {
-              "$ref": "#/components/schemas/LanguageSummaryResponse"
-            },
-            "type": "array",
-            "title": "Languages"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "theme_id",
-          "languages"
-        ],
-        "title": "QASetSummaryResponse"
-      },
-      "QASetsResponse": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/QASetSummaryResponse"
-            },
-            "type": "array",
-            "title": "Items"
-          }
-        },
-        "type": "object",
-        "required": [
-          "items"
-        ],
-        "title": "QASetsResponse"
-      },
-      "QuestionVariantResponse": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
+            "title": "Concept Id"
           },
           "language_id": {
             "type": "string",
             "format": "uuid",
             "title": "Language Id"
           },
-          "text": {
-            "type": "string",
-            "title": "Text"
+          "answer": {
+            "$ref": "#/components/schemas/AnswerResponse"
           },
-          "links": {
+          "variants": {
             "items": {
-              "$ref": "#/components/schemas/TranslationResponse"
+              "$ref": "#/components/schemas/QuestionVariantResponse"
             },
             "type": "array",
-            "title": "Links"
+            "title": "Variants"
           },
-          "intents": {
-            "items": {
-              "$ref": "#/components/schemas/AttachedIntentResponse"
-            },
-            "type": "array",
-            "title": "Intents"
+          "variant_count": {
+            "type": "integer",
+            "title": "Variant Count"
           },
-          "audio": {
+          "clinical_validation": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/AudioSummaryResponse"
+                "$ref": "#/components/schemas/ValidationStateResponse"
               },
               {
                 "type": "null"
@@ -5876,12 +6643,83 @@
         "type": "object",
         "required": [
           "id",
+          "concept_id",
+          "language_id",
+          "answer",
+          "variants",
+          "variant_count",
+          "clinical_validation",
+          "translation_validation"
+        ],
+        "title": "QASetResponse",
+        "description": "One language of a concept: its answer and question variants. The base-language QA set\ncarries ``clinical_validation``, every other one ``translation_validation``."
+      },
+      "QASetSummaryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          },
+          "answer_text": {
+            "type": "string",
+            "title": "Answer Text"
+          },
+          "variant_count": {
+            "type": "integer",
+            "title": "Variant Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "language_id",
+          "answer_text",
+          "variant_count"
+        ],
+        "title": "QASetSummaryResponse"
+      },
+      "QuestionVariantResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "qaset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Qaset Id"
+          },
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "audios": {
+            "items": {
+              "$ref": "#/components/schemas/AudioSummaryResponse"
+            },
+            "type": "array",
+            "title": "Audios"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "qaset_id",
           "language_id",
           "text",
-          "links",
-          "intents",
-          "audio",
-          "translation_validation"
+          "audios"
         ],
         "title": "QuestionVariantResponse"
       },
@@ -5994,25 +6832,6 @@
         ],
         "title": "RolesResponse"
       },
-      "SourceTextResponse": {
-        "properties": {
-          "item_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Item Id"
-          },
-          "text": {
-            "type": "string",
-            "title": "Text"
-          }
-        },
-        "type": "object",
-        "required": [
-          "item_id",
-          "text"
-        ],
-        "title": "SourceTextResponse"
-      },
       "TextRequest": {
         "properties": {
           "text": {
@@ -6101,44 +6920,17 @@
         "title": "TranslateRequest",
         "description": "``engine`` is ``llm`` or ``google`` (422 ``unknown_engine`` otherwise)."
       },
-      "TranslatedAnswerResponse": {
-        "properties": {
-          "presence": {
-            "$ref": "#/components/schemas/LanguagePresenceResponse"
-          },
-          "link": {
-            "$ref": "#/components/schemas/AnswerLinkResponse"
-          }
-        },
-        "type": "object",
-        "required": [
-          "presence",
-          "link"
-        ],
-        "title": "TranslatedAnswerResponse"
-      },
-      "TranslatedVariantResponse": {
-        "properties": {
-          "variant": {
-            "$ref": "#/components/schemas/QuestionVariantResponse"
-          },
-          "link": {
-            "$ref": "#/components/schemas/VariantLinkResponse"
-          }
-        },
-        "type": "object",
-        "required": [
-          "variant",
-          "link"
-        ],
-        "title": "TranslatedVariantResponse"
-      },
       "TranslationQueueItemResponse": {
         "properties": {
           "qaset_id": {
             "type": "string",
             "format": "uuid",
             "title": "Qaset Id"
+          },
+          "concept_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Concept Id"
           },
           "project": {
             "$ref": "#/components/schemas/NamedRefResponse"
@@ -6149,35 +6941,22 @@
           "theme": {
             "$ref": "#/components/schemas/NamedRefResponse"
           },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "answer",
-              "variant"
-            ],
-            "title": "Kind"
-          },
-          "item_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Item Id"
-          },
           "language_code": {
             "type": "string",
             "title": "Language Code"
           },
-          "text": {
+          "answer_text": {
             "type": "string",
-            "title": "Text"
+            "title": "Answer Text"
           },
-          "sources": {
+          "variant_texts": {
             "items": {
-              "$ref": "#/components/schemas/SourceTextResponse"
+              "type": "string"
             },
             "type": "array",
-            "title": "Sources"
+            "title": "Variant Texts"
           },
-          "fallback_base_answer_text": {
+          "base_answer_text": {
             "anyOf": [
               {
                 "type": "string"
@@ -6186,7 +6965,14 @@
                 "type": "null"
               }
             ],
-            "title": "Fallback Base Answer Text"
+            "title": "Base Answer Text"
+          },
+          "base_variant_texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Base Variant Texts"
           },
           "state": {
             "type": "string",
@@ -6196,18 +6982,19 @@
         "type": "object",
         "required": [
           "qaset_id",
+          "concept_id",
           "project",
           "protocol",
           "theme",
-          "kind",
-          "item_id",
           "language_code",
-          "text",
-          "sources",
-          "fallback_base_answer_text",
+          "answer_text",
+          "variant_texts",
+          "base_answer_text",
+          "base_variant_texts",
           "state"
         ],
-        "title": "TranslationQueueItemResponse"
+        "title": "TranslationQueueItemResponse",
+        "description": "A QA set to review as a translation, with its concept's base-language answer and\nvariants to compare with (None and empty without a base-language QA set)."
       },
       "TranslationQueueResponse": {
         "properties": {
@@ -6243,32 +7030,35 @@
         ],
         "title": "TranslationQueueResponse"
       },
-      "TranslationResponse": {
+      "UpdateGlossaryTermRequest": {
         "properties": {
-          "link_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Link Id"
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
           },
-          "other_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Other Id"
-          },
-          "other_language_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Other Language Id"
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
           }
         },
+        "additionalProperties": false,
         "type": "object",
-        "required": [
-          "link_id",
-          "other_id",
-          "other_language_id"
-        ],
-        "title": "TranslationResponse",
-        "description": "One translation link, seen from the item that carries it."
+        "title": "UpdateGlossaryTermRequest",
+        "description": "PATCH: an absent field is unchanged; ``note: null`` clears the note."
       },
       "UpdateLanguageRequest": {
         "properties": {
@@ -6391,6 +7181,36 @@
         "type": "object",
         "title": "UpdateUserRequest",
         "description": "An absent field is unchanged; ``is_active: false`` deactivates the user."
+      },
+      "UpdateVoiceRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UpdateVoiceRequest",
+        "description": "PATCH: an absent field is unchanged; ``note: null`` clears the note."
       },
       "UserResponse": {
         "properties": {
@@ -6582,37 +7402,64 @@
         "title": "ValidationStateResponse",
         "description": "A current validation state, as shown inside a QA set (``null`` when pending)."
       },
-      "VariantLinkResponse": {
+      "VoiceResponse": {
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
             "title": "Id"
           },
-          "variant_ids": {
-            "prefixItems": [
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
               {
-                "type": "string",
-                "format": "uuid"
+                "type": "string"
               },
               {
-                "type": "string",
-                "format": "uuid"
+                "type": "null"
               }
             ],
-            "type": "array",
-            "maxItems": 2,
-            "minItems": 2,
-            "title": "Variant Ids"
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "variant_ids"
+          "name",
+          "note",
+          "created_at",
+          "updated_at"
         ],
-        "title": "VariantLinkResponse",
-        "description": "``variant_ids`` is the canonical pair: the smaller id first, whatever the request order."
+        "title": "VoiceResponse"
+      },
+      "VoicesResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "VoicesResponse"
       }
     }
   }

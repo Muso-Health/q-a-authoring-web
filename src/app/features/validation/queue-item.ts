@@ -13,7 +13,8 @@ type NamedRef = Schemas['NamedRefResponse'];
 interface Base {
   /** Unique within its queue: what a decision is about. */
   readonly key: string;
-  readonly qasetId: string;
+  /** Where the item is read and edited: its concept's page. */
+  readonly conceptId: string;
   readonly context: {
     readonly project: NamedRef;
     readonly protocol: NamedRef;
@@ -30,14 +31,15 @@ export interface ClinicalItem extends Base {
   readonly variantTexts: readonly string[];
 }
 
+/** A translated QASet, decided as a whole: its answer and variants beside the base ones. */
 export interface TranslationItem extends Base {
   readonly kind: 'translation';
-  readonly itemKind: 'answer' | 'variant';
   readonly languageCode: string;
-  readonly text: string;
-  readonly sources: readonly string[];
-  /** The base answer, shown when the item has no linked source to compare with. */
-  readonly fallbackBaseAnswer: string | null;
+  readonly answerText: string;
+  readonly variantTexts: readonly string[];
+  /** Null when the concept has no base-language QASet to compare with. */
+  readonly baseAnswerText: string | null;
+  readonly baseVariantTexts: readonly string[];
 }
 
 export interface AudioItem extends Base {
@@ -60,7 +62,7 @@ export function toQueueItem<K extends QueueKind>(kind: K, raw: QueueItemResponse
       return {
         kind,
         key: item.qaset_id,
-        qasetId: item.qaset_id,
+        conceptId: item.concept_id,
         context,
         state: state(item.state),
         subject: { kind: 'clinical', id: item.qaset_id },
@@ -71,19 +73,18 @@ export function toQueueItem<K extends QueueKind>(kind: K, raw: QueueItemResponse
     }
     case 'translation': {
       const item = raw as QueueItemResponse['translation'];
-      const itemKind = item.kind === 'answer' ? 'answer' : 'variant';
       return {
         kind,
-        key: item.item_id,
-        qasetId: item.qaset_id,
+        key: item.qaset_id,
+        conceptId: item.concept_id,
         context,
         state: state(item.state),
-        subject: { kind: `translation-${itemKind}`, id: item.item_id },
-        itemKind,
+        subject: { kind: 'translation', id: item.qaset_id },
         languageCode: item.language_code,
-        text: item.text,
-        sources: item.sources.map((source) => source.text),
-        fallbackBaseAnswer: item.fallback_base_answer_text,
+        answerText: item.answer_text,
+        variantTexts: item.variant_texts,
+        baseAnswerText: item.base_answer_text,
+        baseVariantTexts: item.base_variant_texts,
       };
     }
     default: {
@@ -91,7 +92,7 @@ export function toQueueItem<K extends QueueKind>(kind: K, raw: QueueItemResponse
       return {
         kind: 'audio',
         key: item.audio_id,
-        qasetId: item.qaset_id,
+        conceptId: item.concept_id,
         context,
         state: state(item.state),
         subject: { kind: 'audio', id: item.audio_id },

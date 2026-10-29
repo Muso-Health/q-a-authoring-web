@@ -66,4 +66,14 @@ export class CatalogAdminApi {
   async deleteTheme(themeId: string): Promise<void> {
     await this.#api.delete(at('/themes', themeId));
   }
+
+  /** Lets the project's content use a catalogue language; adding one it has changes nothing. */
+  async addProjectLanguage(projectId: string, languageId: string): Promise<void> {
+    await this.#api.put(at('/projects', projectId, 'languages', languageId), undefined);
+  }
+
+  /** Refused for the base language, and while the project's content uses the language. */
+  async removeProjectLanguage(projectId: string, languageId: string): Promise<void> {
+    await this.#api.delete(at('/projects', projectId, 'languages', languageId));
+  }
 }

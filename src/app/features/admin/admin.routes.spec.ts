@@ -6,6 +6,8 @@ import { ApiPort } from '../../core/api/api-port';
 import { FakeApiPort } from '../../core/api/testing/fake-api-port';
 import { ME_AUTHOR } from '../../core/catalog/testing/catalog-fixtures';
 import { provideTestI18n } from '../../core/i18n/testing/provide-test-i18n';
+import { SpreadsheetImportPort } from '../../core/spreadsheet/spreadsheet-import-port';
+import { FakeSpreadsheetImportPort } from '../../core/spreadsheet/testing/fake-spreadsheet-import-port';
 import { ADMIN_ROUTES } from './admin.routes';
 import { permissionGuard } from '../../core/access/permission-guard';
 import { ADMIN_PERMISSIONS } from '../../core/access/current-user';
@@ -18,6 +20,7 @@ async function landing(url: string, permissions: string[]) {
   TestBed.configureTestingModule({
     providers: [
       provideTestI18n(),
+      { provide: SpreadsheetImportPort, useValue: new FakeSpreadsheetImportPort() },
       provideRouter(
         [
           {
@@ -61,6 +64,7 @@ describe('ADMIN_ROUTES', () => {
   it('opens the first content section a content manager may see', async () => {
     expect(await landing('/admin', ['manage_catalog'])).toBe('/admin/catalog');
     expect(await landing('/admin', ['manage_intents', 'manage_categories'])).toBe('/admin/intents');
+    expect(await landing('/admin', ['manage_voices'])).toBe('/admin/voices');
   });
 
   it('keeps the catalogue, at every level, to whoever manages it', async () => {
@@ -77,6 +81,7 @@ describe('ADMIN_ROUTES', () => {
   it('keeps each taxonomy to whoever manages it', async () => {
     const cases: [string, string][] = [
       ['/admin/languages', 'manage_languages'],
+      ['/admin/voices', 'manage_voices'],
       ['/admin/intents', 'manage_intents'],
       ['/admin/categories', 'manage_categories'],
     ];
@@ -84,6 +89,13 @@ describe('ADMIN_ROUTES', () => {
       expect(await landing(url, [permission])).toBe(url);
       expect(await landing(url, ['manage_catalog'])).toBe('/projects');
     }
+  });
+
+  it('opens the glossary to whoever manages it, and to anyone else in the area to read', async () => {
+    expect(await landing('/admin', ['manage_glossary'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['manage_glossary'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['manage_catalog'])).toBe('/admin/glossary');
+    expect(await landing('/admin/glossary', ['author_qasets'])).toBe('/projects');
   });
 
   it('keeps the whole area from everyone else', async () => {

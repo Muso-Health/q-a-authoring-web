@@ -6,6 +6,7 @@ import {
   MANAGE_INTENTS,
   MANAGE_LANGUAGES,
   MANAGE_PROMPTS,
+  MANAGE_VOICES,
 } from '../../core/access/current-user';
 import { permissionGuard } from '../../core/access/permission-guard';
 import { AdminArea } from './admin-area';
@@ -52,6 +53,11 @@ export const ADMIN_ROUTES: Routes = [
         canMatch: [permissionGuard(MANAGE_LANGUAGES)],
         loadComponent: () => import('./languages/languages-page').then((m) => m.LanguagesPage),
       },
+      {
+        path: 'voices',
+        canMatch: [permissionGuard(MANAGE_VOICES)],
+        loadComponent: () => import('./voices/voices-page').then((m) => m.VoicesPage),
+      },
       ...(
         [
           ['intents', MANAGE_INTENTS],
@@ -63,6 +69,11 @@ export const ADMIN_ROUTES: Routes = [
         data: { kind },
         loadComponent: () => import('./terms/terms-page').then((m) => m.TermsPage),
       })),
+      // Read by anyone in the area; the page offers its writes to whoever manages the glossary.
+      {
+        path: 'glossary',
+        loadComponent: () => import('./glossary/glossary-page').then((m) => m.GlossaryPage),
+      },
     ],
   },
 ];

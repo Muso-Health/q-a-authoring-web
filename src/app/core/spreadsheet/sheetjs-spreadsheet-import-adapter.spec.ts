@@ -20,16 +20,16 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
   });
 
   describe('headers', () => {
-    it('finds pregunta and respuesta, whatever their case and spacing', async () => {
+    it('finds question and réponse, whatever their case and spacing', async () => {
       const pairs = await setUp().parsePairs(
         xlsxFile([
-          ['  PREGUNTA ', 'Respuesta'],
-          ['¿Cómo protegerse?', 'Duerma bajo un mosquitero.'],
+          ['  QUESTION ', 'Réponse'],
+          ['Comment se protéger ?', 'Dormez sous une moustiquaire.'],
         ]),
       );
 
       expect(pairs).toEqual([
-        { question: '¿Cómo protegerse?', answer: 'Duerma bajo un mosquitero.' },
+        { question: 'Comment se protéger ?', answer: 'Dormez sous une moustiquaire.' },
       ]);
     });
 
@@ -45,6 +45,20 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
           ),
         ).toEqual([{ question: 'Q', answer: 'R' }]);
       }
+    });
+
+    it('takes no Spanish header for a column', async () => {
+      const error = await setUp()
+        .parsePairs(
+          xlsxFile([
+            ['Pregunta', 'Respuesta'],
+            ['Q', 'R'],
+          ]),
+        )
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(MissingColumnError);
+      expect((error as MissingColumnError).columns).toEqual(['question', 'answer']);
     });
 
     it('reads the columns wherever they are, and ignores the others', async () => {
@@ -72,9 +86,7 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
 
       expect(error).toBeInstanceOf(MissingColumnError);
       expect((error as MissingColumnError).columns).toEqual(['answer']);
-      expect((error as MissingColumnError).accepted).toEqual({
-        answer: ['respuesta', 'answer', 'réponse'],
-      });
+      expect((error as MissingColumnError).accepted).toEqual({ answer: ['réponse', 'answer'] });
     });
 
     it('names both columns when neither is there', async () => {
@@ -118,7 +130,7 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
       const pairs = await setUp().parsePairs(
         xlsxFile(
           [
-            ['Pregunta', 'Respuesta'],
+            ['Question', 'Réponse'],
             ['Comment se protéger ?', 'Dormez sous une moustiquaire.'],
             ['Qui est concerné ?', 'Les enfants de moins de cinq ans.'],
           ],
@@ -186,6 +198,86 @@ describe('SheetJsSpreadsheetImportAdapter', () => {
 
       expect(error).toBeInstanceOf(UnreadableFileError);
       expect((error as UnreadableFileError).name).toBe('UnreadableFileError');
+    });
+  });
+
+  describe('any table', () => {
+    it('folds the headers and maps each row by them, every cell trimmed', async () => {
+      const table = await setUp().parseTable(
+        xlsxFile(
+          [
+            ['  Label ', 'NOTE', 'Libellé', 'Fr', 'BM'],
+            ['  Paludisme ', '', ' palu ', 'paludisme', 42],
+          ],
+          'termes.xlsx',
+        ),
+      );
+
+      expect(table).toEqual({
+        headers: ['label', 'note', 'libelle', 'fr', 'bm'],
+        rows: [{ label: 'Paludisme', note: '', libelle: 'palu', fr: 'paludisme', bm: '42' }],
+      });
+    });
+
+    it('skips the rows blank in every cell, and the columns without a header', async () => {
+      const table = await setUp().parseTable(
+        xlsxFile([
+          ['label', '', 'fr'],
+          ['Fièvre', 'sans en-tête', ''],
+          ['  ', 'sans en-tête', ' '],
+          [],
+          ['', '', 'diarrhée'],
+        ]),
+      );
+
+      expect(table).toEqual({
+        headers: ['label', 'fr'],
+        rows: [
+          { label: 'Fièvre', fr: '' },
+          { label: '', fr: 'diarrhée' },
+        ],
+      });
+    });
+
+    it('reads the first sheet only', async () => {
+      const table = await setUp().parseTable(
+        xlsxFile([['label'], ['Fièvre']], 'termes.xlsx', true),
+      );
+
+      expect(table.rows).toEqual([{ label: 'Fièvre' }]);
+    });
+
+    it('reads a UTF-8 CSV, accents intact, comma- or semicolon-separated', async () => {
+      const port = setUp();
+      const expected = {
+        headers: ['label', 'note', 'fr'],
+        rows: [{ label: 'Fièvre', note: 'Été, hiver.', fr: 'fièvre' }],
+      };
+
+      expect(
+        await port.parseTable(csvFile('Label,Note,FR\nFièvre,"Été, hiver.",fièvre\n')),
+      ).toEqual(expected);
+      expect(
+        await port.parseTable(csvFile('label;note;fr\r\nFièvre;Été, hiver.;fièvre\r\n')),
+      ).toEqual(expected);
+    });
+
+    it('says a file with no data row is empty, and a broken one unreadable', async () => {
+      const port = setUp();
+
+      await expect(port.parseTable(new File([], 'vide.csv'))).rejects.toBeInstanceOf(
+        EmptyFileError,
+      );
+      await expect(port.parseTable(csvFile(''))).rejects.toBeInstanceOf(EmptyFileError);
+      await expect(port.parseTable(xlsxFile([['label', 'fr']]))).rejects.toBeInstanceOf(
+        EmptyFileError,
+      );
+      await expect(port.parseTable(xlsxFile([['label'], ['  ']]))).rejects.toBeInstanceOf(
+        EmptyFileError,
+      );
+      await expect(
+        port.parseTable(new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2, 3])], 'x.xlsx')),
+      ).rejects.toBeInstanceOf(UnreadableFileError);
     });
   });
 });

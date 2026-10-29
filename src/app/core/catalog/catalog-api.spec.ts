@@ -29,22 +29,64 @@ describe('CatalogApi', () => {
 
     expect((await catalog.protocols(IDS.project)).map((p) => p.name)).toEqual(['Paludisme']);
     expect((await catalog.themes(IDS.protocol)).map((t) => t.name)).toEqual(['Prévention']);
-    expect(await catalog.qasets(IDS.theme)).toEqual([
+    expect(await catalog.concepts(IDS.theme)).toEqual([
       {
-        id: IDS.qaset,
+        id: IDS.concept,
         themeId: IDS.theme,
-        languages: [
-          { languageId: IDS.fr, variantCount: 3 },
-          { languageId: IDS.en, variantCount: 1 },
+        qasets: [
+          {
+            id: IDS.qasetEn,
+            languageId: IDS.en,
+            answerText: 'Sleep under an insecticide-treated net every night.',
+            variantCount: 1,
+          },
+          {
+            id: IDS.qasetFr,
+            languageId: IDS.fr,
+            answerText: 'Dormez chaque nuit sous une moustiquaire imprégnée d’insecticide.',
+            variantCount: 3,
+          },
         ],
       },
-      { id: IDS.qaset2, themeId: IDS.theme, languages: [{ languageId: IDS.fr, variantCount: 1 }] },
+      {
+        id: IDS.concept2,
+        themeId: IDS.theme,
+        qasets: [
+          {
+            id: IDS.qaset2Fr,
+            languageId: IDS.fr,
+            answerText: 'Videz les récipients où l’eau stagne.',
+            variantCount: 1,
+          },
+        ],
+      },
     ]);
     expect(api.reads).toEqual([
       `/projects/${IDS.project}/protocols`,
       `/protocols/${IDS.protocol}/themes`,
-      `/themes/${IDS.theme}/qasets`,
+      `/themes/${IDS.theme}/concepts`,
     ]);
+  });
+
+  it('reads a concept with its per-language QASets', async () => {
+    const { api, catalog } = setUp();
+
+    const concept = await catalog.concept(IDS.concept);
+
+    expect(concept.qasets.map((q) => q.language_id)).toEqual([IDS.en, IDS.fr, IDS.bm]);
+    expect(api.reads).toEqual([`/concepts/${IDS.concept}`]);
+  });
+
+  it('reads a project’s own languages, base language first and flagged', async () => {
+    const { api, catalog } = setUp();
+
+    expect(await catalog.projectLanguages(IDS.project)).toEqual([
+      { id: IDS.fr, code: 'fr', name: 'Français', isBase: true },
+      { id: IDS.bm, code: 'bm', name: 'Bambara', isBase: false },
+      { id: IDS.en, code: 'en', name: 'English', isBase: false },
+      { id: IDS.ff, code: 'ff', name: 'Peul', isBase: false },
+    ]);
+    expect(api.reads).toEqual([`/projects/${IDS.project}/languages`]);
   });
 
   it('resolves the lineage of a theme up to its project', async () => {

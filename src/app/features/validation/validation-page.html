@@ -84,7 +84,7 @@
       <h2 id="item-heading" class="visually-hidden">{{ title() | transloco }}</h2>
       <div class="meta">
         <app-validation-badge [kind]="kindValue" [status]="item.state" />
-        <a class="open" [routerLink]="['/qasets', item.qasetId]">
+        <a class="open" [routerLink]="['/concepts', item.conceptId]">
           {{ 'validation.card.open' | transloco }}
         </a>
       </div>

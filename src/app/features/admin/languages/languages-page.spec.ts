@@ -26,6 +26,7 @@ describe('LanguagesPage', () => {
       ['English', 'en'],
       ['Français', 'fr'],
       ['Peul', 'ff'],
+      ['Wolof', 'wo'],
     ]);
   });
 

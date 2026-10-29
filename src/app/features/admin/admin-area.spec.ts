@@ -14,7 +14,10 @@ describe('AdminArea', () => {
     const { element } = await render(['manage_prompts']);
 
     expect(text(element.querySelector('h1'))).toBe('Administration');
-    expect(sections(element)).toEqual([['Modèles de prompt', '/admin/prompts']]);
+    expect(sections(element)).toEqual([
+      ['Modèles de prompt', '/admin/prompts'],
+      ['Glossaire', '/admin/glossary'],
+    ]);
   });
 
   it('offers users and roles to whoever manages access', async () => {
@@ -23,6 +26,7 @@ describe('AdminArea', () => {
     expect(sections(element)).toEqual([
       ['Utilisateurs', '/admin/users'],
       ['Rôles', '/admin/roles'],
+      ['Glossaire', '/admin/glossary'],
     ]);
   });
 
@@ -33,6 +37,7 @@ describe('AdminArea', () => {
       'Modèles de prompt',
       'Utilisateurs',
       'Rôles',
+      'Glossaire',
     ]);
   });
 
@@ -40,13 +45,17 @@ describe('AdminArea', () => {
     const cases: [string, string, string][] = [
       ['manage_catalog', 'Catalogue', '/admin/catalog'],
       ['manage_languages', 'Langues', '/admin/languages'],
+      ['manage_voices', 'Voix', '/admin/voices'],
       ['manage_intents', 'Intentions', '/admin/intents'],
       ['manage_categories', 'Catégories', '/admin/categories'],
     ];
     for (const [permission, label, href] of cases) {
       TestBed.resetTestingModule();
       const { element } = await render([permission]);
-      expect(sections(element)).toEqual([[label, href]]);
+      expect(sections(element)).toEqual([
+        [label, href],
+        ['Glossaire', '/admin/glossary'],
+      ]);
     }
   });
 
@@ -54,6 +63,17 @@ describe('AdminArea', () => {
     const { element } = await render(['manage_access', 'manage_prompts', 'author_qasets']);
 
     expect(sections(element).map(([label]) => label)).not.toContain('Catalogue');
-    expect(sections(element)).toHaveLength(3);
+    expect(sections(element)).toHaveLength(4);
+  });
+
+  it('offers the glossary to everyone in the area: reading it needs no permission', async () => {
+    for (const permissions of [['manage_glossary'], ['manage_languages'], ['manage_access']]) {
+      TestBed.resetTestingModule();
+      const { element } = await render(permissions);
+      expect(sections(element).at(-1)).toEqual(['Glossaire', '/admin/glossary']);
+    }
+    TestBed.resetTestingModule();
+    const { element } = await render(['manage_glossary']);
+    expect(sections(element)).toEqual([['Glossaire', '/admin/glossary']]);
   });
 });

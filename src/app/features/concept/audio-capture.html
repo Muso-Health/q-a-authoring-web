@@ -1,0 +1,145 @@
+@if (panel() === 'closed') {
+  <span class="controls">
+    <button
+      type="button"
+      class="secondary small"
+      [appFocusReturn]="opener()"
+      [disabled]="editor.busy()"
+      [attr.aria-label]="'capture.addName' | transloco: { label: label() }"
+      (click)="open()"
+    >
+      <span aria-hidden="true">●</span> {{ 'capture.add' | transloco }}
+    </button>
+    @if (editor.errorFor(target()); as message) {
+      <span class="field-error" role="alert">{{ message }}</span>
+    }
+  </span>
+} @else {
+  <div
+    class="capture"
+    role="group"
+    [attr.aria-label]="'capture.panelName' | transloco: { label: label() }"
+  >
+    @switch (panel()) {
+      @case ('choose') {
+        @if (voices().length === 0) {
+          <p class="muso-notice">{{ 'capture.noVoices' | transloco }}</p>
+          <div class="actions">
+            <button type="button" class="secondary" (click)="close()">
+              {{ 'authoring.cancel' | transloco }}
+            </button>
+          </div>
+        } @else {
+          <label [for]="id + '-voice'">{{ 'capture.voice' | transloco }}</label>
+          <select
+            [id]="id + '-voice'"
+            [value]="voiceId()"
+            [attr.aria-invalid]="voiceMissing() ? 'true' : null"
+            [attr.aria-describedby]="voiceMissing() ? id + '-voice-error' : null"
+            (change)="chooseVoice($any($event.target).value)"
+          >
+            <option value="">{{ 'capture.chooseVoice' | transloco }}</option>
+            @for (voice of voices(); track voice.id) {
+              <option [value]="voice.id">
+                {{
+                  voice.recorded
+                    ? ('capture.voiceRecorded' | transloco: { voice: voice.name })
+                    : voice.name
+                }}
+              </option>
+            }
+          </select>
+          @if (voiceMissing()) {
+            <p class="field-error" [id]="id + '-voice-error'">
+              {{ 'capture.voiceRequired' | transloco }}
+            </p>
+          }
+          <div class="actions">
+            @if (canRecord()) {
+              <button type="button" (click)="start('record')">
+                {{ 'capture.record' | transloco }}
+              </button>
+            }
+            <button type="button" class="secondary" (click)="start('upload')">
+              {{ 'capture.upload' | transloco }}
+            </button>
+            <button type="button" class="secondary" (click)="close()">
+              {{ 'authoring.cancel' | transloco }}
+            </button>
+          </div>
+        }
+      }
+      @case ('record') {
+        @switch (recorder.state()) {
+          @case ('requesting') {
+            <p class="muso-meta" role="status">{{ 'capture.requesting' | transloco }}</p>
+          }
+          @case ('recording') {
+            <p class="live">
+              <span class="dot" aria-hidden="true"></span>
+              <span role="status">{{ 'capture.recording' | transloco }}</span>
+              <span class="timer">{{ elapsed() }}</span>
+            </p>
+            <div class="actions">
+              <button type="button" (click)="stop()">{{ 'capture.stop' | transloco }}</button>
+              <button type="button" class="secondary" (click)="close()">
+                {{ 'authoring.cancel' | transloco }}
+              </button>
+            </div>
+          }
+          @case ('recorded') {
+            @if (take(); as recording) {
+              <audio class="preview" controls [src]="recording.previewUrl"></audio>
+              <div class="actions">
+                <button
+                  type="button"
+                  [disabled]="editor.busy()"
+                  [attr.aria-label]="'capture.sendName' | transloco"
+                  (click)="sendTake()"
+                >
+                  {{ 'capture.send' | transloco }}
+                </button>
+                <button type="button" class="secondary" [disabled]="editor.busy()" (click)="redo()">
+                  {{ 'capture.redo' | transloco }}
+                </button>
+                <button type="button" class="secondary" (click)="close()">
+                  {{ 'authoring.cancel' | transloco }}
+                </button>
+              </div>
+            }
+          }
+          @default {
+            <p class="muso-notice">
+              {{
+                (recorder.state() === 'denied' ? 'capture.denied' : 'capture.unsupported')
+                  | transloco
+              }}
+            </p>
+            <ng-container *ngTemplateOutlet="uploadForm" />
+          }
+        }
+      }
+      @case ('upload') {
+        @if (!canRecord()) {
+          <p class="muso-notice">{{ 'capture.unsupported' | transloco }}</p>
+        }
+        <ng-container *ngTemplateOutlet="uploadForm" />
+      }
+    }
+    @if (editor.errorFor(target()); as message) {
+      <p class="field-error" role="alert">{{ message }}</p>
+    }
+  </div>
+}
+
+<ng-template #uploadForm>
+  <app-file-upload
+    accept="audio/*"
+    [label]="'capture.file' | transloco"
+    [submitLabel]="'capture.sendFile' | transloco"
+    [busy]="editor.busy()"
+    [cancellable]="true"
+    (send)="sendFile($event)"
+    (cancel)="close()"
+  />
+</ng-template>

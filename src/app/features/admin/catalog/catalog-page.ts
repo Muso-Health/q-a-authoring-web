@@ -11,6 +11,7 @@ import { FocusReturn, FocusReturnTarget } from '../../../shared/ui/focus-return'
 import { LoadError, Loading } from '../../../shared/ui/load-state';
 import { AdminWrites, reread } from '../admin-writes';
 import { NamedForm, type NamedSave } from './named-form';
+import { ProjectLanguages } from './project-languages';
 
 type Level = 'projects' | 'protocols' | 'themes';
 
@@ -88,6 +89,7 @@ const levelOf = ({ projectId, protocolId }: Params): Level =>
     NamedForm,
     ConfirmAction,
     FocusReturnTarget,
+    ProjectLanguages,
   ],
   providers: [AdminWrites],
   template: `
@@ -102,6 +104,10 @@ const levelOf = ({ projectId, protocolId }: Params): Level =>
         />
       }
       <h2>{{ labels().title | transloco }}</h2>
+
+      @if (level() === 'protocols' && projectId(); as id) {
+        <app-project-languages [projectId]="id" />
+      }
 
       <section class="muso-card" aria-labelledby="create-entry-heading">
         <h3 id="create-entry-heading">{{ labels().create | transloco }}</h3>
