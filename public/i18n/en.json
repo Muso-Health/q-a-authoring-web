@@ -76,7 +76,6 @@
     "variants": "Question variants",
     "noVariants": "No variants in this language.",
     "intents": "Intents",
-    "noAudio": "No audio",
     "audios": "Recordings of {{ label }}",
     "audioName": "{{ label }}, voice {{ voice }}",
     "answerAudio": "the answer",
@@ -94,7 +93,10 @@
     },
     "mainQuestion": "Main question",
     "otherVariants": "Other variants",
-    "noOtherVariants": "No other variants."
+    "noOtherVariants": "No other variants.",
+    "translations": "Main question in the other languages",
+    "untranslated": "Not translated yet",
+    "mainQuestionAudio": "the main question"
   },
   "validation": {
     "titles": {
@@ -339,7 +341,8 @@
     },
     "remove": "Remove",
     "editAnswerTitle": "Edit the answer ({{ language }})",
-    "editVariantTitle": "Edit variant {{ number }} ({{ language }})"
+    "editVariantTitle": "Edit variant {{ number }} ({{ language }})",
+    "translateInto": "Translate the concept into {{ language }}"
   },
   "typeahead": {
     "create": "Create “{{ text }}”",
@@ -733,6 +736,16 @@
     "removeCategory": "Remove a category",
     "removeIntent": "Remove an intent",
     "answerAudio": "Manage the answer’s audio",
-    "variantAudio": "Manage the audio of variant {{ number }}"
+    "variantAudio": "Manage the audio of variant {{ number }}",
+    "main": {
+      "toolbar": "Main question tools ({{ language }})",
+      "edit": "Edit the main question ({{ language }})",
+      "field": "Main question ({{ language }})",
+      "audio": "Manage the audio of the main question ({{ language }})",
+      "translate": "Translate the main question ({{ language }})",
+      "delete": "Delete the main question ({{ language }})",
+      "deleteTitle": "Delete the main question ({{ language }})?",
+      "deleteWarning": "The main question in {{ language }} will be deleted; the next variant, if any, takes its place. This cannot be undone."
+    }
   }
 }

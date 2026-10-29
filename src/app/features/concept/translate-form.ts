@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, effect, input, output, signal, untracked } from '@angular/core';
 import { FormField, form, requiredError, validate } from '@angular/forms/signals';
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Language } from '../../core/catalog/catalog.model';
@@ -19,7 +19,10 @@ const ENGINE_KEYS = {
 
 let nextId = 0;
 
-/** Into which language, by which engine. The translation lands in that language's QASet. */
+/**
+ * Into which language, by which engine. The translation lands in that language's QASet. Offered a
+ * single language, it is already chosen.
+ */
 @Component({
   selector: 'app-translate-form',
   imports: [FormField, TranslocoPipe],
@@ -96,6 +99,14 @@ export class TranslateForm {
     validate(path.targetLanguageId, ({ value }) => (value() === '' ? requiredError() : undefined));
   });
   protected readonly tried = signal(false);
+
+  constructor() {
+    effect(() => {
+      const offered = this.languages();
+      if (offered.length !== 1 || untracked(this.#model).targetLanguageId !== '') return;
+      this.#model.update((model) => ({ ...model, targetLanguageId: offered[0].id }));
+    });
+  }
 
   protected submit(event: Event): void {
     event.preventDefault();

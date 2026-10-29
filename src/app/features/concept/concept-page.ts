@@ -8,13 +8,16 @@ import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/languag
 import { LoadError, Loading } from '../../shared/ui/load-state';
 import { ConceptEditor } from './concept-editor';
 import { Toolbar, type ToolbarAction } from '../../shared/ui/toolbar';
+import { ConceptIdentity } from './concept-identity';
 import { ConceptTagDialog, ConceptTags, type TagKind } from './concept-tags';
 import { QASetSection } from './qaset-section';
 import { TranslateForm, type TranslationRequest } from './translate-form';
 
 /**
- * A concept (« notion »): what holds across its languages — its categories and intents, with the
- * notion toolbar that changes them or deletes the concept — then one section per language, each a QASet with its answer, its question variants and their audios.
+ * A concept (« notion »), headed by its identity — its base-language pair and the other languages'
+ * main questions — then what holds across its languages: its categories and intents, with the
+ * notion toolbar that changes them or deletes the concept. Then one section per language, each a
+ * QASet with its answer, its question variants and their audios.
  */
 @Component({
   selector: 'app-concept-page',
@@ -25,6 +28,7 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     LanguageAnswerForm,
     Loading,
     LoadError,
+    ConceptIdentity,
     ConceptTags,
     ConceptTagDialog,
     QASetSection,
@@ -39,7 +43,7 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
       <app-breadcrumb [trail]="editor.trail()" [current]="title" />
       <header>
         <p class="muso-eyebrow">{{ 'concept.eyebrow' | transloco }}</p>
-        <h1>{{ title }}</h1>
+        <app-concept-identity />
         <app-concept-tags kind="categories" />
         <app-concept-tags kind="intents" />
         @if (editor.canAuthor()) {
@@ -170,6 +174,9 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
   styles: `
     header {
       margin-block-end: var(--muso-space-3);
+    }
+    header .muso-eyebrow {
+      margin-block-end: var(--muso-space-1);
     }
     header app-toolbar {
       display: block;

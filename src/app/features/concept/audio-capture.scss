@@ -8,7 +8,7 @@
   gap: var(--muso-space-1);
 }
 .capture {
-  // A row of its own under the player: a capped width would let it sit beside « Pas d’audio ».
+  // A row of its own under the players: a capped width would let it sit beside them.
   flex: 1 0 100%;
   display: grid;
   gap: var(--muso-space-1);
