@@ -8,16 +8,14 @@ import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/languag
 import { LoadError, Loading } from '../../shared/ui/load-state';
 import { ConceptEditor } from './concept-editor';
 import { Toolbar, type ToolbarAction } from '../../shared/ui/toolbar';
-import { ConceptIdentity } from './concept-identity';
+import { ConceptCard } from './concept-card';
 import { ConceptTagDialog, ConceptTags, type TagKind } from './concept-tags';
-import { QASetSection } from './qaset-section';
 import { TranslateForm, type TranslationRequest } from './translate-form';
 
 /**
- * A concept (« notion »), headed by its identity — its base-language pair and the other languages'
- * main questions — then what holds across its languages: its categories and intents, with the
- * notion toolbar that changes them or deletes the concept. Then one section per language, each a
- * QASet with its answer, its question variants and their audios.
+ * A concept (« notion »), titled by its base-language main question, then what holds across its
+ * languages: its categories and intents, with the notion toolbar that changes them or deletes the
+ * concept. Then its one card: every language's principal pair, and its variants, a tab per language.
  */
 @Component({
   selector: 'app-concept-page',
@@ -28,10 +26,9 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     LanguageAnswerForm,
     Loading,
     LoadError,
-    ConceptIdentity,
+    ConceptCard,
     ConceptTags,
     ConceptTagDialog,
-    QASetSection,
     Toolbar,
     TranslateForm,
     FocusReturnTarget,
@@ -43,7 +40,7 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
       <app-breadcrumb [trail]="editor.trail()" [current]="title" />
       <header>
         <p class="muso-eyebrow">{{ 'concept.eyebrow' | transloco }}</p>
-        <app-concept-identity />
+        <h1 [attr.lang]="baseCode()">{{ title }}</h1>
         <app-concept-tags kind="categories" />
         <app-concept-tags kind="intents" />
         @if (editor.canAuthor()) {
@@ -111,9 +108,7 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
         </table>
       </div>
 
-      @for (s of view.sections; track s.id) {
-        <app-qaset-section [section]="s" />
-      }
+      <app-concept-card />
 
       @if (editor.canAuthor()) {
         <section class="translate-concept muso-card" aria-labelledby="translate-concept-heading">
@@ -175,6 +170,12 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     header {
       margin-block-end: var(--muso-space-3);
     }
+    h1 {
+      margin: 0;
+      font-size: var(--muso-body-lg-size);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
     header .muso-eyebrow {
       margin-block-end: var(--muso-space-1);
     }
@@ -209,6 +210,11 @@ export class ConceptPage {
   readonly conceptId = input.required<string>();
 
   readonly #t = inject(Translator);
+
+  /** The title is the base language's main question: it speaks that language. */
+  protected readonly baseCode = computed(
+    () => this.editor.view()?.sections.find((s) => s.isBase)?.language.code ?? null,
+  );
 
   protected readonly addingLanguage = signal(false);
   protected readonly tagDialog = signal<{ kind: TagKind; mode: 'add' | 'remove' } | null>(null);

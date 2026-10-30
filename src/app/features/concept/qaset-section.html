@@ -1,139 +1,66 @@
 @let s = section();
 @let lang = s.language;
-<section
-  class="language muso-card"
-  [attr.data-lang]="lang.code"
-  [attr.aria-labelledby]="'language-' + s.id"
->
-  <div class="heading">
-    <h2 [id]="'language-' + s.id">
-      {{ lang.name }} <span class="code">{{ lang.code }}</span>
-      @if (s.isBase) {
-        <span class="base">{{ 'concept.baseLanguage' | transloco }}</span>
-      }
-    </h2>
-    @if (s.clinical; as clinical) {
-      <app-validation-badge kind="clinical" [status]="clinical" />
-    }
-    @if (s.translation; as translation) {
-      <app-validation-badge kind="translation" [status]="translation" />
-    }
-    @if (editor.canAuthor() && !s.isBase) {
-      <app-confirm-action
-        [label]="'authoring.removeLanguage.label' | transloco"
-        [accessibleName]="'authoring.removeLanguage.name' | transloco: { language: lang.name }"
-        [warning]="'authoring.removeLanguage.warning' | transloco: { language: lang.name }"
-        [busy]="editor.busy()"
-        (confirmed)="editor.removeLanguage(s.id)"
-      />
-    }
-  </div>
-  @if (editor.errorFor('language:' + s.id); as message) {
-    <p class="field-error" role="alert">{{ message }}</p>
+<div class="heading">
+  @if (s.clinical; as clinical) {
+    <app-validation-badge kind="clinical" [status]="clinical" />
   }
-
-  <!-- The pair first: the main question, then the answer it gets. -->
-  <div class="lead">
-    @if (main(); as variant) {
-      <div class="variant main" [id]="'item-' + variant.id" tabindex="-1">
-        <p class="label">{{ 'concept.mainQuestion' | transloco }}</p>
-        <app-variant-item [qasetId]="s.id" [language]="lang" [variant]="variant" [number]="1" />
-      </div>
-    } @else {
-      <p class="muso-empty">{{ 'concept.noVariants' | transloco }}</p>
-    }
-
-    <article class="answer" [id]="'item-' + s.answer.id" tabindex="-1">
-      <h3 class="label">{{ 'concept.answer' | transloco }}</h3>
-      <p class="text" [attr.lang]="lang.code">{{ s.answer.text }}</p>
-      <app-item-audios
-        role="answer"
-        [qasetId]="s.id"
-        [item]="s.answer"
-        [label]="'concept.answerAudio' | transloco"
-      />
-      @if (answerTools().length > 0) {
-        <app-toolbar [label]="'tools.answer' | transloco" [actions]="answerTools()" />
-      }
-    </article>
-  </div>
-
-  @if (editingAnswer()) {
-    <app-dialog
-      [title]="'authoring.editAnswerTitle' | transloco: { language: lang.name }"
-      [locked]="editor.busy()"
-      (dismissed)="closeAnswer()"
-    >
-      <app-text-editor
-        [label]="'authoring.answerLabel' | transloco: { language: lang.name }"
-        [initial]="s.answer.text"
-        [lang]="lang.code"
-        [rows]="5"
-        [busy]="editor.busy()"
-        [error]="editor.errorFor('answer:' + s.id)"
-        (save)="saveAnswer($event)"
-        (cancel)="closeAnswer()"
-      />
-    </app-dialog>
+  @if (s.translation; as translation) {
+    <app-validation-badge kind="translation" [status]="translation" />
   }
-  @if (generating()) {
-    <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
-  }
-  @if (answerAudio()) {
-    <app-audio-dialog
-      role="answer"
-      [qasetId]="s.id"
-      [item]="s.answer"
-      [language]="lang"
-      [label]="'concept.answerAudio' | transloco"
-      (closed)="closeAnswerAudio()"
+  @if (editor.canAuthor() && !s.isBase) {
+    <app-confirm-action
+      [label]="'authoring.removeLanguage.label' | transloco"
+      [accessibleName]="'authoring.removeLanguage.name' | transloco: { language: lang.name }"
+      [warning]="'authoring.removeLanguage.warning' | transloco: { language: lang.name }"
+      [busy]="editor.busy()"
+      (confirmed)="editor.removeLanguage(s.id)"
     />
   }
+</div>
+@if (editor.errorFor('language:' + s.id); as message) {
+  <p class="field-error" role="alert">{{ message }}</p>
+}
 
-  <dl class="counts">
-    <div class="text-coverage">
-      <dt>{{ 'concept.counts.variants' | transloco }}</dt>
-      <dd>{{ s.counts.variants }}</dd>
-    </div>
-    <div class="audio-coverage">
-      <dt>{{ 'concept.counts.withAudio' | transloco }}</dt>
-      <dd>{{ s.counts.variantsWithAudio }} / {{ s.counts.variants }}</dd>
-    </div>
-  </dl>
+<dl class="counts">
+  <div class="text-coverage">
+    <dt>{{ 'concept.counts.variants' | transloco }}</dt>
+    <dd>{{ s.counts.variants }}</dd>
+  </div>
+  <div class="audio-coverage">
+    <dt>{{ 'concept.counts.withAudio' | transloco }}</dt>
+    <dd>{{ s.counts.variantsWithAudio }} / {{ s.counts.variants }}</dd>
+  </div>
+</dl>
 
-  @if (main()) {
-    <h3 class="others-heading">{{ 'concept.otherVariants' | transloco }}</h3>
-    @if (others().length === 0) {
-      <p class="muso-empty">{{ 'concept.noOtherVariants' | transloco }}</p>
-    } @else {
-      <ol class="variants" start="2">
-        @for (variant of others(); track variant.id; let i = $index) {
-          <li class="variant" [id]="'item-' + variant.id" tabindex="-1">
-            <app-variant-item
-              [qasetId]="s.id"
-              [language]="lang"
-              [variant]="variant"
-              [number]="i + 2"
-            />
-          </li>
-        }
-      </ol>
+<!-- The main question leads the principal pair above: here, its paraphrases, from variant 2. -->
+@if (s.variants.length === 0) {
+  <p class="muso-empty">{{ 'concept.noVariants' | transloco }}</p>
+} @else if (others().length === 0) {
+  <p class="muso-empty">{{ 'concept.noOtherVariants' | transloco }}</p>
+} @else {
+  <ol class="variants" start="2" [attr.aria-label]="'concept.otherVariants' | transloco">
+    @for (variant of others(); track variant.id; let i = $index) {
+      <li class="variant">
+        <app-variant-item [qasetId]="s.id" [language]="lang" [variant]="variant" [number]="i + 2" />
+      </li>
     }
-  }
+  </ol>
+}
 
-  @if (editor.canAuthor()) {
-    <div class="add-variant">
-      @if (addingVariant()) {
-        <app-text-editor
-          [label]="'authoring.newVariantLabel' | transloco: { language: lang.name }"
-          [lang]="lang.code"
-          [saveLabel]="'authoring.add' | transloco"
-          [busy]="editor.busy()"
-          [error]="editor.errorFor('add-variant:' + s.id)"
-          (save)="addVariant($event)"
-          (cancel)="closeAddVariant()"
-        />
-      } @else {
+@if (editor.canAuthor()) {
+  <div class="add-variant">
+    @if (addingVariant()) {
+      <app-text-editor
+        [label]="'authoring.newVariantLabel' | transloco: { language: lang.name }"
+        [lang]="lang.code"
+        [saveLabel]="'authoring.add' | transloco"
+        [busy]="editor.busy()"
+        [error]="editor.errorFor('add-variant:' + s.id)"
+        (save)="addVariant($event)"
+        (cancel)="closeAddVariant()"
+      />
+    } @else {
+      <div class="actions">
         <button
           type="button"
           class="secondary"
@@ -143,7 +70,20 @@
         >
           {{ 'authoring.addVariant' | transloco }}
         </button>
-      }
-    </div>
-  }
-</section>
+        <button
+          type="button"
+          class="secondary"
+          [appFocusReturn]="'generate:' + s.id"
+          [disabled]="editor.busy()"
+          (click)="generating.set(true)"
+        >
+          <app-icon name="generate" />
+          {{ 'authoring.generate.open' | transloco }}
+        </button>
+      </div>
+    }
+  </div>
+}
+@if (generating()) {
+  <app-variant-generator [qasetId]="s.id" [language]="lang" (closed)="closeGenerator()" />
+}

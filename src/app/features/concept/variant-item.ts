@@ -17,14 +17,14 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
 type Panel = 'edit' | 'audio' | 'translate' | 'delete';
 
 /**
- * Where the variant shows: in its language's section, as « la variante N »; or in the header, as
- * that language's main question — named by its language there, since every row is a variant 1.
+ * Where the variant shows: in its language's tab, as « la variante N »; or in the principal pair,
+ * as that language's main question — named by its language there, since every pair has a variant 1.
  */
-export type VariantContext = 'section' | 'header';
+export type VariantContext = 'section' | 'pair';
 
 /**
- * One question variant: its text, its audios (in a section), and its tools — edit, manage audio,
- * translate, delete — each opening its modal (translation opens in place).
+ * One question variant: its text with its tools on the same line — edit, manage audio, translate,
+ * delete — each opening its modal (translation opens in place), and its audios below.
  */
 @Component({
   selector: 'app-variant-item',
@@ -41,15 +41,13 @@ export type VariantContext = 'section' | 'header';
   template: `
     @let v = variant();
     @let l = labels();
-    <p class="text" [class.question]="context() === 'header'" [attr.lang]="language().code">
-      {{ v.text }}
-    </p>
-    @if (context() === 'section') {
-      <app-item-audios role="variant" [qasetId]="qasetId()" [item]="v" [label]="l.item" />
-    }
-    @if (tools().length > 0) {
-      <app-toolbar [label]="l.toolbar" [actions]="tools()" />
-    }
+    <div class="line">
+      <p class="text" [attr.lang]="language().code">{{ v.text }}</p>
+      @if (tools().length > 0) {
+        <app-toolbar [label]="l.toolbar" [actions]="tools()" />
+      }
+    </div>
+    <app-item-audios role="variant" [qasetId]="qasetId()" [item]="v" [label]="l.item" />
     @if (context() === 'section' && !panel()) {
       @if (editor.errorFor('variant:' + v.id); as message) {
         <p class="field-error" role="alert">{{ message }}</p>
@@ -108,13 +106,17 @@ export type VariantContext = 'section' | 'header';
     :host {
       display: block;
     }
+    .line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--muso-space-1) var(--muso-space-2);
+    }
     .text {
+      flex: 1 1 12rem;
+      min-inline-size: 0;
       margin: 0;
       overflow-wrap: anywhere;
-    }
-    app-toolbar {
-      display: block;
-      margin-block-start: var(--muso-space-1);
     }
     .translate {
       margin-block-start: var(--muso-space-2);
@@ -142,7 +144,7 @@ export class VariantItem {
   protected readonly labels = computed(() => {
     const number = this.number();
     const language = this.language().name;
-    if (this.context() === 'header') {
+    if (this.context() === 'pair') {
       return {
         toolbar: this.#t.t('tools.main.toolbar', { language }),
         edit: this.#t.t('tools.main.edit', { language }),
@@ -213,7 +215,7 @@ export class VariantItem {
     this.#focus.to(this.#key(panel));
   }
 
-  /** Unique on the page, though the same variant can show twice: section and header. */
+  /** Unique on the page, whichever place the variant shows in. */
   #key(panel: Panel): string {
     return `${this.context()}-${panel}:${this.variant().id}`;
   }

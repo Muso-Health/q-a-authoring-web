@@ -14,6 +14,7 @@ const VARIANT_AUDIO = `POST ${FR}/variants/${IDS.variantFr2}/audio`;
 const ANSWER_AUDIO = `${FR}/answer/audio`;
 
 type Target = 'la réponse' | `la variante ${number}`;
+const NAMES: Record<string, string> = { fr: 'Français', en: 'English' };
 
 async function render(options: RenderOptions = {}) {
   const page = await renderConcept(options);
@@ -21,9 +22,20 @@ async function render(options: RenderOptions = {}) {
   const title = () => text(document.getElementById(dialog()!.getAttribute('aria-labelledby')!));
   const voices = () =>
     [...dialog()!.querySelectorAll('li.audio')].map((li) => text(li.querySelector('.voice')));
-  /** Opens that target's audio modal from its tool. */
-  const manage = (target: Target, lang = 'fr') =>
-    page.click(`Gérer l’audio de ${target}`, page.section(lang));
+  /**
+   * Opens that target's audio modal from its tool: the answer's and the main question's are in
+   * the principal pair, named by their language; the other variants', in the language's tab.
+   */
+  const manage = (target: Target, lang = 'fr') => {
+    const language = NAMES[lang];
+    if (target === 'la réponse') {
+      return page.click(`Gérer l’audio de la réponse (${language})`, page.pair(lang));
+    }
+    if (target === 'la variante 1') {
+      return page.click(`Gérer l’audio de la question principale (${language})`, page.pair(lang));
+    }
+    return page.click(`Gérer l’audio de ${target}`, page.panel(lang));
+  };
   /** Opens the target's audio modal, then its capture panel, and picks the voice. */
   const openIn = async (target: Target, voiceId: string = IDS.voiceAwa) => {
     await manage(target);
@@ -43,13 +55,13 @@ const voiceOf = (body: unknown) => (body as FormData).get('voice_id');
 
 describe('ConceptPage audio', () => {
   it('offers no audio tool without manage_audio, but keeps playback on the page', async () => {
-    const { section, buttonNamed } = await render({
+    const { pair, panel, buttonNamed } = await render({
       me: { ...ME_AUTHOR, permissions: ['author_qasets'] },
     });
 
-    expect(buttonNamed('Gérer l’audio de la réponse', section('fr'))).toBeUndefined();
-    expect(buttonNamed('Gérer l’audio de la variante 2', section('fr'))).toBeUndefined();
-    const answer = section('fr').querySelector('.answer')!;
+    expect(buttonNamed('Gérer l’audio de la réponse (Français)', pair('fr'))).toBeUndefined();
+    expect(buttonNamed('Gérer l’audio de la variante 2', panel('fr'))).toBeUndefined();
+    const answer = pair('fr').querySelector('.answer')!;
     expect(answer.querySelectorAll('app-audio-player')).toHaveLength(2);
     expect(answer.querySelector('[aria-label^="Supprimer l’audio"]')).toBeNull();
   });
@@ -61,10 +73,10 @@ describe('ConceptPage audio', () => {
   });
 
   it('only plays on the page: managing an audio happens in its modal', async () => {
-    const { section } = await render();
+    const { card } = await render();
 
-    expect(section('fr').querySelector('[aria-label^="Supprimer l’audio"]')).toBeNull();
-    expect(section('fr').querySelector('[aria-label^="Ajouter un enregistrement"]')).toBeNull();
+    expect(card().querySelector('[aria-label^="Supprimer l’audio"]')).toBeNull();
+    expect(card().querySelector('[aria-label^="Ajouter un enregistrement"]')).toBeNull();
   });
 
   describe('the audio modal manages one target', () => {
@@ -109,7 +121,7 @@ describe('ConceptPage audio', () => {
 
       expect(dialog()).toBeNull();
       expect(document.activeElement?.getAttribute('aria-label')).toBe(
-        'Gérer l’audio de la réponse',
+        'Gérer l’audio de la réponse (Français)',
       );
     });
   });
@@ -330,18 +342,20 @@ describe('ConceptPage audio', () => {
   });
 
   describe('focus return', () => {
-    it('returns to « Modifier la réponse » when its modal is cancelled', async () => {
-      const { section, click, press } = await render();
+    it('returns to « Modifier la réponse (Français) » when its modal is cancelled', async () => {
+      const { pair, click, press } = await render();
 
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       await press('Annuler');
 
-      expect(document.activeElement?.getAttribute('aria-label')).toBe('Modifier la réponse');
+      expect(document.activeElement?.getAttribute('aria-label')).toBe(
+        'Modifier la réponse (Français)',
+      );
     });
 
     it('returns to the translate tool when its form is cancelled', async () => {
-      const { section, click } = await render();
-      const variant2 = () => section('fr').querySelectorAll<HTMLElement>('.variant')[1];
+      const { panel, click } = await render();
+      const variant2 = () => panel('fr').querySelectorAll<HTMLElement>('.variant')[0];
 
       await click('Traduire la variante 2', variant2());
       await click('Annuler', variant2().querySelector('.translate')!);
