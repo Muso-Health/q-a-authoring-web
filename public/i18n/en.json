@@ -749,5 +749,46 @@
       "edit": "Edit the answer ({{ language }})",
       "audio": "Manage the answer’s audio ({{ language }})"
     }
+  },
+  "dashboard": {
+    "heading": "Dashboard",
+    "empty": "This project has no concepts yet: the charts will fill in as authoring goes.",
+    "counts": {
+      "protocols": "Protocols",
+      "themes": "Themes",
+      "concepts": "Concepts"
+    },
+    "complete": "Complete",
+    "notComplete": "Not complete",
+    "metric": {
+      "audio": "Audio",
+      "validatedAudio": "Validated audio",
+      "clinical": "Clinical validation",
+      "translation": "Translation validation"
+    },
+    "completeness": {
+      "heading": "Completeness by language",
+      "lead": "For each language, the share of its present concepts that are complete.",
+      "present": "Concepts present: {{ count }}",
+      "chart": "Completeness — {{ language }}",
+      "metric": "Criterion",
+      "empty": "No concepts in this language yet."
+    },
+    "coverage": {
+      "heading": "Concept coverage",
+      "empty": "No concepts to cover yet.",
+      "intent": {
+        "title": "Intents",
+        "chart": "Coverage by intent",
+        "with": "With an intent",
+        "without": "Without an intent"
+      },
+      "category": {
+        "title": "Categories",
+        "chart": "Coverage by category",
+        "with": "With a category",
+        "without": "Without a category"
+      }
+    }
   }
 }

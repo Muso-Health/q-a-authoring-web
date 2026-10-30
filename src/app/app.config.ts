@@ -5,6 +5,7 @@ import { routes } from './app.routes';
 import { provideApi } from './core/api/provide-api';
 import { authInterceptor } from './core/auth/auth-interceptor';
 import { provideAuth } from './core/auth/provide-auth';
+import { provideCharts } from './core/chart/provide-charts';
 import { ENVIRONMENT } from './core/config/environment';
 import { provideI18n } from './core/i18n/provide-i18n';
 import { provideSpreadsheetImport } from './core/spreadsheet/provide-spreadsheet-import';
@@ -23,5 +24,6 @@ export const appConfig: ApplicationConfig = {
     provideApi(ENVIRONMENT.apiBaseUrl),
     provideAuth(ENVIRONMENT.auth),
     provideSpreadsheetImport(),
+    provideCharts(),
   ],
 };

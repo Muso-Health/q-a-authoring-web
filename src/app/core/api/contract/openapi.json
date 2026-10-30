@@ -899,6 +899,50 @@
         }
       }
     },
+    "/projects/{project_id}/stats": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get Project Stats",
+        "description": "Dashboard figures: protocol, theme and concept counts; per project language (base\nfirst) the concepts present in it and how many are complete for audio, validated audio and\nvalidation (clinical in the base language, translation otherwise); and how many concepts\ncarry an intent / a category.",
+        "operationId": "get_project_stats_projects__project_id__stats_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStatsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/projects/{project_id}/languages": {
       "get": {
         "tags": [
@@ -5431,6 +5475,40 @@
         "title": "CompletenessResponse",
         "description": "Notions of the theme's documentation that no answer covers yet, in the base language."
       },
+      "CompletionResponse": {
+        "properties": {
+          "complete": {
+            "type": "integer",
+            "title": "Complete"
+          },
+          "not_complete": {
+            "type": "integer",
+            "title": "Not Complete"
+          }
+        },
+        "type": "object",
+        "required": [
+          "complete",
+          "not_complete"
+        ],
+        "title": "CompletionResponse"
+      },
+      "ConceptCoverageResponse": {
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/CoverageResponse"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CoverageResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent",
+          "category"
+        ],
+        "title": "ConceptCoverageResponse"
+      },
       "ConceptResponse": {
         "properties": {
           "id": {
@@ -5519,6 +5597,25 @@
           "items"
         ],
         "title": "ConceptsResponse"
+      },
+      "CoverageResponse": {
+        "properties": {
+          "with": {
+            "type": "integer",
+            "title": "With"
+          },
+          "without": {
+            "type": "integer",
+            "title": "Without"
+          }
+        },
+        "type": "object",
+        "required": [
+          "with",
+          "without"
+        ],
+        "title": "CoverageResponse",
+        "description": "Concepts with at least one, and without any."
       },
       "CreateGlossaryTermRequest": {
         "properties": {
@@ -6217,6 +6314,53 @@
         ],
         "title": "LanguageResponse"
       },
+      "LanguageStatisticsResponse": {
+        "properties": {
+          "language_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_base": {
+            "type": "boolean",
+            "title": "Is Base"
+          },
+          "present": {
+            "type": "integer",
+            "title": "Present"
+          },
+          "audio_complete": {
+            "$ref": "#/components/schemas/CompletionResponse"
+          },
+          "audio_validated_complete": {
+            "$ref": "#/components/schemas/CompletionResponse"
+          },
+          "validation_complete": {
+            "$ref": "#/components/schemas/CompletionResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "language_id",
+          "code",
+          "name",
+          "is_base",
+          "present",
+          "audio_complete",
+          "audio_validated_complete",
+          "validation_complete"
+        ],
+        "title": "LanguageStatisticsResponse",
+        "description": "``present``: the concepts with a QA set in this language; each metric splits them into\ncomplete and not complete."
+      },
       "LanguagesResponse": {
         "properties": {
           "items": {
@@ -6336,6 +6480,29 @@
         ],
         "title": "PlaybackUrlResponse"
       },
+      "ProjectCountsResponse": {
+        "properties": {
+          "protocols": {
+            "type": "integer",
+            "title": "Protocols"
+          },
+          "themes": {
+            "type": "integer",
+            "title": "Themes"
+          },
+          "concepts": {
+            "type": "integer",
+            "title": "Concepts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "protocols",
+          "themes",
+          "concepts"
+        ],
+        "title": "ProjectCountsResponse"
+      },
       "ProjectLanguageResponse": {
         "properties": {
           "language_id": {
@@ -6437,6 +6604,36 @@
           "base_language_id"
         ],
         "title": "ProjectResponse"
+      },
+      "ProjectStatsResponse": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Project Id"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/ProjectCountsResponse"
+          },
+          "languages": {
+            "items": {
+              "$ref": "#/components/schemas/LanguageStatisticsResponse"
+            },
+            "type": "array",
+            "title": "Languages"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/ConceptCoverageResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id",
+          "counts",
+          "languages",
+          "coverage"
+        ],
+        "title": "ProjectStatsResponse"
       },
       "ProjectsResponse": {
         "properties": {
