@@ -1,31 +1,17 @@
-h2 {
-  margin: 0;
+:host {
+  display: block;
+}
+.heading {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--muso-space-2);
 }
-.code {
-  font-family: var(--muso-font-body);
-  font-size: var(--muso-caption-size);
-  color: var(--muted-fg);
-  text-transform: uppercase;
+.heading:empty {
+  display: none;
 }
-h3 {
-  font-size: var(--muso-body-size, 1rem);
-  margin-block-end: var(--muso-space-1);
-}
-.lead h3 {
-  margin: 0 0 0.125rem;
-}
-.base {
-  font-family: var(--muso-font-body);
-  padding: 0.1rem var(--muso-space-1);
-  border-radius: var(--muso-radius);
-  background: var(--muso-navy);
-  color: var(--muso-text-inverse);
-  font-size: var(--muso-caption-size);
-  font-weight: 600;
+.heading app-confirm-action {
+  margin-inline-start: auto;
 }
 .counts {
   display: flex;
@@ -51,45 +37,6 @@ dd {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-// The pair the section is about, first: main question, then its answer — at body size, so it
-// leads without dominating the page.
-.lead {
-  display: grid;
-  gap: var(--muso-space-2);
-  margin-block: var(--muso-space-2);
-  padding: var(--muso-space-2) var(--muso-space-3);
-  border-inline-start: 3px solid var(--muso-teal);
-  border-radius: var(--muso-radius);
-  background: var(--info-bg);
-}
-.lead .variant {
-  padding: 0;
-  border: 0;
-}
-.main app-variant-item {
-  font-weight: 600;
-}
-.label {
-  margin: 0 0 0.125rem;
-  font-family: var(--muso-font-body);
-  font-size: var(--muso-caption-size);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted-fg);
-}
-.answer {
-  padding-block-start: var(--muso-space-2);
-  border-block-start: 1px solid var(--card-border);
-}
-.text {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-app-toolbar {
-  display: block;
-  margin-block-start: var(--muso-space-1);
-}
 .variants {
   display: grid;
   gap: var(--muso-space-2);
@@ -100,15 +47,16 @@ app-toolbar {
   padding-block: var(--muso-space-1);
   border-block-end: 1px solid var(--card-border);
 }
-.heading {
+.add-variant {
+  margin-block-start: var(--muso-space-3);
+}
+.actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
   gap: var(--muso-space-2);
 }
-.heading app-confirm-action {
-  margin-inline-start: auto;
-}
-.add-variant {
-  margin-block-start: var(--muso-space-2);
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--muso-space-1);
 }

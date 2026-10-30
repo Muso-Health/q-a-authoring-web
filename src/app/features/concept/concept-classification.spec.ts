@@ -86,10 +86,9 @@ describe('ConceptPage classification', () => {
       'Retirer une intention',
       'Supprimer la notion',
     ]);
-    for (const section of element.querySelectorAll('section.language')) {
-      expect(text(section)).not.toContain('intention');
-      expect(section.querySelector('[aria-label*="catégorie"]')).toBeNull();
-    }
+    const card = element.querySelector('section.concept-card')!;
+    expect(text(card)).not.toContain('intention');
+    expect(card.querySelector('[aria-label*="catégorie"]')).toBeNull();
   });
 
   it('shows the concept’s intents and categories as chips', async () => {

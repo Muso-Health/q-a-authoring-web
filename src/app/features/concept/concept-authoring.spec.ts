@@ -21,7 +21,8 @@ describe('ConceptPage authoring', () => {
     it('stays read-only without author_qasets', async () => {
       const { element } = await render({ me: ME_READER });
 
-      const authoring = [...element.querySelectorAll('button')]
+      // Listening and switching language tabs are not authoring.
+      const authoring = [...element.querySelectorAll('button:not([role="tab"])')]
         .map((b) => text(b) ?? '')
         .filter((label) => !label.includes('Écouter'));
       expect(authoring).toEqual([]);
@@ -29,35 +30,40 @@ describe('ConceptPage authoring', () => {
     });
 
     it('offers the authoring actions with author_qasets', async () => {
-      const { button, buttonNamed, section, header } = await render();
+      const { button, buttonNamed, pair, panel, card, header } = await render();
 
       expect(() => button('Supprimer la notion')).not.toThrow();
       expect(() => button('Ajouter une langue')).not.toThrow();
       expect(() => button('Traduire la notion')).not.toThrow();
-      expect(() => button('Modifier la réponse', section('fr'))).not.toThrow();
-      expect(() => button('Générer des variantes', section('fr'))).not.toThrow();
-      expect(() => button('Ajouter une variante', section('fr'))).not.toThrow();
-      expect(() => button('Modifier la variante 1', section('fr'))).not.toThrow();
-      expect(() => button('Supprimer la variante 1', section('fr'))).not.toThrow();
-      expect(() => button('Retirer la langue Bambara', section('bm'))).not.toThrow();
+      expect(() => button('Modifier la réponse (Français)', pair('fr'))).not.toThrow();
+      expect(() => button('Modifier la question principale (Français)', pair('fr'))).not.toThrow();
+      expect(() => button('Supprimer la question principale (Français)', pair('fr'))).not.toThrow();
+      expect(() => button('Générer des variantes', panel('fr'))).not.toThrow();
+      expect(() => button('Ajouter une variante', panel('fr'))).not.toThrow();
+      expect(() => button('Modifier la variante 2', panel('fr'))).not.toThrow();
+      expect(() => button('Supprimer la variante 2', panel('fr'))).not.toThrow();
+      expect(() => button('Retirer la langue Bambara', panel('bm'))).not.toThrow();
       // Notion-level, per-language and per-variant tools each live in their own toolbar.
       const bar = (scope: ParentNode, name: string) =>
         scope.querySelector(`[role="toolbar"][aria-label="${name}"]`);
       expect(bar(header(), 'Outils de la notion')).not.toBeNull();
-      expect(bar(section('fr').querySelector('.answer')!, 'Outils de la réponse')).not.toBeNull();
-      expect(bar(section('fr').querySelector('.main')!, 'Outils de la variante 1')).not.toBeNull();
-      expect(bar(section('fr'), 'Outils de la notion')).toBeNull();
+      const answer = pair('fr').querySelector('.answer')!;
+      expect(bar(answer, 'Outils de la réponse (Français)')).not.toBeNull();
+      const main = pair('fr').querySelector('app-variant-item')!;
+      expect(bar(main, 'Outils de la question principale (Français)')).not.toBeNull();
+      expect(bar(panel('fr').querySelector('.variant')!, 'Outils de la variante 2')).not.toBeNull();
+      expect(bar(card(), 'Outils de la notion')).toBeNull();
       // The base language goes only with the concept.
-      expect(buttonNamed('Retirer la langue Français', section('fr'))).toBeUndefined();
+      expect(buttonNamed('Retirer la langue Français', panel('fr'))).toBeUndefined();
     });
   });
 
   describe('each action calls its endpoint, then re-fetches the concept', () => {
     it('edits a QASet’s answer in a modal', async () => {
-      const { api, section, click, inDialog, type, submit, afterFirstWrite } = await render();
+      const { api, pair, click, inDialog, type, submit, afterFirstWrite } = await render();
       api.answers[C] = edited((d) => (qasetIn(d, IDS.fr).answer.text = 'Réponse corrigée.'));
 
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       expect(text(document.getElementById(dialog()!.getAttribute('aria-labelledby')!))).toBe(
         'Modifier la réponse (Français)',
       );
@@ -72,18 +78,20 @@ describe('ConceptPage authoring', () => {
       ]);
       expect(afterFirstWrite()).toEqual([`PATCH ${FR}/answer`, `GET ${C}`]);
       expect(dialog()).toBeNull();
-      expect(text(section('fr').querySelector('.answer .text'))).toBe('Réponse corrigée.');
-      expect(document.activeElement?.getAttribute('aria-label')).toBe('Modifier la réponse');
+      expect(text(pair('fr').querySelector('.answer .text'))).toBe('Réponse corrigée.');
+      expect(document.activeElement?.getAttribute('aria-label')).toBe(
+        'Modifier la réponse (Français)',
+      );
     });
 
     it('changes nothing when the answer’s modal is cancelled or escaped', async () => {
-      const { api, section, click, press, inDialog, type, settle } = await render();
+      const { api, pair, click, press, inDialog, type, settle } = await render();
 
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       type(inDialog<HTMLTextAreaElement>('textarea')!, 'Brouillon');
       await press('Annuler');
       expect(dialog()).toBeNull();
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       escape();
       await settle();
 
@@ -92,11 +100,11 @@ describe('ConceptPage authoring', () => {
     });
 
     it('adds a variant to that language’s QASet', async () => {
-      const { api, section, click, type, submit, afterFirstWrite } = await render();
+      const { api, panel, click, type, submit, afterFirstWrite } = await render();
 
-      await click('Ajouter une variante', section('bm'));
-      type(section('bm').querySelector('textarea')!, ' Sumaya bɛ se ka kunbɛn cogo di ? ');
-      await submit(section('bm').querySelector('form')!);
+      await click('Ajouter une variante', panel('bm'));
+      type(panel('bm').querySelector('textarea')!, ' Sumaya bɛ se ka kunbɛn cogo di ? ');
+      await submit(panel('bm').querySelector('form')!);
 
       expect(api.writes).toEqual([
         {
@@ -109,9 +117,9 @@ describe('ConceptPage authoring', () => {
     });
 
     it('edits a variant in a modal', async () => {
-      const { api, section, click, inDialog, type, submit, afterFirstWrite } = await render();
+      const { api, panel, click, inDialog, type, submit, afterFirstWrite } = await render();
 
-      await click('Modifier la variante 2', section('fr'));
+      await click('Modifier la variante 2', panel('fr'));
       expect(text(document.getElementById(dialog()!.getAttribute('aria-labelledby')!))).toBe(
         'Modifier la variante 2 (Français)',
       );
@@ -133,9 +141,9 @@ describe('ConceptPage authoring', () => {
     });
 
     it('deletes a variant only once confirmed in a modal', async () => {
-      const { api, section, click, press, afterFirstWrite } = await render();
+      const { api, panel, click, press, afterFirstWrite } = await render();
 
-      await click('Supprimer la variante 2', section('fr'));
+      await click('Supprimer la variante 2', panel('fr'));
       expect(api.writes).toEqual([]);
       expect(text(dialog())).toContain('La variante 2 sera supprimée.');
       await press('Supprimer');
@@ -148,9 +156,9 @@ describe('ConceptPage authoring', () => {
     });
 
     it('keeps the variant when its deletion is cancelled', async () => {
-      const { api, section, click, press } = await render();
+      const { api, panel, click, press } = await render();
 
-      await click('Supprimer la variante 2', section('fr'));
+      await click('Supprimer la variante 2', panel('fr'));
       await press('Annuler');
 
       expect(api.writes).toEqual([]);
@@ -183,12 +191,12 @@ describe('ConceptPage authoring', () => {
     });
 
     it('removes a language’s QASet only once confirmed, warning what goes with it', async () => {
-      const { api, section, click, afterFirstWrite } = await render();
+      const { api, panel, click, afterFirstWrite } = await render();
 
-      await click('Retirer la langue Bambara', section('bm'));
+      await click('Retirer la langue Bambara', panel('bm'));
       expect(api.writes).toEqual([]);
-      expect(text(section('bm'))).toContain('sa réponse et toutes ses variantes');
-      await click('Confirmer', section('bm'));
+      expect(text(panel('bm'))).toContain('sa réponse et toutes ses variantes');
+      await click('Confirmer', panel('bm'));
 
       expect(afterFirstWrite()).toEqual([`DELETE ${BM}`, `GET ${C}`]);
     });
@@ -239,10 +247,10 @@ describe('ConceptPage authoring', () => {
     });
 
     it('shows a refused text in the modal and keeps it open', async () => {
-      const { api, section, click, inDialog, type, submit } = await render();
+      const { api, pair, click, inDialog, type, submit } = await render();
       api.answers[`PATCH ${EN}/answer`] = engineError(422, 'invalid_text');
 
-      await click('Modifier la réponse', section('en'));
+      await click('Modifier la réponse (English)', pair('en'));
       type(inDialog<HTMLTextAreaElement>('textarea')!, 'x');
       await submit(inDialog<HTMLFormElement>('form')!);
 
@@ -253,12 +261,12 @@ describe('ConceptPage authoring', () => {
     });
 
     it('re-fetches when the item is gone, closes its modal, and says so at the page level', async () => {
-      const { api, element, section, click, inDialog, type, submit, afterFirstWrite } =
+      const { api, element, panel, click, inDialog, type, submit, afterFirstWrite } =
         await render();
       api.answers[`PATCH ${FR}/variants/${IDS.variantFr2}`] = engineError(404, 'variant_not_found');
       api.answers[C] = edited((d) => qasetIn(d, IDS.fr).variants.splice(1, 1));
 
-      await click('Modifier la variante 2', section('fr'));
+      await click('Modifier la variante 2', panel('fr'));
       type(inDialog<HTMLTextAreaElement>('textarea')!, 'Reformulée ?');
       await submit(inDialog<HTMLFormElement>('form')!);
 
@@ -266,28 +274,28 @@ describe('ConceptPage authoring', () => {
       expect(text(element.querySelector('.page-alert'))).toContain(
         'Cet élément n’existe plus : la page a été actualisée.',
       );
-      expect(section('fr').querySelectorAll('.variant')).toHaveLength(2);
+      expect(panel('fr').querySelectorAll('.variant')).toHaveLength(1);
       expect(dialog()).toBeNull();
     });
   });
 
   describe('validation resets', () => {
     it('shows the reset badges after the re-fetch, and says which ones the edit reset', async () => {
-      const { api, element, section, click, type, submit } = await render();
+      const { api, element, pair, panel, click, type, submit } = await render();
       api.answers[C] = edited((d) => {
         qasetIn(d, IDS.fr).answer.text = 'Dormez sous une moustiquaire.';
         qasetIn(d, IDS.fr).clinical_validation = null;
         qasetIn(d, IDS.en).translation_validation = null;
       });
 
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       type(dialog()!.querySelector('textarea')!, 'Dormez sous une moustiquaire.');
       await submit(dialog()!.querySelector('form')!);
 
-      expect(text(section('fr').querySelector('.heading .badge'))).toBe(
+      expect(text(panel('fr').querySelector('.heading .badge'))).toBe(
         'Validation clinique : en attente',
       );
-      expect(text(section('en').querySelector('.heading .badge'))).toBe('Traduction : en attente');
+      expect(text(panel('en').querySelector('.heading .badge'))).toBe('Traduction : en attente');
       const notice = element.querySelector('.reset-notice')!;
       expect(notice.getAttribute('role')).toBe('status');
       expect(text(notice)).toContain(
@@ -296,9 +304,9 @@ describe('ConceptPage authoring', () => {
     });
 
     it('says nothing when the edit reset nothing', async () => {
-      const { element, section, click, type, submit } = await render();
+      const { element, pair, click, type, submit } = await render();
 
-      await click('Modifier la réponse', section('fr'));
+      await click('Modifier la réponse (Français)', pair('fr'));
       type(dialog()!.querySelector('textarea')!, 'Autre réponse.');
       await submit(dialog()!.querySelector('form')!);
 

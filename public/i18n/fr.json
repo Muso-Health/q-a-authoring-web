@@ -91,12 +91,12 @@
       "language": "Langue",
       "answerAudio": "Audio de la réponse"
     },
-    "mainQuestion": "Question principale",
     "otherVariants": "Autres variantes",
     "noOtherVariants": "Aucune autre variante.",
-    "translations": "Question principale dans les autres langues",
     "untranslated": "Pas encore de traduction",
-    "mainQuestionAudio": "la question principale"
+    "mainQuestionAudio": "la question principale",
+    "mainPairs": "Paires principales",
+    "variantTabs": "Variantes par langue"
   },
   "validation": {
     "titles": {
@@ -190,7 +190,6 @@
     "chooseLanguage": "Choisir une langue…",
     "languageRequired": "Choisissez une langue.",
     "answerText": "Réponse",
-    "editAnswer": "Modifier la réponse",
     "answerLabel": "Réponse ({{ language }})",
     "variantLabel": "Variante {{ number }} ({{ language }})",
     "newVariantLabel": "Nouvelle variante ({{ language }})",
@@ -731,11 +730,9 @@
   },
   "tools": {
     "concept": "Outils de la notion",
-    "answer": "Outils de la réponse",
     "variant": "Outils de la variante {{ number }}",
     "removeCategory": "Retirer une catégorie",
     "removeIntent": "Retirer une intention",
-    "answerAudio": "Gérer l’audio de la réponse",
     "variantAudio": "Gérer l’audio de la variante {{ number }}",
     "main": {
       "toolbar": "Outils de la question principale ({{ language }})",
@@ -746,6 +743,11 @@
       "delete": "Supprimer la question principale ({{ language }})",
       "deleteTitle": "Supprimer la question principale ({{ language }}) ?",
       "deleteWarning": "La question principale en {{ language }} sera supprimée ; la variante suivante, s’il y en a une, prend sa place. Cette action est irréversible."
+    },
+    "pairAnswer": {
+      "toolbar": "Outils de la réponse ({{ language }})",
+      "edit": "Modifier la réponse ({{ language }})",
+      "audio": "Gérer l’audio de la réponse ({{ language }})"
     }
   }
 }

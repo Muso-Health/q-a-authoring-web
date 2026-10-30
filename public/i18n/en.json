@@ -91,12 +91,12 @@
       "language": "Language",
       "answerAudio": "Answer audio"
     },
-    "mainQuestion": "Main question",
     "otherVariants": "Other variants",
     "noOtherVariants": "No other variants.",
-    "translations": "Main question in the other languages",
     "untranslated": "Not translated yet",
-    "mainQuestionAudio": "the main question"
+    "mainQuestionAudio": "the main question",
+    "mainPairs": "Main pairs",
+    "variantTabs": "Variants by language"
   },
   "validation": {
     "titles": {
@@ -190,7 +190,6 @@
     "chooseLanguage": "Choose a language…",
     "languageRequired": "Choose a language.",
     "answerText": "Answer",
-    "editAnswer": "Edit the answer",
     "answerLabel": "Answer ({{ language }})",
     "variantLabel": "Variant {{ number }} ({{ language }})",
     "newVariantLabel": "New variant ({{ language }})",
@@ -731,11 +730,9 @@
   },
   "tools": {
     "concept": "Concept tools",
-    "answer": "Answer tools",
     "variant": "Tools for variant {{ number }}",
     "removeCategory": "Remove a category",
     "removeIntent": "Remove an intent",
-    "answerAudio": "Manage the answer’s audio",
     "variantAudio": "Manage the audio of variant {{ number }}",
     "main": {
       "toolbar": "Main question tools ({{ language }})",
@@ -746,6 +743,11 @@
       "delete": "Delete the main question ({{ language }})",
       "deleteTitle": "Delete the main question ({{ language }})?",
       "deleteWarning": "The main question in {{ language }} will be deleted; the next variant, if any, takes its place. This cannot be undone."
+    },
+    "pairAnswer": {
+      "toolbar": "Answer tools ({{ language }})",
+      "edit": "Edit the answer ({{ language }})",
+      "audio": "Manage the answer’s audio ({{ language }})"
     }
   }
 }

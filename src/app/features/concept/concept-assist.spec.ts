@@ -101,22 +101,22 @@ describe('ConceptPage engine assistance', () => {
 
   describe('translating a variant', () => {
     it('offers only the other languages the concept already has a QASet in', async () => {
-      const { section, click } = await render();
+      const { pair, click } = await render();
 
-      await click('Traduire la variante 1', section('fr'));
+      await click('Traduire la question principale (Français)', pair('fr'));
 
-      expect(options(section('fr').querySelector('.variant .translate select')!)).toEqual([
+      expect(options(pair('fr').querySelector('.translate select')!)).toEqual([
         'English',
         'Bambara',
       ]);
     });
 
     it('translates a variant into that language’s QASet, then re-fetches', async () => {
-      const { api, section, click, type, submit, afterFirstWrite } = await render();
+      const { api, pair, click, type, submit, afterFirstWrite } = await render();
 
-      await click('Traduire la variante 1', section('fr'));
-      type(section('fr').querySelector('.variant .translate select')!, IDS.bm);
-      await submit(section('fr').querySelector('.variant .translate form')!);
+      await click('Traduire la question principale (Français)', pair('fr'));
+      type(pair('fr').querySelector('.translate select')!, IDS.bm);
+      await submit(pair('fr').querySelector('.translate form')!);
 
       expect(api.writes).toEqual([
         {
@@ -153,20 +153,18 @@ describe('ConceptPage engine assistance', () => {
     for (const [status, code, message] of refusals) {
       it(`says so in French when the engine answers ${code}, and adds nothing`, async () => {
         const path = `POST ${FR}/variants/${IDS.variantFr1}/translate`;
-        const { section, click, type, submit, afterFirstWrite } = await render({
+        const { pair, panel, click, type, submit, afterFirstWrite } = await render({
           answers: { [path]: engineError(status, code) },
         });
 
-        await click('Traduire la variante 1', section('fr'));
-        type(section('fr').querySelector('.variant .translate select')!, IDS.en);
-        await submit(section('fr').querySelector('.variant .translate form')!);
+        await click('Traduire la question principale (Français)', pair('fr'));
+        type(pair('fr').querySelector('.translate select')!, IDS.en);
+        await submit(pair('fr').querySelector('.translate form')!);
 
-        expect(text(section('fr').querySelector('.variant .translate [role="alert"]'))).toBe(
-          message,
-        );
+        expect(text(pair('fr').querySelector('.translate [role="alert"]'))).toBe(message);
         expect(afterFirstWrite()).toEqual([path]);
-        expect(section('en').querySelectorAll('.variant')).toHaveLength(1);
-        expect(section('fr').querySelector('.variant .translate form')).not.toBeNull();
+        expect(panel('en').querySelectorAll('.variant')).toHaveLength(0);
+        expect(pair('fr').querySelector('.translate form')).not.toBeNull();
       });
     }
   });

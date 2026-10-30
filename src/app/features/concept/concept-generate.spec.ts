@@ -7,7 +7,7 @@ const GENERATE = `POST ${FR}/generate-variants`;
 const ADD_FR_VARIANT = `POST ${FR}/variants`;
 const PROPOSALS = ['Comment se protéger ?', 'Que faire la nuit ?', 'Et les enfants ?'];
 
-/** The wizard opens in the CDK's overlay, at the end of <body>, not inside the section. */
+/** The wizard opens in the CDK's overlay, at the end of <body>, not inside the tab. */
 const dialog = () => document.querySelector<HTMLElement>('[role="dialog"]');
 const inDialog = <T extends Element = HTMLElement>(selector: string) =>
   dialog()!.querySelector<T>(selector);
@@ -30,9 +30,9 @@ describe('ConceptPage variant generation wizard', () => {
     answers: Record<string, unknown> = { [GENERATE]: { candidates: PROPOSALS } },
   ) {
     const page = await render({ answers });
-    const trigger = page.button('Générer des variantes', page.section('fr'));
+    const trigger = page.button('Générer des variantes', page.panel('fr'));
     trigger.focus();
-    await page.click('Générer des variantes', page.section('fr'));
+    await page.click('Générer des variantes', page.panel('fr'));
     const generate = async (context?: string) => {
       if (context !== undefined) page.type(inDialog<HTMLTextAreaElement>('textarea')!, context);
       await page.submit(inDialog<HTMLFormElement>('form')!);
@@ -111,7 +111,7 @@ describe('ConceptPage variant generation wizard', () => {
       },
     });
 
-    await page.click('Générer des variantes', page.section('en'));
+    await page.click('Générer des variantes', page.panel('en'));
     await page.submit(inDialog<HTMLFormElement>('form')!);
 
     expect(page.api.writes.map((w) => w.path)).toEqual([
@@ -130,7 +130,7 @@ describe('ConceptPage variant generation wizard', () => {
         added('v-new-2', 'Et les enfants ?'),
       );
     });
-    const { api, generate, toggle, press, section, trigger, afterFirstWrite } = await open({
+    const { api, generate, toggle, press, panel, trigger, afterFirstWrite } = await open({
       [GENERATE]: { candidates: PROPOSALS },
     });
     await generate();
@@ -145,7 +145,7 @@ describe('ConceptPage variant generation wizard', () => {
     ]);
     expect(afterFirstWrite()).toEqual([GENERATE, ADD_FR_VARIANT, ADD_FR_VARIANT, `GET ${C}`]);
     expect(dialog()).toBeNull();
-    const variants = [...section('fr').querySelectorAll('.variant .text')].map((v) => text(v));
+    const variants = [...panel('fr').querySelectorAll('.variant .text')].map((v) => text(v));
     expect(variants).toContain('Comment se protéger ?');
     expect(variants).toContain('Et les enfants ?');
     expect(variants).not.toContain('Que faire la nuit ?');

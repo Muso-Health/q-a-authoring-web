@@ -73,8 +73,16 @@ export async function renderConcept({
   const element = fixture.nativeElement as HTMLElement;
 
   const settle = () => fixture.whenStable();
-  const section = (code: string) =>
-    element.querySelector<HTMLElement>(`section.language[data-lang="${code}"]`)!;
+  /** The notion's one card. */
+  const card = () => element.querySelector<HTMLElement>('section.concept-card')!;
+  /** A language's principal pair: its main question and answer. */
+  const pair = (code: string) =>
+    element.querySelector<HTMLElement>(`.pairs > li[data-lang="${code}"]`)!;
+  const tab = (code: string) =>
+    element.querySelector<HTMLElement>(`[role="tab"][data-lang="${code}"]`)!;
+  /** A language's tab panel — its variants — hidden unless its tab is selected. */
+  const panel = (code: string) =>
+    element.querySelector<HTMLElement>(`[role="tabpanel"][data-lang="${code}"]`)!;
   const header = () => element.querySelector<HTMLElement>('header')!;
   /** A button by its accessible name: its aria-label, or else its text. */
   const buttonNamed = (name: string, scope: ParentNode = element) =>
@@ -88,6 +96,11 @@ export async function renderConcept({
   };
   const click = async (name: string, scope?: ParentNode) => {
     button(name, scope).click();
+    await settle();
+  };
+  /** Selects a language's tab, as a click would. */
+  const select = async (code: string) => {
+    tab(code).click();
     await settle();
   };
   /** Presses a button of the open modal. */
@@ -124,7 +137,11 @@ export async function renderConcept({
     recorder,
     fixture,
     element,
-    section,
+    card,
+    pair,
+    tab,
+    panel,
+    select,
     header,
     buttonNamed,
     button,
