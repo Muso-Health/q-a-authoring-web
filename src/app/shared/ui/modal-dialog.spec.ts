@@ -159,12 +159,42 @@ describe('ModalDialog', () => {
     const pane = () => document.querySelector<HTMLElement>('.muso-dialog-pane')!;
     const backdrop = () => document.querySelector<HTMLElement>('.cdk-overlay-backdrop');
 
-    it('fades in on open, and fades out before it leaves the page', async () => {
+    /** Frames are run by hand, so the state before and after the next frame can be seen. */
+    function holdFrames() {
+      const frames: FrameRequestCallback[] = [];
+      vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+      return () => frames.splice(0).forEach((callback) => callback(performance.now()));
+    }
+    const transitionEnd = () => {
+      const event = new Event('transitionend');
+      Object.defineProperty(event, 'propertyName', { value: 'opacity' });
+      pane().dispatchEvent(event);
+    };
+
+    it('mounts hidden, and turns open on the next frame so the browser animates it', async () => {
       prefersReducedMotion(false);
-      const { fixture, host, opener, open, settle } = await render();
+      const nextFrame = holdFrames();
+      const { open } = await render();
 
       await open();
-      expect(pane().classList).toContain('muso-dialog-enter');
+      expect(pane().classList).toContain('muso-dialog-animated');
+      expect(pane().classList).not.toContain('muso-dialog-open');
+      expect(backdrop()?.classList).not.toContain('muso-dialog-open');
+
+      nextFrame();
+      expect(pane().classList).toContain('muso-dialog-open');
+      expect(backdrop()?.classList).toContain('muso-dialog-open');
+    });
+
+    it('plays its leave transition, panel and backdrop, before it leaves the page', async () => {
+      prefersReducedMotion(false);
+      const nextFrame = holdFrames();
+      const { fixture, host, opener, open, settle } = await render();
+      await open();
+      nextFrame();
 
       escape();
       fixture.detectChanges();
@@ -172,33 +202,38 @@ describe('ModalDialog', () => {
       expect(host.dismissals).toBe(1);
       expect(dialog()).not.toBeNull();
       expect(pane().classList).toContain('muso-dialog-leave');
-      expect(pane().classList).not.toContain('muso-dialog-enter');
-      expect(backdrop()?.classList).toContain('muso-dialog-backdrop-leave');
+      expect(pane().classList).not.toContain('muso-dialog-open');
+      expect(backdrop()?.classList).not.toContain('muso-dialog-open');
 
+      transitionEnd();
       await settle();
       expect(dialog()).toBeNull();
       expect(document.activeElement).toBe(opener);
     });
 
-    it('also fades out when its owner closes it', async () => {
+    it('leaves the page anyway if the transition never reports its end', async () => {
       prefersReducedMotion(false);
+      const nextFrame = holdFrames();
       const { fixture, open, settle } = await render();
       await open();
+      nextFrame();
 
       dialog()!.querySelector<HTMLButtonElement>('.last')!.click();
       fixture.detectChanges();
       expect(pane().classList).toContain('muso-dialog-leave');
+      expect(dialog()).not.toBeNull();
 
       await settle();
       expect(dialog()).toBeNull();
     });
 
-    it('neither fades in nor out when the user prefers reduced motion', async () => {
+    it('appears and goes at once when the user prefers reduced motion', async () => {
       prefersReducedMotion(true);
       const { fixture, open } = await render();
 
       await open();
-      expect(pane().classList).not.toContain('muso-dialog-enter');
+      expect(pane().classList).not.toContain('muso-dialog-animated');
+      expect(backdrop()?.classList).toContain('muso-dialog-open');
 
       escape();
       fixture.detectChanges();
