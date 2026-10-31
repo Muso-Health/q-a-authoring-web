@@ -1,6 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { ApiPort } from '../api/api-port';
 import type { Schemas } from '../api/api-types';
+import type { Language } from '../catalog/catalog.model';
 
 /** What a project, protocol or theme is edited by. A null description is none, or clears it. */
 export interface NamedDraft {
@@ -70,6 +71,29 @@ export class CatalogAdminApi {
   /** Lets the project's content use a catalogue language; adding one it has changes nothing. */
   async addProjectLanguage(projectId: string, languageId: string): Promise<void> {
     await this.#api.put(at('/projects', projectId, 'languages', languageId), undefined);
+  }
+
+  /**
+   * Lets the project's content use the code-switching language mixing its base language with
+   * one of its other languages: created in the catalogue, or the one already mixing that pair
+   * reused, then added to the project.
+   */
+  async addCodeSwitchingLanguage(
+    projectId: string,
+    base: Language,
+    other: Language,
+  ): Promise<void> {
+    const body: Schemas['CreateCodeSwitchingLanguageRequest'] = {
+      code: `${base.code}_${other.code}`,
+      name: `${base.name} + ${other.name}`,
+      language_a_id: base.id,
+      language_b_id: other.id,
+    };
+    const language = await this.#api.post<Schemas['LanguageResponse']>(
+      '/languages/code-switching',
+      body,
+    );
+    await this.addProjectLanguage(projectId, language.id);
   }
 
   /** Refused for the base language, and while the project's content uses the language. */

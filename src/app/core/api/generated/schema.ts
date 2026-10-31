@@ -209,6 +209,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/languages/code-switching": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Code Switching Language
+         * @description Register the code-switching language mixing two catalogue languages: 201 when created,
+         *     200 with the existing one when that pair (in either order) already has one. 404
+         *     ``language_not_found`` for an unknown component; 422 ``invalid_code_switching_components``
+         *     unless they are two distinct simple languages; 409 if the code is taken.
+         */
+        post: operations["create_code_switching_language_languages_code_switching_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/languages/{language_id}": {
         parameters: {
             query?: never;
@@ -1768,6 +1791,23 @@ export interface components {
             /** Without */
             without: number;
         };
+        /** CreateCodeSwitchingLanguageRequest */
+        CreateCodeSwitchingLanguageRequest: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Language A Id
+             * Format: uuid
+             */
+            language_a_id: string;
+            /**
+             * Language B Id
+             * Format: uuid
+             */
+            language_b_id: string;
+        };
         /** CreateGlossaryTermRequest */
         CreateGlossaryTermRequest: {
             /** Label */
@@ -2051,7 +2091,11 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** LanguageResponse */
+        /**
+         * LanguageResponse
+         * @description ``kind`` is ``simple`` or ``code_switching``; a code-switching language lists its two
+         *     component languages (in id order), a simple one none.
+         */
         LanguageResponse: {
             /**
              * Id
@@ -2062,6 +2106,10 @@ export interface components {
             code: string;
             /** Name */
             name: string;
+            /** Kind */
+            kind: string;
+            /** Component Language Ids */
+            component_language_ids: string[];
         };
         /**
          * LanguageStatisticsResponse
@@ -3055,6 +3103,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RegisterLanguageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LanguageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_code_switching_language_languages_code_switching_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCodeSwitchingLanguageRequest"];
             };
         };
         responses: {

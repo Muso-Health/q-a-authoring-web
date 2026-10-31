@@ -557,7 +557,19 @@
       "none": "Toutes les langues du catalogue sont déjà dans ce projet.",
       "remove": "Retirer",
       "removeName": "Retirer la langue {{language}} du projet",
-      "removeWarning": "Retirer {{language}} des langues du projet ?"
+      "removeWarning": "Retirer {{language}} des langues du projet ?",
+      "codeSwitching": {
+        "action": "Langue en code-switching",
+        "title": "Ajouter une langue en code-switching",
+        "lead": "Une langue en code-switching mêle la langue de base du projet à une autre de ses langues. Elle s’ajoute ensuite comme toute autre langue du projet.",
+        "base": "Langue de base",
+        "other": "Autre langue",
+        "choose": "Choisir une langue du projet…",
+        "required": "Choisissez une autre langue.",
+        "submit": "Ajouter",
+        "cancel": "Annuler",
+        "badge": "code-switching"
+      }
     },
     "voices": {
       "title": "Voix",
@@ -723,7 +735,13 @@
       "voiceNotFound": "Cette voix n’existe plus : la page a été actualisée.",
       "baseLanguageNotRemovable": "La langue de base du projet ne peut pas être retirée.",
       "languageInUseInProject": "Le contenu du projet utilise encore cette langue : elle ne peut pas être retirée.",
-      "projectLanguageNotFound": "Cette langue avait déjà été retirée du projet : la page a été actualisée."
+      "projectLanguageNotFound": "Cette langue avait déjà été retirée du projet : la page a été actualisée.",
+      "languageIsCodeSwitchingComponent": "Une langue en code-switching du projet mêle cette langue : retirez-la d’abord.",
+      "codeSwitchingLanguageExists": "Une langue en code-switching mêle déjà ces deux langues : réessayez pour la réutiliser.",
+      "invalidCodeSwitchingComponents": "Une langue en code-switching mêle deux langues distinctes, qui ne sont pas elles-mêmes en code-switching.",
+      "codeSwitchingComponentsNotInProject": "Les deux langues mêlées doivent être des langues du projet.",
+      "codeSwitchingWithoutBaseLanguage": "Une langue en code-switching mêle la langue de base du projet à une autre de ses langues.",
+      "codeSwitchingBaseLanguage": "Une langue en code-switching ne peut pas être la langue de base d’un projet."
     }
   },
   "dialog": {

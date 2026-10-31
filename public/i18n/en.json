@@ -557,7 +557,19 @@
       "none": "Every catalogue language is already in this project.",
       "remove": "Remove",
       "removeName": "Remove the language {{language}} from the project",
-      "removeWarning": "Remove {{language}} from the project's languages?"
+      "removeWarning": "Remove {{language}} from the project's languages?",
+      "codeSwitching": {
+        "action": "Code-switching language",
+        "title": "Add a code-switching language",
+        "lead": "A code-switching language mixes the project’s base language with one of its other languages. It is then added like any other project language.",
+        "base": "Base language",
+        "other": "Other language",
+        "choose": "Choose a project language…",
+        "required": "Choose another language.",
+        "submit": "Add",
+        "cancel": "Cancel",
+        "badge": "code-switching"
+      }
     },
     "voices": {
       "title": "Voices",
@@ -723,7 +735,13 @@
       "voiceNotFound": "This voice no longer exists: the page has been refreshed.",
       "baseLanguageNotRemovable": "The project's base language cannot be removed.",
       "languageInUseInProject": "The project's content still uses this language: it cannot be removed.",
-      "projectLanguageNotFound": "This language had already been removed from the project: the page has been refreshed."
+      "projectLanguageNotFound": "This language had already been removed from the project: the page has been refreshed.",
+      "languageIsCodeSwitchingComponent": "A code-switching language of the project mixes this language: remove it first.",
+      "codeSwitchingLanguageExists": "A code-switching language already mixes these two languages: try again to reuse it.",
+      "invalidCodeSwitchingComponents": "A code-switching language mixes two distinct languages that are not code-switching themselves.",
+      "codeSwitchingComponentsNotInProject": "Both mixed languages must be languages of the project.",
+      "codeSwitchingWithoutBaseLanguage": "A code-switching language mixes the project’s base language with one of its other languages.",
+      "codeSwitchingBaseLanguage": "A code-switching language cannot be a project’s base language."
     }
   },
   "dialog": {
