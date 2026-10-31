@@ -94,7 +94,12 @@ describe('ConceptPage card', () => {
       expect(text(pair(code).querySelector('.untranslated'))).toBe('Pas encore de traduction');
       expect(pair(code).querySelector('[role="alert"], .field-error')).toBeNull();
     }
-    expect(names(pair('ff'))).toEqual(['Traduire la notion en Peul']);
+    // Both ways in, side by side: the machine's, or the author's own answer.
+    expect(names(pair('ff'))).toEqual(['Traduire la notion en Peul', 'Saisir la réponse en Peul']);
+    expect([...pair('ff').querySelectorAll('button')].map((b) => text(b))).toEqual([
+      'Traduire',
+      'Saisir la réponse',
+    ]);
     // Bambara has its QASet already: its answer stays, under the placeholder.
     expect(text(pair('bm').querySelector('.answer .text'))).not.toBe('');
     expect(pair('ff').querySelector('.answer')).toBeNull();
@@ -214,22 +219,29 @@ describe('ConceptPage card', () => {
       expect(text(panel('bm'))).toContain('Aucune variante dans cette langue.');
     });
 
-    it('adds and generates variants from inside each translated language’s tab', async () => {
-      const { panel, button } = await render();
+    it('adds variants in each translated language’s tab, generates them only in the base’s', async () => {
+      const { panel, button, buttonNamed } = await render();
 
       for (const code of ['fr', 'bm', 'en']) {
         expect(() => button('Ajouter une variante', panel(code))).not.toThrow();
-        expect(() => button('Générer des variantes', panel(code))).not.toThrow();
+      }
+      expect(() => button('Générer des variantes', panel('fr'))).not.toThrow();
+      for (const code of ['bm', 'en', 'ff']) {
+        expect(buttonNamed('Générer des variantes', panel(code))).toBeUndefined();
       }
       expect(panel('ff').querySelector('app-qaset-section')).toBeNull();
     });
 
-    it('shows the placeholder, with « Traduire », in an untranslated language’s tab', async () => {
+    it('shows the placeholder, with « Traduire » and « Saisir la réponse », in an untranslated language’s tab', async () => {
       const { api, panel, select, click, submit, inDialog } = await render();
 
       await select('ff');
       expect(text(panel('ff').querySelector('.untranslated'))).toBe('Pas encore de traduction');
       expect(panel('ff').querySelector('ol.variants')).toBeNull();
+      expect(names(panel('ff'))).toEqual([
+        'Traduire la notion en Peul',
+        'Saisir la réponse en Peul',
+      ]);
       await click('Traduire la notion en Peul', panel('ff'));
       await submit(inDialog<HTMLFormElement>('form')!);
 

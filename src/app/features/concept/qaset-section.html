@@ -9,11 +9,11 @@
   }
   @if (editor.canAuthor() && !s.isBase) {
     <app-confirm-action
-      [label]="'authoring.removeLanguage.label' | transloco"
-      [accessibleName]="'authoring.removeLanguage.name' | transloco: { language: lang.name }"
-      [warning]="'authoring.removeLanguage.warning' | transloco: { language: lang.name }"
+      [label]="'authoring.deleteTranslation.label' | transloco"
+      [accessibleName]="'authoring.deleteTranslation.name' | transloco: { language: lang.name }"
+      [warning]="'authoring.deleteTranslation.warning' | transloco: { language: lang.name }"
       [busy]="editor.busy()"
-      (confirmed)="editor.removeLanguage(s.id)"
+      (confirmed)="editor.deleteTranslation(s.id)"
     />
   }
 </div>
@@ -70,16 +70,19 @@
         >
           {{ 'authoring.addVariant' | transloco }}
         </button>
-        <button
-          type="button"
-          class="secondary"
-          [appFocusReturn]="'generate:' + s.id"
-          [disabled]="editor.busy()"
-          (click)="generating.set(true)"
-        >
-          <app-icon name="generate" />
-          {{ 'authoring.generate.open' | transloco }}
-        </button>
+        <!-- Generating paraphrases starts from the base language only. -->
+        @if (s.isBase) {
+          <button
+            type="button"
+            class="secondary"
+            [appFocusReturn]="'generate:' + s.id"
+            [disabled]="editor.busy()"
+            (click)="generating.set(true)"
+          >
+            <app-icon name="generate" />
+            {{ 'authoring.generate.open' | transloco }}
+          </button>
+        }
       </div>
     }
   </div>

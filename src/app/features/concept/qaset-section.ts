@@ -12,8 +12,8 @@ import { VariantItem } from './variant-item';
 
 /**
  * One language's QASet, as its tab shows it: its validation state, its counts, and its question
- * variants past the main one — each with its tools (`VariantItem`) — then adding a variant, or
- * generating some.
+ * variants past the main one — each with its tools (`VariantItem`) — then adding a variant, or,
+ * in the base language only, generating some.
  */
 @Component({
   selector: 'app-qaset-section',
