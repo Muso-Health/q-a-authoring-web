@@ -2,6 +2,7 @@ import { engineError } from '../../../core/api/testing/fake-api-port';
 import {
   IDS,
   LANGUAGES,
+  ME_AUTHOR,
   PROJECT_LANGUAGES,
   world,
 } from '../../../core/catalog/testing/catalog-fixtures';
@@ -10,8 +11,16 @@ import { ProjectLanguages } from './project-languages';
 
 const LANGUAGES_PATH = `/projects/${IDS.project}/languages`;
 
+/** Manages the catalogue and the languages: every action of the section is offered. */
+const LANGUAGE_MANAGER = { ...ME_AUTHOR, permissions: ['manage_catalog', 'manage_languages'] };
+const CATALOG_MANAGER = { ...ME_AUTHOR, permissions: ['manage_catalog'] };
+
 const render = (answers: Record<string, unknown> = {}) =>
-  renderAdmin(ProjectLanguages, { ...world(), ...answers }, { projectId: IDS.project });
+  renderAdmin(
+    ProjectLanguages,
+    { ...world(), '/me': LANGUAGE_MANAGER, ...answers },
+    { projectId: IDS.project },
+  );
 
 const rows = (element: HTMLElement) => [
   ...element.querySelectorAll<HTMLElement>('li.project-language'),
@@ -145,6 +154,14 @@ describe('ProjectLanguages', () => {
       const { buttonNamed } = await render();
 
       expect(buttonNamed(ACTION)).toBeDefined();
+    });
+
+    it('does not offer it to a user without manage_languages, even one managing the catalogue', async () => {
+      const { buttonNamed, element } = await render({ '/me': CATALOG_MANAGER });
+
+      expect(buttonNamed(ACTION)).toBeUndefined();
+      expect(element.querySelector('form.add')).not.toBeNull();
+      expect(buttonNamed('Retirer la langue Bambara du projet')).toBeDefined();
     });
 
     it('does not offer it while the project has only its base language', async () => {

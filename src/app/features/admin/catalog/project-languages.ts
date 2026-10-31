@@ -1,5 +1,6 @@
 import { Component, computed, inject, input, resource, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CurrentUser, MANAGE_LANGUAGES } from '../../../core/access/current-user';
 import { CatalogAdminApi } from '../../../core/admin/catalog-admin-api';
 import { CatalogApi } from '../../../core/catalog/catalog-api';
 import type { Language } from '../../../core/catalog/catalog.model';
@@ -17,7 +18,7 @@ let nextId = 0;
 /**
  * The languages a project's content may use: its base language first, fixed; others added from
  * the catalogue, and removed while nothing in the project uses them. Once it has two, a
- * code-switching language — its base mixed with one of the others — can be added too.
+ * code-switching language — its base mixed with one of the others — can be added too, by whoever also manages the languages.
  */
 @Component({
   selector: 'app-project-languages',
@@ -64,7 +65,7 @@ let nextId = 0;
           }
         </ul>
         @if (base(); as base) {
-          @if (page.value().languages.length >= 2) {
+          @if (canManageLanguages() && page.value().languages.length >= 2) {
             <div class="code-switching-action">
               <button
                 type="button"
@@ -195,6 +196,8 @@ export class ProjectLanguages {
   protected readonly id = `project-languages-${nextId++}`;
   protected readonly addTarget = ADD;
   protected readonly codeSwitchingTarget = CODE_SWITCHING;
+  /** Creating the composite language is the catalogue of languages' business, not the project's. */
+  protected readonly canManageLanguages = inject(CurrentUser).can(MANAGE_LANGUAGES);
 
   readonly projectId = input.required<string>();
 
