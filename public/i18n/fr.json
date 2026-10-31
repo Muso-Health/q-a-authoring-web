@@ -223,7 +223,9 @@
       "heading": "Traduire la notion",
       "open": "Traduire la notion",
       "lead": "La réponse et toutes les variantes de la langue de base sont traduites. Une langue déjà présente est mise à jour : sa réponse est remplacée et les variantes manquantes sont ajoutées.",
+      "missingLead": "La réponse et toutes les variantes de la langue de base sont traduites dans la langue choisie, qui rejoint la notion.",
       "none": "Le projet n’a pas d’autre langue que sa langue de base.",
+      "complete": "Toutes les langues du projet sont déjà présentes",
       "noBase": "Cette notion n’a pas encore de réponse dans la langue de base du projet : il n’y a rien à traduire."
     },
     "pairs": {
