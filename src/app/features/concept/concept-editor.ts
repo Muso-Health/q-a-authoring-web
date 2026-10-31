@@ -109,6 +109,21 @@ export class ConceptEditor {
   );
   readonly loadError = computed(() => this.#detail.error() ?? this.#context.error());
 
+  /**
+   * One row per project language, simple or code-switching alike: its QASet's section, or none
+   * while it is untranslated. The concept's sections come first, base first; then the rest of the
+   * project's languages in the project's order.
+   */
+  readonly coverage = computed(() => {
+    const view = this.view();
+    if (!view) return [];
+    const missing = this.missingLanguages().map((language) => ({ language, section: null }));
+    return [
+      ...view.sections.map((section) => ({ language: section.language, section })),
+      ...missing,
+    ];
+  });
+
   /** Project languages the concept has no QASet in yet. */
   readonly missingLanguages = computed(() => {
     const view = this.view();

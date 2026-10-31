@@ -142,6 +142,7 @@ describe('ConceptPage', () => {
       'Français 3 2 Oui',
       'English 1 0 Non',
       'Bambara 0 0 Oui',
+      'Peul Pas encore de traduction',
     ]);
   });
 
