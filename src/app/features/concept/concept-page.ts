@@ -94,12 +94,18 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
             </tr>
           </thead>
           <tbody>
-            @for (s of view.sections; track s.id) {
+            @for (row of editor.coverage(); track row.language.id) {
               <tr>
-                <th scope="row">{{ s.language.name }}</th>
-                <td>{{ s.counts.variants }}</td>
-                <td>{{ s.counts.variantsWithAudio }}</td>
-                <td>{{ (s.counts.answerHasAudio ? 'concept.yes' : 'concept.no') | transloco }}</td>
+                <th scope="row">{{ row.language.name }}</th>
+                @if (row.section; as s) {
+                  <td>{{ s.counts.variants }}</td>
+                  <td>{{ s.counts.variantsWithAudio }}</td>
+                  <td>
+                    {{ (s.counts.answerHasAudio ? 'concept.yes' : 'concept.no') | transloco }}
+                  </td>
+                } @else {
+                  <td colspan="3" class="untranslated">{{ 'concept.untranslated' | transloco }}</td>
+                }
               </tr>
             }
           </tbody>
@@ -177,6 +183,10 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     }
     .translate-concept {
       margin-block-start: var(--muso-space-3);
+    }
+    td.untranslated {
+      color: var(--muted-fg);
+      font-style: italic;
     }
     caption {
       text-align: start;
