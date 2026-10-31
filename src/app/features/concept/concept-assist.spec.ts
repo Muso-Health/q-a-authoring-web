@@ -1,5 +1,10 @@
 import { engineError } from '../../core/api/testing/fake-api-port';
-import { CONCEPT, IDS, ME_READER } from '../../core/catalog/testing/catalog-fixtures';
+import {
+  CONCEPT,
+  IDS,
+  ME_READER,
+  PROJECT_LANGUAGES,
+} from '../../core/catalog/testing/catalog-fixtures';
 import { C, renderConcept as render, text } from './testing/render-concept';
 
 const FR = `/qasets/${IDS.qasetFr}`;
@@ -28,17 +33,45 @@ describe('ConceptPage engine assistance', () => {
     const panel = (element: HTMLElement) =>
       element.querySelector<HTMLElement>('.translate-concept')!;
 
-    it('offers every project language but the base one — absent ones are created, present ones updated', async () => {
+    it('offers only the project languages the concept is missing, none already present', async () => {
       const { element, click } = await render();
 
       await click('Traduire la notion');
 
-      expect(options(panel(element).querySelector('select')!)).toEqual([
-        'Bambara',
-        'English',
-        'Peul',
-      ]);
-      expect(text(panel(element))).toContain('Une langue déjà présente est mise à jour');
+      // French (base), Bambara and English are present: only Peul is missing.
+      const choices = options(panel(element).querySelector('select')!);
+      expect(choices).toEqual(['Peul']);
+      for (const present of ['Français', 'Bambara', 'English']) {
+        expect(choices).not.toContain(present);
+      }
+      expect(text(panel(element))).not.toContain('Une langue déjà présente est mise à jour');
+    });
+
+    it('is disabled, and says why, once every project language is present', async () => {
+      const complete = {
+        items: PROJECT_LANGUAGES.items.filter((l) => l.language_id !== IDS.ff),
+      };
+      const { element, button } = await render({
+        answers: { [`/projects/${IDS.project}/languages`]: complete },
+      });
+
+      const open = button('Traduire la notion', panel(element));
+      expect(open.disabled).toBe(true);
+      const hint = document.getElementById(open.getAttribute('aria-describedby')!);
+      expect(text(hint)).toBe('Toutes les langues du projet sont déjà présentes');
+      expect(panel(element).querySelector('form')).toBeNull();
+    });
+
+    it('says why in English too', async () => {
+      const complete = {
+        items: PROJECT_LANGUAGES.items.filter((l) => l.language_id !== IDS.ff),
+      };
+      const { element } = await render({
+        answers: { [`/projects/${IDS.project}/languages`]: complete },
+        language: 'en',
+      });
+
+      expect(text(panel(element))).toContain('All project languages are already present');
     });
 
     it('lets the author choose the engine, LLM by default', async () => {

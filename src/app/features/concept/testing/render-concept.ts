@@ -43,6 +43,7 @@ export interface RenderOptions {
   readonly me?: Schemas['MeResponse'];
   readonly answers?: Record<string, unknown>;
   readonly prepare?: (recorder: FakeRecorder) => void;
+  readonly language?: 'fr' | 'en';
 }
 
 /** The concept page over the fixture world, attached so focus can be asserted. */
@@ -50,6 +51,7 @@ export async function renderConcept({
   me = ME_AUTHOR,
   answers = {},
   prepare = () => undefined,
+  language = 'fr',
 }: RenderOptions = {}) {
   // Modals trap focus, and the CDK only counts laid-out elements as focusable.
   fakeLayout();
@@ -59,7 +61,7 @@ export async function renderConcept({
   TestBed.configureTestingModule({
     imports: [ConceptPage],
     providers: [
-      provideTestI18n(),
+      provideTestI18n(language),
       provideRouter([]),
       { provide: ApiPort, useValue: api },
       { provide: RecorderPort, useValue: recorder },

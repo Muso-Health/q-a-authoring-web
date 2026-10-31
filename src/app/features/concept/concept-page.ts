@@ -117,24 +117,32 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
             <p class="muso-meta">{{ 'authoring.translateConcept.noBase' | transloco }}</p>
           } @else if (editor.conceptTargets().length === 0) {
             <p class="muso-meta">{{ 'authoring.translateConcept.none' | transloco }}</p>
-          } @else if (translating()) {
-            <p class="muso-meta">{{ 'authoring.translateConcept.lead' | transloco }}</p>
+          } @else if (translating() && editor.missingLanguages().length > 0) {
+            <!-- Only into a language the notion lacks: a present one is translated from its tab. -->
+            <p class="muso-meta">{{ 'authoring.translateConcept.missingLead' | transloco }}</p>
             <app-translate-form
-              [languages]="editor.conceptTargets()"
+              [languages]="editor.missingLanguages()"
               [busy]="editor.busy()"
               [error]="editor.errorFor('translate-concept')"
               (submitted)="translateConcept($event)"
               (cancel)="closeTranslate()"
             />
           } @else {
+            @let complete = editor.missingLanguages().length === 0;
             <button
               type="button"
               appFocusReturn="translate-concept"
-              [disabled]="editor.busy()"
+              [disabled]="editor.busy() || complete"
+              [attr.aria-describedby]="complete ? 'translate-concept-complete' : null"
               (click)="translating.set(true)"
             >
               {{ 'authoring.translateConcept.open' | transloco }}
             </button>
+            @if (complete) {
+              <p id="translate-concept-complete" class="muso-meta">
+                {{ 'authoring.translateConcept.complete' | transloco }}
+              </p>
+            }
           }
         </section>
       }

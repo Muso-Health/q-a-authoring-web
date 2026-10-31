@@ -223,7 +223,9 @@
       "heading": "Translate the concept",
       "open": "Translate the concept",
       "lead": "The base-language answer and every variant are translated. A language already present is updated: its answer is replaced and missing variants are added.",
+      "missingLead": "The base-language answer and every variant are translated into the chosen language, which joins the concept.",
       "none": "The project has no language other than its base language.",
+      "complete": "All project languages are already present",
       "noBase": "This concept has no answer in the project's base language yet: there is nothing to translate."
     },
     "pairs": {
