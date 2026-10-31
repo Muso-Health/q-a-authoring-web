@@ -749,5 +749,46 @@
       "edit": "Modifier la réponse ({{ language }})",
       "audio": "Gérer l’audio de la réponse ({{ language }})"
     }
+  },
+  "dashboard": {
+    "heading": "Tableau de bord",
+    "empty": "Ce projet n’a encore aucune notion : les graphiques se rempliront au fil de la rédaction.",
+    "counts": {
+      "protocols": "Protocoles",
+      "themes": "Thèmes",
+      "concepts": "Notions"
+    },
+    "complete": "Complet",
+    "notComplete": "Incomplet",
+    "metric": {
+      "audio": "Audio",
+      "validatedAudio": "Audio validé",
+      "clinical": "Validation clinique",
+      "translation": "Validation de la traduction"
+    },
+    "completeness": {
+      "heading": "Complétude par langue",
+      "lead": "Pour chaque langue, la part de ses notions présentes qui sont complètes.",
+      "present": "Notions présentes : {{ count }}",
+      "chart": "Complétude — {{ language }}",
+      "metric": "Critère",
+      "empty": "Aucune notion dans cette langue pour l’instant."
+    },
+    "coverage": {
+      "heading": "Couverture des notions",
+      "empty": "Aucune notion à couvrir pour l’instant.",
+      "intent": {
+        "title": "Intentions",
+        "chart": "Couverture par intention",
+        "with": "Avec intention",
+        "without": "Sans intention"
+      },
+      "category": {
+        "title": "Catégories",
+        "chart": "Couverture par catégorie",
+        "with": "Avec catégorie",
+        "without": "Sans catégorie"
+      }
+    }
   }
 }

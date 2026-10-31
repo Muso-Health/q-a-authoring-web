@@ -318,6 +318,16 @@ $font-icon: 'Material Symbols Outlined';
   // The gap between two stacked segments: a sliver of the surface, so a boundary is a boundary
   // and not a colour change somebody has to trust their eyes on.
   --muso-data-gap: 2px;
+  // What the dashboard's charts read, through the chart adapter: complete is the charte's first data
+  // hue, not complete its residual (hatched besides, never told apart by colour alone). Built on the
+  // surface and text tokens, so a re-seeded or dark palette carries the charts with it; the charts
+  // redraw when the colour scheme changes.
+  --chart-complete: var(--muso-data-gross);
+  --chart-incomplete: var(--muso-data-residual);
+  --chart-text: var(--muso-text);
+  --chart-muted: var(--muso-text-muted);
+  --chart-surface: var(--muso-surface);
+  --chart-grid: var(--card-border);
 }
 
 // ── The compact end of the range ──────────────────────────────────────────────────────────────

@@ -4,10 +4,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CatalogApi } from '../../core/catalog/catalog-api';
 import { Breadcrumb } from '../../shared/ui/breadcrumb';
 import { LoadError, Loading } from '../../shared/ui/load-state';
+import { ProjectDashboard } from './project-dashboard';
 
 @Component({
   selector: 'app-project-page',
-  imports: [RouterLink, TranslocoPipe, Breadcrumb, Loading, LoadError],
+  imports: [RouterLink, TranslocoPipe, Breadcrumb, Loading, LoadError, ProjectDashboard],
   template: `
     @if (page.hasValue()) {
       @let p = page.value();
@@ -21,6 +22,7 @@ import { LoadError, Loading } from '../../shared/ui/load-state';
           p.baseLanguage.code
         }})
       </p>
+      <app-project-dashboard [projectId]="p.project.id" />
       <section aria-labelledby="protocols-heading">
         <h2 id="protocols-heading">{{ 'browse.project.protocols' | transloco }}</h2>
         @if (p.protocols.length === 0) {

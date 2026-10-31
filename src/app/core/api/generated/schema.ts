@@ -281,6 +281,29 @@ export interface paths {
         patch: operations["update_project_projects__project_id__patch"];
         trace?: never;
     };
+    "/projects/{project_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Stats
+         * @description Dashboard figures: protocol, theme and concept counts; per project language (base
+         *     first) the concepts present in it and how many are complete for audio, validated audio and
+         *     validation (clinical in the base language, translation otherwise); and how many concepts
+         *     carry an intent / a category.
+         */
+        get: operations["get_project_stats_projects__project_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{project_id}/languages": {
         parameters: {
             query?: never;
@@ -1680,6 +1703,18 @@ export interface components {
             /** Uncovered Notions */
             uncovered_notions: string[];
         };
+        /** CompletionResponse */
+        CompletionResponse: {
+            /** Complete */
+            complete: number;
+            /** Not Complete */
+            not_complete: number;
+        };
+        /** ConceptCoverageResponse */
+        ConceptCoverageResponse: {
+            intent: components["schemas"]["CoverageResponse"];
+            category: components["schemas"]["CoverageResponse"];
+        };
         /**
          * ConceptResponse
          * @description A concept: its QA sets (one per language, in creation order), and the intents and
@@ -1722,6 +1757,16 @@ export interface components {
         ConceptsResponse: {
             /** Items */
             items: components["schemas"]["ConceptSummaryResponse"][];
+        };
+        /**
+         * CoverageResponse
+         * @description Concepts with at least one, and without any.
+         */
+        CoverageResponse: {
+            /** With */
+            with: number;
+            /** Without */
+            without: number;
         };
         /** CreateGlossaryTermRequest */
         CreateGlossaryTermRequest: {
@@ -2018,6 +2063,29 @@ export interface components {
             /** Name */
             name: string;
         };
+        /**
+         * LanguageStatisticsResponse
+         * @description ``present``: the concepts with a QA set in this language; each metric splits them into
+         *     complete and not complete.
+         */
+        LanguageStatisticsResponse: {
+            /**
+             * Language Id
+             * Format: uuid
+             */
+            language_id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Is Base */
+            is_base: boolean;
+            /** Present */
+            present: number;
+            audio_complete: components["schemas"]["CompletionResponse"];
+            audio_validated_complete: components["schemas"]["CompletionResponse"];
+            validation_complete: components["schemas"]["CompletionResponse"];
+        };
         /** LanguagesResponse */
         LanguagesResponse: {
             /** Items */
@@ -2070,6 +2138,15 @@ export interface components {
              */
             expires_at: string;
         };
+        /** ProjectCountsResponse */
+        ProjectCountsResponse: {
+            /** Protocols */
+            protocols: number;
+            /** Themes */
+            themes: number;
+            /** Concepts */
+            concepts: number;
+        };
         /** ProjectLanguageResponse */
         ProjectLanguageResponse: {
             /**
@@ -2118,6 +2195,18 @@ export interface components {
              * Format: uuid
              */
             base_language_id: string;
+        };
+        /** ProjectStatsResponse */
+        ProjectStatsResponse: {
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            counts: components["schemas"]["ProjectCountsResponse"];
+            /** Languages */
+            languages: components["schemas"]["LanguageStatisticsResponse"][];
+            coverage: components["schemas"]["ConceptCoverageResponse"];
         };
         /** ProjectsResponse */
         ProjectsResponse: {
@@ -3219,6 +3308,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_stats_projects__project_id__stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectStatsResponse"];
                 };
             };
             /** @description Validation Error */
