@@ -38,11 +38,11 @@ export const IDS = {
 
 export const LANGUAGES: Schemas['LanguagesResponse'] = {
   items: [
-    { id: IDS.bm, code: 'bm', name: 'Bambara' },
-    { id: IDS.en, code: 'en', name: 'English' },
-    { id: IDS.fr, code: 'fr', name: 'Français' },
-    { id: IDS.ff, code: 'ff', name: 'Peul' },
-    { id: IDS.wo, code: 'wo', name: 'Wolof' },
+    { id: IDS.bm, code: 'bm', name: 'Bambara', kind: 'simple', component_language_ids: [] },
+    { id: IDS.en, code: 'en', name: 'English', kind: 'simple', component_language_ids: [] },
+    { id: IDS.fr, code: 'fr', name: 'Français', kind: 'simple', component_language_ids: [] },
+    { id: IDS.ff, code: 'ff', name: 'Peul', kind: 'simple', component_language_ids: [] },
+    { id: IDS.wo, code: 'wo', name: 'Wolof', kind: 'simple', component_language_ids: [] },
   ],
 };
 

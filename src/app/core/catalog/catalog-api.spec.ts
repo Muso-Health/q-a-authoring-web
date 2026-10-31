@@ -118,6 +118,35 @@ describe('CatalogApi', () => {
     expect(api.reads.filter((path) => path === '/languages')).toHaveLength(1);
   });
 
+  it('reads a code-switching language with its two component languages', async () => {
+    const cs = 'aaaaaaaa-0000-0000-0000-0000000000c5';
+    const { catalog } = setUp({
+      ...world(),
+      '/languages': {
+        items: [
+          { id: IDS.fr, code: 'fr', name: 'Français', kind: 'simple', component_language_ids: [] },
+          {
+            id: cs,
+            code: 'bm_fr',
+            name: 'Bambara + Français',
+            kind: 'code_switching',
+            component_language_ids: [IDS.bm, IDS.fr],
+          },
+        ],
+      },
+    });
+
+    const languages = await catalog.languages();
+
+    expect(languages.of(IDS.fr).components).toBeUndefined();
+    expect(languages.of(cs)).toEqual({
+      id: cs,
+      code: 'bm_fr',
+      name: 'Bambara + Français',
+      components: [IDS.bm, IDS.fr],
+    });
+  });
+
   it('asks again for the languages after a failed read', async () => {
     const { api, catalog } = setUp({});
 

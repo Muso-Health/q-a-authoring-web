@@ -578,6 +578,48 @@
         }
       }
     },
+    "/languages/code-switching": {
+      "post": {
+        "tags": [
+          "languages"
+        ],
+        "summary": "Create Code Switching Language",
+        "description": "Register the code-switching language mixing two catalogue languages: 201 when created,\n200 with the existing one when that pair (in either order) already has one. 404\n``language_not_found`` for an unknown component; 422 ``invalid_code_switching_components``\nunless they are two distinct simple languages; 409 if the code is taken.",
+        "operationId": "create_code_switching_language_languages_code_switching_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCodeSwitchingLanguageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/languages/{language_id}": {
       "get": {
         "tags": [
@@ -5617,6 +5659,37 @@
         "title": "CoverageResponse",
         "description": "Concepts with at least one, and without any."
       },
+      "CreateCodeSwitchingLanguageRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "language_a_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language A Id"
+          },
+          "language_b_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Language B Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "language_a_id",
+          "language_b_id"
+        ],
+        "title": "CreateCodeSwitchingLanguageRequest"
+      },
       "CreateGlossaryTermRequest": {
         "properties": {
           "label": {
@@ -6304,15 +6377,30 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "component_language_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Component Language Ids"
           }
         },
         "type": "object",
         "required": [
           "id",
           "code",
-          "name"
+          "name",
+          "kind",
+          "component_language_ids"
         ],
-        "title": "LanguageResponse"
+        "title": "LanguageResponse",
+        "description": "``kind`` is ``simple`` or ``code_switching``; a code-switching language lists its two\ncomponent languages (in id order), a simple one none."
       },
       "LanguageStatisticsResponse": {
         "properties": {

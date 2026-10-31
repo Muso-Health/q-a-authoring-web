@@ -4,6 +4,8 @@ export interface Language {
   readonly id: string;
   readonly code: string;
   readonly name: string;
+  /** A code-switching language mixes these two languages (their ids); a simple one has none. */
+  readonly components?: readonly string[];
 }
 
 export interface Project {

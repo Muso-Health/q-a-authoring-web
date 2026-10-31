@@ -5,6 +5,7 @@ import {
   LanguageDirectory,
   type ConceptDetail,
   type ConceptSummary,
+  type Language,
   type Project,
   type ProjectLanguage,
   type Protocol,
@@ -51,6 +52,11 @@ const toProjectLanguage = (l: Schemas['ProjectLanguageResponse']): ProjectLangua
   name: l.name,
   isBase: l.is_base,
 });
+
+const toLanguage = (l: Schemas['LanguageResponse']): Language =>
+  l.kind === 'code_switching'
+    ? { id: l.id, code: l.code, name: l.name, components: l.component_language_ids }
+    : { id: l.id, code: l.code, name: l.name };
 
 const at = (...segments: string[]): string =>
   segments.map((segment, i) => (i % 2 === 0 ? segment : encodeURIComponent(segment))).join('/');
@@ -117,10 +123,7 @@ export class CatalogApi {
   languages(): Promise<LanguageDirectory> {
     this.#languages ??= this.#api
       .get<Schemas['LanguagesResponse']>('/languages')
-      .then(
-        ({ items }) =>
-          new LanguageDirectory(items.map(({ id, code, name }) => ({ id, code, name }))),
-      )
+      .then(({ items }) => new LanguageDirectory(items.map(toLanguage)))
       .catch((error: unknown) => {
         this.#languages = undefined;
         throw error;

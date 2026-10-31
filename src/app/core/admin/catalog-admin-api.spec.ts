@@ -94,4 +94,36 @@ describe('CatalogAdminApi', () => {
       { method: 'DELETE', path: `/projects/${IDS.project}/languages/${IDS.ff}`, body: undefined },
     ]);
   });
+
+  it('adds a code-switching language: creates (or reuses) base + other, then adds it to the project', async () => {
+    const { api, catalog } = setUp();
+    const cs = 'aaaaaaaa-0000-0000-0000-0000000000c5';
+    api.answers['POST /languages/code-switching'] = {
+      id: cs,
+      code: 'fr_bm',
+      name: 'Français + Bambara',
+      kind: 'code_switching',
+      component_language_ids: [IDS.bm, IDS.fr],
+    };
+
+    await catalog.addCodeSwitchingLanguage(
+      IDS.project,
+      { id: IDS.fr, code: 'fr', name: 'Français' },
+      { id: IDS.bm, code: 'bm', name: 'Bambara' },
+    );
+
+    expect(api.writes).toEqual([
+      {
+        method: 'POST',
+        path: '/languages/code-switching',
+        body: {
+          code: 'fr_bm',
+          name: 'Français + Bambara',
+          language_a_id: IDS.fr,
+          language_b_id: IDS.bm,
+        },
+      },
+      { method: 'PUT', path: `/projects/${IDS.project}/languages/${cs}`, body: undefined },
+    ]);
+  });
 });
