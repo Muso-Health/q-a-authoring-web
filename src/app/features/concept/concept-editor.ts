@@ -195,7 +195,8 @@ export class ConceptEditor {
     return this.#run('add-language', (c) => this.#authoring.addQASet(c, languageId, answerText));
   }
 
-  removeLanguage(qasetId: string): Promise<boolean> {
+  /** The concept's translation in one language — its QASet and all it holds; not the project's language. */
+  deleteTranslation(qasetId: string): Promise<boolean> {
     return this.#run(`language:${qasetId}`, () => this.#authoring.deleteQASet(qasetId));
   }
 

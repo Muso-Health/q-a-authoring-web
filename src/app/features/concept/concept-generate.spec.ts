@@ -104,21 +104,19 @@ describe('ConceptPage variant generation wizard', () => {
     expect(proposals()).toEqual(PROPOSALS);
   });
 
-  it('generates in each QASet’s own language', async () => {
-    const page = await render({
-      answers: {
-        [`POST /qasets/${IDS.qasetEn}/generate-variants`]: { candidates: ['Why a net?'] },
-      },
-    });
+  it('generates only from the base language: no other tab offers it', async () => {
+    const page = await render({ answers: { [GENERATE]: { candidates: PROPOSALS } } });
 
-    await page.click('Générer des variantes', page.panel('en'));
+    for (const code of ['en', 'bm', 'ff']) {
+      expect(page.buttonNamed('Générer des variantes', page.panel(code))).toBeUndefined();
+    }
+    await page.click('Générer des variantes', page.panel('fr'));
     await page.submit(inDialog<HTMLFormElement>('form')!);
 
     expect(page.api.writes.map((w) => w.path)).toEqual([
-      `/qasets/${IDS.qasetEn}/generate-variants`,
+      `/qasets/${IDS.qasetFr}/generate-variants`,
     ]);
-    expect(inDialog('.proposals')?.getAttribute('lang')).toBe('en');
-    expect(proposals()).toEqual(['Why a net?']);
+    expect(inDialog('.proposals')?.getAttribute('lang')).toBe('fr');
   });
 
   it('adds only the ticked proposals, in order, then closes onto the re-fetched QASet', async () => {

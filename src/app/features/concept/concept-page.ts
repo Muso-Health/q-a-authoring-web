@@ -4,7 +4,6 @@ import { Breadcrumb } from '../../shared/ui/breadcrumb';
 import { FocusReturn, FocusReturnTarget } from '../../shared/ui/focus-return';
 import { Translator } from '../../core/i18n/translator';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
-import { LanguageAnswerForm, type LanguageAnswer } from '../../shared/ui/language-answer-form';
 import { LoadError, Loading } from '../../shared/ui/load-state';
 import { ConceptEditor } from './concept-editor';
 import { Toolbar, type ToolbarAction } from '../../shared/ui/toolbar';
@@ -23,7 +22,6 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     TranslocoPipe,
     Breadcrumb,
     ConfirmDialog,
-    LanguageAnswerForm,
     Loading,
     LoadError,
     ConceptCard,
@@ -139,26 +137,6 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
             </button>
           }
         </section>
-
-        <section class="add-language muso-card" aria-labelledby="add-language-heading">
-          <h2 id="add-language-heading">{{ 'authoring.addLanguage.heading' | transloco }}</h2>
-          @if (editor.missingLanguages().length === 0) {
-            <p class="muso-meta">{{ 'authoring.addLanguage.none' | transloco }}</p>
-          } @else if (addingLanguage()) {
-            <app-language-answer-form
-              [languages]="editor.missingLanguages()"
-              [submitLabel]="'authoring.addLanguage.submit' | transloco"
-              [busy]="editor.busy()"
-              [error]="editor.errorFor('add-language')"
-              (submitted)="addLanguage($event)"
-              (cancel)="closeAddLanguage()"
-            />
-          } @else {
-            <button type="button" appFocusReturn="add-language" (click)="addingLanguage.set(true)">
-              {{ 'authoring.addLanguage.open' | transloco }}
-            </button>
-          }
-        </section>
       }
     } @else if (editor.loadError()) {
       <app-load-error [error]="editor.loadError()" (retry)="editor.retry()" />
@@ -189,8 +167,7 @@ import { TranslateForm, type TranslationRequest } from './translate-form';
     .muso-table-scroll {
       margin-block-end: var(--muso-space-4);
     }
-    .translate-concept,
-    .add-language {
+    .translate-concept {
       margin-block-start: var(--muso-space-3);
     }
     caption {
@@ -216,7 +193,6 @@ export class ConceptPage {
     () => this.editor.view()?.sections.find((s) => s.isBase)?.language.code ?? null,
   );
 
-  protected readonly addingLanguage = signal(false);
   protected readonly tagDialog = signal<{ kind: TagKind; mode: 'add' | 'remove' } | null>(null);
   protected readonly deletingConcept = signal(false);
 
@@ -256,10 +232,6 @@ export class ConceptPage {
     effect(() => this.editor.conceptId.set(this.conceptId()));
   }
 
-  protected async addLanguage({ languageId, answerText }: LanguageAnswer): Promise<void> {
-    if (await this.editor.addLanguage(languageId, answerText)) this.closeAddLanguage();
-  }
-
   protected async translateConcept({
     targetLanguageId,
     engine,
@@ -276,12 +248,6 @@ export class ConceptPage {
     this.deletingConcept.set(false);
     this.editor.clearError('concept');
     this.#focus.to('delete-concept');
-  }
-
-  protected closeAddLanguage(): void {
-    this.addingLanguage.set(false);
-    this.editor.clearError('add-language');
-    this.#focus.to('add-language');
   }
 
   protected closeTranslate(): void {

@@ -200,16 +200,15 @@
       "warning": "La variante {{ number }} sera supprimée. Cette action est irréversible.",
       "title": "Supprimer la variante {{ number }} ?"
     },
-    "removeLanguage": {
-      "label": "Retirer la langue",
-      "name": "Retirer la langue {{ language }}",
-      "warning": "Retirer {{ language }} supprime sa réponse et toutes ses variantes. Cette action est irréversible."
+    "deleteTranslation": {
+      "label": "Supprimer la traduction",
+      "name": "Supprimer la traduction en {{ language }}",
+      "warning": "Supprimer la traduction en {{ language }} efface sa réponse, ses variantes, leurs audios et leurs validations. La langue reste dans le projet. Cette action est irréversible."
     },
-    "addLanguage": {
-      "heading": "Ajouter une langue",
-      "open": "Ajouter une langue",
-      "submit": "Ajouter la langue",
-      "none": "Toutes les langues du projet sont déjà présentes dans cette notion."
+    "writeAnswer": {
+      "open": "Saisir la réponse",
+      "name": "Saisir la réponse en {{ language }}",
+      "submit": "Enregistrer la réponse"
     },
     "deleteConcept": {
       "label": "Supprimer la notion",

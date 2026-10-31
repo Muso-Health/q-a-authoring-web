@@ -200,16 +200,15 @@
       "warning": "Variant {{ number }} will be deleted. This cannot be undone.",
       "title": "Delete variant {{ number }}?"
     },
-    "removeLanguage": {
-      "label": "Remove the language",
-      "name": "Remove the language {{ language }}",
-      "warning": "Removing {{ language }} deletes its answer and all its variants. This cannot be undone."
+    "deleteTranslation": {
+      "label": "Delete translation",
+      "name": "Delete the {{ language }} translation",
+      "warning": "Deleting the {{ language }} translation erases its answer, its variants, their audios and their validations. The language stays in the project. This cannot be undone."
     },
-    "addLanguage": {
-      "heading": "Add a language",
-      "open": "Add a language",
-      "submit": "Add the language",
-      "none": "Every language of the project is already present in this concept."
+    "writeAnswer": {
+      "open": "Write the answer",
+      "name": "Write the answer in {{ language }}",
+      "submit": "Save the answer"
     },
     "deleteConcept": {
       "label": "Delete the concept",

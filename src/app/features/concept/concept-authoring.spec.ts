@@ -30,10 +30,11 @@ describe('ConceptPage authoring', () => {
     });
 
     it('offers the authoring actions with author_qasets', async () => {
-      const { button, buttonNamed, pair, panel, card, header } = await render();
+      const { element, button, buttonNamed, pair, panel, card, header } = await render();
 
       expect(() => button('Supprimer la notion')).not.toThrow();
-      expect(() => button('Ajouter une langue')).not.toThrow();
+      expect(buttonNamed('Ajouter une langue')).toBeUndefined();
+      expect(element.querySelector('.add-language')).toBeNull();
       expect(() => button('Traduire la notion')).not.toThrow();
       expect(() => button('Modifier la réponse (Français)', pair('fr'))).not.toThrow();
       expect(() => button('Modifier la question principale (Français)', pair('fr'))).not.toThrow();
@@ -42,7 +43,9 @@ describe('ConceptPage authoring', () => {
       expect(() => button('Ajouter une variante', panel('fr'))).not.toThrow();
       expect(() => button('Modifier la variante 2', panel('fr'))).not.toThrow();
       expect(() => button('Supprimer la variante 2', panel('fr'))).not.toThrow();
-      expect(() => button('Retirer la langue Bambara', panel('bm'))).not.toThrow();
+      expect(() => button('Supprimer la traduction en Bambara', panel('bm'))).not.toThrow();
+      expect(text(panel('bm'))).toContain('Supprimer la traduction');
+      expect(text(panel('bm'))).not.toContain('Retirer la langue');
       // Notion-level, per-language and per-variant tools each live in their own toolbar.
       const bar = (scope: ParentNode, name: string) =>
         scope.querySelector(`[role="toolbar"][aria-label="${name}"]`);
@@ -54,7 +57,7 @@ describe('ConceptPage authoring', () => {
       expect(bar(panel('fr').querySelector('.variant')!, 'Outils de la variante 2')).not.toBeNull();
       expect(bar(card(), 'Outils de la notion')).toBeNull();
       // The base language goes only with the concept.
-      expect(buttonNamed('Retirer la langue Français', panel('fr'))).toBeUndefined();
+      expect(buttonNamed('Supprimer la traduction en Français', panel('fr'))).toBeUndefined();
     });
   });
 
@@ -165,20 +168,21 @@ describe('ConceptPage authoring', () => {
       expect(dialog()).toBeNull();
     });
 
-    it('adds a language presence, offering only the project’s languages not yet present', async () => {
-      const { api, element, click, type, submit, afterFirstWrite } = await render();
+    it('writes a missing language’s answer by hand from its placeholder, in a modal', async () => {
+      const { api, pair, click, inDialog, type, submit, afterFirstWrite } = await render();
 
-      await click('Ajouter une langue');
-      const select = element.querySelector<HTMLSelectElement>('.add-language select')!;
-      const options = [...select.options].filter((o) => o.value !== '').map((o) => text(o));
-      // Wolof is in the catalogue but not in the project.
-      expect(options).toEqual(['Peul']);
-      type(select, IDS.ff);
-      type(
-        element.querySelector<HTMLTextAreaElement>('.add-language textarea')!,
-        'Hoyre e ndaaɗi.',
+      await click('Saisir la réponse en Peul', pair('ff'));
+      expect(text(document.getElementById(dialog()!.getAttribute('aria-labelledby')!))).toBe(
+        'Saisir la réponse en Peul',
       );
-      await submit(element.querySelector<HTMLFormElement>('.add-language form')!);
+      const select = inDialog<HTMLSelectElement>('select')!;
+      // Only that language, already chosen.
+      expect([...select.options].filter((o) => o.value !== '').map((o) => text(o))).toEqual([
+        'Peul',
+      ]);
+      expect(select.value).toBe(IDS.ff);
+      type(inDialog<HTMLTextAreaElement>('textarea')!, 'Hoyre e ndaaɗi.');
+      await submit(inDialog<HTMLFormElement>('form')!);
 
       expect(api.writes).toEqual([
         {
@@ -188,14 +192,30 @@ describe('ConceptPage authoring', () => {
         },
       ]);
       expect(afterFirstWrite()).toEqual([`POST ${C}/qasets`, `GET ${C}`]);
+      expect(dialog()).toBeNull();
     });
 
-    it('removes a language’s QASet only once confirmed, warning what goes with it', async () => {
+    it('writes the answer by hand from the untranslated language’s tab too', async () => {
+      const { api, panel, select, click, inDialog, type, submit } = await render();
+
+      await select('ff');
+      await click('Saisir la réponse en Peul', panel('ff'));
+      type(inDialog<HTMLTextAreaElement>('textarea')!, 'Hoyre.');
+      await submit(inDialog<HTMLFormElement>('form')!);
+
+      expect(api.writes.map((w) => `${w.method} ${w.path}`)).toEqual([`POST ${C}/qasets`]);
+    });
+
+    it('deletes a language’s translation only once confirmed, warning what goes with it', async () => {
       const { api, panel, click, afterFirstWrite } = await render();
 
-      await click('Retirer la langue Bambara', panel('bm'));
+      await click('Supprimer la traduction en Bambara', panel('bm'));
       expect(api.writes).toEqual([]);
-      expect(text(panel('bm'))).toContain('sa réponse et toutes ses variantes');
+      expect(text(panel('bm'))).toContain(
+        'sa réponse, ses variantes, leurs audios et leurs validations',
+      );
+      expect(text(panel('bm'))).toContain('La langue reste dans le projet.');
+      expect(text(panel('bm'))).toContain('irréversible');
       await click('Confirmer', panel('bm'));
 
       expect(afterFirstWrite()).toEqual([`DELETE ${BM}`, `GET ${C}`]);
@@ -228,21 +248,18 @@ describe('ConceptPage authoring', () => {
   });
 
   describe('failures', () => {
-    it('shows a conflict inline and keeps the form and its text', async () => {
-      const { api, element, click, type, submit, afterFirstWrite } = await render();
+    it('shows a conflict in the modal and keeps the form and its text', async () => {
+      const { api, pair, click, inDialog, type, submit, afterFirstWrite } = await render();
       api.answers[`POST ${C}/qasets`] = engineError(409, 'language_already_present');
 
-      await click('Ajouter une langue');
-      type(element.querySelector<HTMLSelectElement>('.add-language select')!, IDS.ff);
-      type(element.querySelector<HTMLTextAreaElement>('.add-language textarea')!, 'Hoyre.');
-      await submit(element.querySelector<HTMLFormElement>('.add-language form')!);
+      await click('Saisir la réponse en Peul', pair('ff'));
+      type(inDialog<HTMLTextAreaElement>('textarea')!, 'Hoyre.');
+      await submit(inDialog<HTMLFormElement>('form')!);
 
-      expect(text(element.querySelector('.add-language [role="alert"]'))).toBe(
+      expect(text(inDialog('[role="alert"]'))).toBe(
         'Cette langue est déjà présente dans cette notion.',
       );
-      expect(element.querySelector<HTMLTextAreaElement>('.add-language textarea')?.value).toBe(
-        'Hoyre.',
-      );
+      expect(inDialog<HTMLTextAreaElement>('textarea')?.value).toBe('Hoyre.');
       expect(afterFirstWrite()).toEqual([`POST ${C}/qasets`]);
     });
 
