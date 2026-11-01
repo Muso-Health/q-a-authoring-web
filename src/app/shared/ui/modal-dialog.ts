@@ -18,8 +18,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 let nextId = 0;
 
-/** How long the fade-out lasts, in step with `muso-dialog-out` below; a safety net past it. */
-const LEAVE_MS = 180;
+/** How long the fade in and out last; past it (plus a margin) a leave ends even unreported. */
+const MOTION_MS = 250;
+const EASING = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 
 /**
  * The modal every modal is built on: render it inside an `@if` and it opens over the page; leave
@@ -28,9 +29,10 @@ const LEAVE_MS = 180;
  * Escape, a click on the overlay and the close button are a dismissal: `dismissed` asks the owner
  * to leave the `@if`. While `locked` — a call in flight — none of them does anything.
  *
- * It fades and rises in on open and fades out on close, the backdrop with it; whoever closes it,
- * it leaves the page only once the fade is done. Under `prefers-reduced-motion` it appears and
- * goes at once.
+ * It fades and rises in on open and fades out on close, the backdrop with it: it is inserted
+ * hidden and turned open on the next frame, so the browser has a state to transition from; and
+ * whoever closes it, it is turned hidden again and leaves the page only once that transition is
+ * done. Only under `prefers-reduced-motion: reduce` does it appear and go at once.
  */
 @Component({
   selector: 'app-dialog',
@@ -56,38 +58,31 @@ const LEAVE_MS = 180;
     </ng-template>
   `,
   styles: `
-    .muso-dialog-backdrop {
+    .cdk-overlay-backdrop.muso-dialog-backdrop {
       background: color-mix(in srgb, var(--muso-navy) 55%, transparent);
+      opacity: 0;
+      transition: opacity ${MOTION_MS}ms ${EASING};
     }
-    .muso-dialog-pane.muso-dialog-enter {
-      animation: muso-dialog-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    .cdk-overlay-backdrop.muso-dialog-backdrop.muso-dialog-open {
+      opacity: 1;
+    }
+    .muso-dialog-pane.muso-dialog-animated {
+      opacity: 0;
+      transform: translateY(1rem) scale(0.95);
+      transition:
+        opacity ${MOTION_MS}ms ${EASING},
+        transform ${MOTION_MS}ms ${EASING};
+    }
+    .muso-dialog-pane.muso-dialog-animated.muso-dialog-open {
+      opacity: 1;
+      transform: none;
     }
     .muso-dialog-pane.muso-dialog-leave {
-      animation: muso-dialog-out ${LEAVE_MS}ms ease-in both;
       pointer-events: none;
     }
-    .cdk-overlay-backdrop.muso-dialog-backdrop-leave {
-      opacity: 0;
-      transition: opacity ${LEAVE_MS}ms ease-in;
-    }
-    @keyframes muso-dialog-in {
-      from {
-        opacity: 0;
-        transform: translateY(1rem) scale(0.95);
-      }
-    }
-    @keyframes muso-dialog-out {
-      to {
-        opacity: 0;
-        transform: translateY(0.5rem) scale(0.97);
-      }
-    }
     @media (prefers-reduced-motion: reduce) {
-      .muso-dialog-pane.muso-dialog-enter,
-      .muso-dialog-pane.muso-dialog-leave {
-        animation: none;
-      }
-      .cdk-overlay-backdrop.muso-dialog-backdrop-leave {
+      .cdk-overlay-backdrop.muso-dialog-backdrop,
+      .muso-dialog-pane.muso-dialog-animated {
         transition: none;
       }
     }
@@ -135,7 +130,8 @@ export class ModalDialog {
     const dialog = inject(Dialog);
     const injector = inject(Injector);
     const tasks = inject(PendingTasks);
-    const media = inject(DOCUMENT).defaultView?.matchMedia;
+    const view = inject(DOCUMENT).defaultView;
+    const media = view?.matchMedia?.bind(view);
     // Without `matchMedia` (a test environment) nothing can say motion is welcome: none.
     const animate = media ? !media('(prefers-reduced-motion: reduce)').matches : false;
     let closing = false;
@@ -152,9 +148,23 @@ export class ModalDialog {
         disableAnimations: !animate,
         width: `calc(100vw - 2 * var(--muso-page-gutter, 16px))`,
         maxWidth: '36rem',
-        panelClass: animate ? ['muso-dialog-pane', 'muso-dialog-enter'] : 'muso-dialog-pane',
+        panelClass: animate ? ['muso-dialog-pane', 'muso-dialog-animated'] : 'muso-dialog-pane',
         backdropClass: 'muso-dialog-backdrop',
       });
+      const shown = () => {
+        ref.overlayRef.overlayElement.classList.add('muso-dialog-open');
+        ref.overlayRef.backdropElement?.classList.add('muso-dialog-open');
+      };
+      if (animate && view?.requestAnimationFrame) {
+        // Inserted hidden; opened on the next frame, once the hidden state has been styled.
+        view.requestAnimationFrame(() => {
+          if (closing) return;
+          void ref.overlayRef.overlayElement.offsetWidth;
+          shown();
+        });
+      } else {
+        shown();
+      }
       ref.keydownEvents.subscribe((event) => {
         if (event.key === 'Escape' && !hasModifier(event)) {
           event.preventDefault();
@@ -178,8 +188,9 @@ export class ModalDialog {
         return;
       }
       const pane = ref.overlayRef.overlayElement;
-      pane.classList.replace('muso-dialog-enter', 'muso-dialog-leave');
-      ref.overlayRef.backdropElement?.classList.add('muso-dialog-backdrop-leave');
+      pane.classList.add('muso-dialog-leave');
+      pane.classList.remove('muso-dialog-open');
+      ref.overlayRef.backdropElement?.classList.remove('muso-dialog-open');
       // Held as a pending task, so the app (and a test) is stable only once it has gone.
       const done = tasks.add();
       let gone = false;
@@ -187,11 +198,15 @@ export class ModalDialog {
         if (gone) return;
         gone = true;
         clearTimeout(timer);
+        pane.removeEventListener('transitionend', onEnd);
         ref.close();
         done();
       };
-      pane.addEventListener('animationend', finish, { once: true });
-      const timer = setTimeout(finish, LEAVE_MS + 60);
+      const onEnd = (event: TransitionEvent) => {
+        if (event.target === pane && event.propertyName === 'opacity') finish();
+      };
+      pane.addEventListener('transitionend', onEnd);
+      const timer = setTimeout(finish, MOTION_MS + 80);
     });
   }
 

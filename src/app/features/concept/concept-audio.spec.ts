@@ -353,12 +353,12 @@ describe('ConceptPage audio', () => {
       );
     });
 
-    it('returns to the translate tool when its form is cancelled', async () => {
-      const { panel, click } = await render();
+    it('returns to the translate tool when its modal is cancelled', async () => {
+      const { panel, click, press } = await render();
       const variant2 = () => panel('fr').querySelectorAll<HTMLElement>('.variant')[0];
 
       await click('Traduire la variante 2', variant2());
-      await click('Annuler', variant2().querySelector('.translate')!);
+      await press('Annuler');
 
       expect(document.activeElement?.getAttribute('aria-label')).toBe('Traduire la variante 2');
     });

@@ -24,7 +24,7 @@ export type VariantContext = 'section' | 'pair';
 
 /**
  * One question variant: its text with its tools on the same line — edit, manage audio, translate,
- * delete — each opening its modal (translation opens in place), and its audios below.
+ * delete — each opening its modal, and its audios below.
  */
 @Component({
   selector: 'app-variant-item',
@@ -90,7 +90,11 @@ export type VariantContext = 'section' | 'pair';
         />
       }
       @case ('translate') {
-        <div class="translate">
+        <app-dialog
+          [title]="l.translate"
+          [locked]="editor.busy()"
+          (dismissed)="close('translate', 'translate:' + v.id)"
+        >
           <app-translate-form
             [languages]="editor.variantTargets(language().id)"
             [busy]="editor.busy()"
@@ -98,7 +102,7 @@ export type VariantContext = 'section' | 'pair';
             (submitted)="translate($event)"
             (cancel)="close('translate', 'translate:' + v.id)"
           />
-        </div>
+        </app-dialog>
       }
     }
   `,
@@ -117,13 +121,6 @@ export type VariantContext = 'section' | 'pair';
       min-inline-size: 0;
       margin: 0;
       overflow-wrap: anywhere;
-    }
-    .translate {
-      margin-block-start: var(--muso-space-2);
-      padding: var(--muso-space-2);
-      border: 1px solid var(--card-border);
-      border-radius: var(--muso-radius);
-      background: var(--muso-surface);
     }
   `,
 })

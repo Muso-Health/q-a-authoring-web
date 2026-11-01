@@ -5,7 +5,7 @@ import {
   ME_READER,
   PROJECT_LANGUAGES,
 } from '../../core/catalog/testing/catalog-fixtures';
-import { C, renderConcept as render, text } from './testing/render-concept';
+import { C, dialog, renderConcept as render, text } from './testing/render-concept';
 
 const FR = `/qasets/${IDS.qasetFr}`;
 const TRANSLATE_CONCEPT = `POST ${C}/translate`;
@@ -133,23 +133,31 @@ describe('ConceptPage engine assistance', () => {
   });
 
   describe('translating a variant', () => {
+    it('opens in a modal titled for the variant, not in place', async () => {
+      const { pair, click } = await render();
+
+      await click('Traduire la question principale (Français)', pair('fr'));
+
+      const title = document.getElementById(dialog()!.getAttribute('aria-labelledby')!);
+      expect(text(title)).toBe('Traduire la question principale (Français)');
+      expect(dialog()!.getAttribute('aria-modal')).toBe('true');
+      expect(pair('fr').querySelector('form')).toBeNull();
+    });
+
     it('offers only the other languages the concept already has a QASet in', async () => {
       const { pair, click } = await render();
 
       await click('Traduire la question principale (Français)', pair('fr'));
 
-      expect(options(pair('fr').querySelector('.translate select')!)).toEqual([
-        'English',
-        'Bambara',
-      ]);
+      expect(options(dialog()!.querySelector('select')!)).toEqual(['English', 'Bambara']);
     });
 
     it('translates a variant into that language’s QASet, then re-fetches', async () => {
       const { api, pair, click, type, submit, afterFirstWrite } = await render();
 
       await click('Traduire la question principale (Français)', pair('fr'));
-      type(pair('fr').querySelector('.translate select')!, IDS.bm);
-      await submit(pair('fr').querySelector('.translate form')!);
+      type(dialog()!.querySelector('select')!, IDS.bm);
+      await submit(dialog()!.querySelector('form')!);
 
       expect(api.writes).toEqual([
         {
@@ -162,6 +170,7 @@ describe('ConceptPage engine assistance', () => {
         `POST ${FR}/variants/${IDS.variantFr1}/translate`,
         `GET ${C}`,
       ]);
+      expect(dialog()).toBeNull();
     });
 
     const refusals: [number, string, string][] = [
@@ -191,13 +200,13 @@ describe('ConceptPage engine assistance', () => {
         });
 
         await click('Traduire la question principale (Français)', pair('fr'));
-        type(pair('fr').querySelector('.translate select')!, IDS.en);
-        await submit(pair('fr').querySelector('.translate form')!);
+        type(dialog()!.querySelector('select')!, IDS.en);
+        await submit(dialog()!.querySelector('form')!);
 
-        expect(text(pair('fr').querySelector('.translate [role="alert"]'))).toBe(message);
+        expect(text(dialog()!.querySelector('[role="alert"]'))).toBe(message);
         expect(afterFirstWrite()).toEqual([path]);
         expect(panel('en').querySelectorAll('.variant')).toHaveLength(0);
-        expect(pair('fr').querySelector('.translate form')).not.toBeNull();
+        expect(dialog()!.querySelector('form')).not.toBeNull();
       });
     }
   });
