@@ -68,7 +68,7 @@ describe('ConceptPage variant generation wizard', () => {
       [...dialog()!.querySelectorAll<HTMLButtonElement>('button')].every((b) => b.disabled),
     ).toBe(true);
     escape();
-    document.querySelector<HTMLElement>('.cdk-overlay-backdrop')!.click();
+    document.querySelector<HTMLElement>('.muso-dialog-backdrop')!.click();
     fixture.detectChanges();
     expect(dialog()).not.toBeNull();
 
@@ -175,7 +175,7 @@ describe('ConceptPage variant generation wizard', () => {
     [
       'the overlay',
       async (page: { settle: () => Promise<void> }) => {
-        document.querySelector<HTMLElement>('.cdk-overlay-backdrop')!.click();
+        document.querySelector<HTMLElement>('.muso-dialog-backdrop')!.click();
         await page.settle();
       },
     ],

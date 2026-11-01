@@ -1,7 +1,7 @@
 import { Component, inject, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Language } from '../../core/catalog/catalog.model';
-import { ModalDialog } from '../../shared/ui/modal-dialog';
+import { DialogHost, ModalDialog } from '../../shared/ui/modal-dialog';
 import { ConceptEditor } from './concept-editor';
 import type { ItemRole, ItemView } from './concept-view';
 import { ItemAudios } from './item-audios';
@@ -13,6 +13,7 @@ import { ItemAudios } from './item-audios';
  */
 @Component({
   selector: 'app-audio-dialog',
+  hostDirectives: [DialogHost],
   imports: [TranslocoPipe, ModalDialog, ItemAudios],
   template: `
     <app-dialog

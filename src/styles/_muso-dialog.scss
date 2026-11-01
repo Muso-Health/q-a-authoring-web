@@ -1,0 +1,65 @@
+// The modal's enter and leave animations (`app-dialog`, src/app/shared/ui/modal-dialog.ts).
+//
+// Angular's `animate.enter` / `animate.leave` add these classes and wait for the animation of
+// the element they are on — and on leave, only of the element the owner's `@if` removes: the
+// `<app-dialog>` itself, or the host of a component wrapping it (`DialogHost`). Global, so the
+// same class animates either host. The element fades as a unit — backdrop, panel and content —
+// while the panel rises in and sinks out.
+
+.muso-dialog-entering {
+  animation: muso-dialog-fade-in 300ms ease-out both;
+}
+.muso-dialog-entering .muso-dialog {
+  animation: muso-dialog-rise-in 300ms ease-out both;
+}
+
+.muso-dialog-leaving {
+  animation: muso-dialog-fade-out 250ms ease-in both;
+  pointer-events: none;
+}
+.muso-dialog-leaving .muso-dialog {
+  animation: muso-dialog-sink-out 250ms ease-in both;
+}
+
+@keyframes muso-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes muso-dialog-rise-in {
+  from {
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes muso-dialog-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes muso-dialog-sink-out {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+// Only for those who ask: no animation, so Angular finds none to wait for — at once.
+@media (prefers-reduced-motion: reduce) {
+  .muso-dialog-entering,
+  .muso-dialog-entering .muso-dialog,
+  .muso-dialog-leaving,
+  .muso-dialog-leaving .muso-dialog {
+    animation: none;
+  }
+}

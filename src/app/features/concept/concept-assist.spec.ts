@@ -141,7 +141,10 @@ describe('ConceptPage engine assistance', () => {
       const title = document.getElementById(dialog()!.getAttribute('aria-labelledby')!);
       expect(text(title)).toBe('Traduire la question principale (Français)');
       expect(dialog()!.getAttribute('aria-modal')).toBe('true');
-      expect(pair('fr').querySelector('form')).toBeNull();
+      // Its form is in the modal's panel, not laid out in the pair.
+      const forms = [...pair('fr').querySelectorAll('form')];
+      expect(forms).toHaveLength(1);
+      expect(dialog()!.contains(forms[0])).toBe(true);
     });
 
     it('offers only the other languages the concept already has a QASet in', async () => {

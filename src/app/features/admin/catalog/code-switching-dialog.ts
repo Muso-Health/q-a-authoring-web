@@ -1,7 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import type { Language } from '../../../core/catalog/catalog.model';
-import { ModalDialog } from '../../../shared/ui/modal-dialog';
+import { DialogHost, ModalDialog } from '../../../shared/ui/modal-dialog';
 
 let nextId = 0;
 
@@ -11,6 +11,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-code-switching-dialog',
+  hostDirectives: [DialogHost],
   imports: [TranslocoPipe, ModalDialog],
   template: `
     <app-dialog
