@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ModalDialog } from './modal-dialog';
+import { DialogHost, ModalDialog } from './modal-dialog';
 
 /**
  * Asks, in a modal, before an irreversible action. Leaving it any other way than by confirming
@@ -8,6 +8,7 @@ import { ModalDialog } from './modal-dialog';
  */
 @Component({
   selector: 'app-confirm-dialog',
+  hostDirectives: [DialogHost],
   imports: [TranslocoPipe, ModalDialog],
   template: `
     <app-dialog [title]="title()" [locked]="busy()" (dismissed)="cancel.emit()">

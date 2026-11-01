@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ModalDialog } from '../../shared/ui/modal-dialog';
+import { DialogHost, ModalDialog } from '../../shared/ui/modal-dialog';
 import { Typeahead } from '../../shared/ui/typeahead';
 import { ConceptEditor } from './concept-editor';
 import type { Tag } from './concept-view';
@@ -79,6 +79,7 @@ export class ConceptTags {
  */
 @Component({
   selector: 'app-concept-tag-dialog',
+  hostDirectives: [DialogHost],
   imports: [TranslocoPipe, ModalDialog, Typeahead],
   template: `
     @let l = labels();
